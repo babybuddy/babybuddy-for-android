@@ -1,0 +1,22 @@
+<?xml version="1.0" encoding="utf-8"?>
+<navigation xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    xmlns:tools="http://schemas.android.com/tools"
+    android:id="@+id/nav_graph"
+    app:startDestination="@id/LoginFragment">
+
+    <fragment
+        android:id="@+id/LoginFragment"
+        android:name="eu.pkgsoftware.babybuddywidgets.LoginFragment"
+        android:label="@string/first_fragment_label"
+        tools:layout="@layout/login_fragment" >
+        <action
+            android:id="@+id/action_LoginFragment_to_loggedInFragment2"
+            app:destination="@id/loggedInFragment2" />
+    </fragment>
+    <fragment
+        android:id="@+id/loggedInFragment2"
+        android:name="eu.pkgsoftware.babybuddywidgets.LoggedInFragment"
+        android:label="logged_in_fragment"
+        tools:layout="@layout/logged_in_fragment" />
+</navigation>
