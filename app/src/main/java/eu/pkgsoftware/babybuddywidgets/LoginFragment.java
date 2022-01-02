@@ -1,5 +1,7 @@
 package eu.pkgsoftware.babybuddywidgets;
 
+import android.app.AlertDialog;
+import android.content.DialogInterface;
 import android.os.Bundle;
 import android.text.Editable;
 import android.text.TextWatcher;
@@ -27,6 +29,10 @@ public class LoginFragment extends Fragment {
                 (addressEdit.getText().length() > 0) &&
                         (loginNameEdit.getText().length() > 0) &&
                         (loginPasswordEdit.getText().length() > 0));
+    }
+
+    public MainActivity mainActivity() {
+        return (MainActivity) getActivity();
     }
 
     @Override
@@ -58,6 +64,12 @@ public class LoginFragment extends Fragment {
             }
         };
 
+        String serverUrl = mainActivity().getCredStore().getServerUrl();
+        if (serverUrl == null) {
+            serverUrl = "";
+        }
+        addressEdit.setText(serverUrl);
+
         addressEdit.addTextChangedListener(tw);
         loginNameEdit.addTextChangedListener(tw);
         loginPasswordEdit.addTextChangedListener(tw);
@@ -85,8 +97,28 @@ public class LoginFragment extends Fragment {
     }
 
     private void performLogin() {
-        System.out.println("Logging in");
-        NavController controller = Navigation.findNavController(getView());
-        controller.navigate(R.id.action_LoginFragment_to_loggedInFragment2);
+        CredStore credStore = mainActivity().getCredStore();
+        credStore.storeServerUrl(addressEdit.getText().toString());
+        String token = GrabAppToken.grabToken(
+                addressEdit.getText().toString(),
+                loginNameEdit.getText().toString(),
+                loginPasswordEdit.getText().toString());
+        credStore.storeAppToken(token);
+
+        if (token == null) {
+            new AlertDialog.Builder(getContext())
+                    .setTitle("Login failed")
+                    .setMessage("[Login failed?]")
+                    .setPositiveButton("Ok", new DialogInterface.OnClickListener() {
+                        @Override
+                        public void onClick(DialogInterface dialogInterface, int i) {
+                            dialogInterface.cancel();
+                        }
+                    })
+                    .show();
+        } else {
+            NavController controller = Navigation.findNavController(getView());
+            controller.navigate(R.id.action_LoginFragment_to_loggedInFragment2);
+        }
     }
 }

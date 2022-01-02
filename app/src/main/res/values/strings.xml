@@ -3,7 +3,7 @@
     <string name="action_settings">Settings</string>
     <!-- Strings used for fragments for navigation -->
     <string name="first_fragment_label">Login to Baby Buddy</string>
-    <string name="second_fragment_label">Second Fragment</string>
+    <string name="logged_in_label">Logged in to Baby Buddy</string>
     <string name="next">Next</string>
     <string name="previous">Previous</string>
 

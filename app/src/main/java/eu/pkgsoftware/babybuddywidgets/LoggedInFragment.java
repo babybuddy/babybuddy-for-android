@@ -10,7 +10,6 @@ import androidx.fragment.app.Fragment;
 import eu.pkgsoftware.babybuddywidgets.databinding.LoggedInFragmentBinding;
 
 public class LoggedInFragment extends Fragment {
-
     private LoggedInFragmentBinding binding;
 
     @Override
@@ -18,7 +17,6 @@ public class LoggedInFragment extends Fragment {
             LayoutInflater inflater, ViewGroup container,
             Bundle savedInstanceState
     ) {
-
         binding = LoggedInFragmentBinding.inflate(inflater, container, false);
         return binding.getRoot();
     }
@@ -32,5 +30,4 @@ public class LoggedInFragment extends Fragment {
         super.onDestroyView();
         binding = null;
     }
-
 }

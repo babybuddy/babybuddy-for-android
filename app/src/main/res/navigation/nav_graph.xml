@@ -12,11 +12,13 @@
         tools:layout="@layout/login_fragment" >
         <action
             android:id="@+id/action_LoginFragment_to_loggedInFragment2"
-            app:destination="@id/loggedInFragment2" />
+            app:destination="@id/loggedInFragment2"
+            app:popUpTo="@id/LoginFragment"
+            app:popUpToInclusive="true" />
     </fragment>
     <fragment
         android:id="@+id/loggedInFragment2"
         android:name="eu.pkgsoftware.babybuddywidgets.LoggedInFragment"
-        android:label="logged_in_fragment"
+        android:label="@string/logged_in_label"
         tools:layout="@layout/logged_in_fragment" />
 </navigation>
