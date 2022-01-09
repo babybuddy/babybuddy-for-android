@@ -1,0 +1,42 @@
+<RelativeLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    xmlns:tools="http://schemas.android.com/tools"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent"
+    android:padding="@dimen/widget_margin"
+    android:theme="@style/ThemeOverlay.BabyBuddyWidgets.AppWidgetContainer">
+
+    <LinearLayout
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_centerInParent="true"
+        android:gravity="center"
+        android:orientation="horizontal">
+
+        <ImageButton
+            android:id="@+id/startButton"
+            android:layout_width="48dp"
+            android:layout_height="48dp"
+            android:layout_marginBottom="0dp"
+            android:layout_marginEnd="0dp"
+            android:src="@android:drawable/ic_media_play"
+            app:srcCompat="@android:drawable/ic_media_play" />
+
+        <ImageButton
+            android:id="@+id/stopButton"
+            android:layout_width="48dp"
+            android:layout_height="48dp"
+            android:layout_marginBottom="0dp"
+            android:layout_marginEnd="0dp"
+            android:src="@android:drawable/ic_menu_save"
+            app:srcCompat="@android:drawable/ic_menu_save" />
+
+        <TextView
+            android:id="@+id/timerText"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_weight="1"
+            android:text="TextView" />
+    </LinearLayout>
+
+</RelativeLayout>

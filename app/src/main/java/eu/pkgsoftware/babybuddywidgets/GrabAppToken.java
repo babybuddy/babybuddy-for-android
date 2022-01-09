@@ -39,7 +39,7 @@ import java.util.Map;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
-public class GrabAppToken {
+public class GrabAppToken extends StreamReader {
     private static class ThreadResult {
         public Exception error = null;
         public String result = null;
@@ -246,28 +246,4 @@ public class GrabAppToken {
         return splits[splits.length - 1];
     }
 
-    private String loadHtml(HttpURLConnection con) throws IOException {
-        // Load the html - max 1 MB
-        byte[] buffer = new byte[1000000];
-
-        int offset = 0;
-        while (true) {
-            if (buffer.length - offset <= 0) {
-                break;
-            }
-            int len = con.getInputStream().read(buffer, offset, buffer.length - offset);
-            if (len <= 0) {
-                break;
-            }
-            offset += len;
-        }
-
-        String html;
-        if (offset <= 0) {
-            html = "";
-        } else {
-            html = new String(buffer, 0, offset, StandardCharsets.UTF_8);
-        }
-        return html;
-    }
 }

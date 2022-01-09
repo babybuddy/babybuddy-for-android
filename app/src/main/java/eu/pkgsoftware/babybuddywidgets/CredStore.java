@@ -13,6 +13,8 @@ import java.security.InvalidKeyException;
 import java.security.MessageDigest;
 import java.security.NoSuchAlgorithmException;
 import java.security.SecureRandom;
+import java.util.HashMap;
+import java.util.Map;
 import java.util.Properties;
 
 import javax.crypto.BadPaddingException;
@@ -31,6 +33,7 @@ public class CredStore {
     private String serverUrl;
     private String SALT_STRING;
     private String encryptedToken;
+    private Map<Integer, Integer> timerAssignments = new HashMap<Integer, Integer>();
 
     public CredStore(Context context) {
         settingsFilePath = context.getFilesDir().getAbsolutePath().toString() + "/settings.conf";
@@ -45,6 +48,17 @@ public class CredStore {
         if (SALT_STRING == null) {
             generateNewSalt();
         }
+
+        String timerAssignmentsString = props.getProperty("timer_default_types");
+        if (timerAssignmentsString != null) {
+            for (String ass : timerAssignmentsString.split(";")) {
+                if (ass.length() <= 0) continue;
+                String[] assParts = ass.split("=");
+                if (assParts.length != 2) continue;
+                timerAssignments.put(Integer.parseInt(assParts[0]), Integer.parseInt(assParts[1]));
+            }
+        }
+
         encryptedToken = props.getProperty("token");
     }
 
@@ -57,6 +71,16 @@ public class CredStore {
         if (encryptedToken != null) {
             props.setProperty("token", encryptedToken);
         }
+
+        StringBuilder timerAssignmentsString = new StringBuilder();
+        for (Map.Entry<Integer, Integer> e : timerAssignments.entrySet()) {
+            timerAssignmentsString.append(e.getKey());
+            timerAssignmentsString.append("=");
+            timerAssignmentsString.append(e.getValue());
+            timerAssignmentsString.append(";");
+        }
+        props.setProperty("timer_default_types", timerAssignmentsString.toString());
+
         try (FileOutputStream fos = new FileOutputStream(settingsFilePath.toString())) {
             props.store(fos, "");
         } catch (IOException e) {
@@ -82,7 +106,7 @@ public class CredStore {
                         (new String(md5Key, StandardCharsets.ISO_8859_1) + ":::::" + SALT_STRING).getBytes(StandardCharsets.UTF_8));
                 SecretKey key = new SecretKeySpec(md5Key,"AES");
                 cipher.init(Cipher.DECRYPT_MODE, key, new IvParameterSpec(ivGen));
-                byte[] decoded =  cipher.doFinal(Base64.decode(encryptedToken, Base64.DEFAULT));
+                byte[] decoded = cipher.doFinal(Base64.decode(encryptedToken, Base64.DEFAULT));
                 return new String(decoded, StandardCharsets.ISO_8859_1);
             }
         }
@@ -104,7 +128,7 @@ public class CredStore {
                         (new String(md5Key, StandardCharsets.ISO_8859_1) + ":::::" + SALT_STRING).getBytes(StandardCharsets.UTF_8));
                 SecretKey key = new SecretKeySpec(md5Key,"AES");
                 cipher.init(Cipher.ENCRYPT_MODE, key, new IvParameterSpec(ivGen));
-                byte[] encoded =  cipher.doFinal(cipher.doFinal(token.getBytes(StandardCharsets.ISO_8859_1)));
+                byte[] encoded = cipher.doFinal(token.getBytes(StandardCharsets.ISO_8859_1));
                 encryptedToken = Base64.encodeToString(encoded, Base64.DEFAULT);
             }
         }
@@ -121,5 +145,14 @@ public class CredStore {
 
     public String getServerUrl() {
         return serverUrl;
+    }
+
+    public void setTimerDefaultSelection(int timer, int selection) {
+        timerAssignments.put(timer, selection);
+        storePrefs();
+    }
+
+    public Map<Integer, Integer> getTimerDefaultSelections() {
+        return new HashMap<>(timerAssignments);
     }
 }
