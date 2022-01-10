@@ -164,16 +164,7 @@ public class GrabAppToken extends StreamReader {
         String html = loadHtml(con);;
 
         // Find: <input type="hidden" name="csrfmiddlewaretoken" value="...">
-        String match;
-        {
-            Pattern pat = Pattern.compile("<input .*name=\"csrfmiddlewaretoken\".*>");
-            Matcher m = pat.matcher(html);
-            if (!m.find()) {
-                throw new IOException("csrfmiddlewaretoken missing");
-            }
-            match = m.group(0);
-        }
-        String csrfmiddlewaretoken = match.split("value=")[1].split("\"")[1];
+        String csrfmiddlewaretoken = UserFormInteractions.extractCsrfmiddlewaretoken(html);
 
         // Perform the login
         HashMap<String, String> postData = new HashMap<String, String>();
