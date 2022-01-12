@@ -12,6 +12,7 @@
     <string name="appwidget_text">EXAMPLE</string>
     <string name="configure">Configure</string>
     <string name="add_widget">Add widget</string>
+    <string name="LoggingInMessage">Logging in...</string>
 
     <array name="timerTypes">
         <item>Feeding</item>

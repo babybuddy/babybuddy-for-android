@@ -1,8 +1,10 @@
 package eu.pkgsoftware.babybuddywidgets;
 
 import android.app.AlertDialog;
+import android.app.ProgressDialog;
 import android.content.DialogInterface;
 import android.os.Bundle;
+import android.os.Message;
 import android.text.Editable;
 import android.text.TextWatcher;
 import android.view.LayoutInflater;
@@ -18,8 +20,13 @@ import androidx.navigation.Navigation;
 import eu.pkgsoftware.babybuddywidgets.databinding.LoginFragmentBinding;
 
 public class LoginFragment extends Fragment {
+    public static interface Promise<S, F> {
+        public void succeeded(S s);
+        public void failed(F f);
+    }
 
     private LoginFragmentBinding binding;
+    private ProgressDialog progressDialog;
 
     private Button loginButton;
     private EditText addressEdit, loginNameEdit, loginPasswordEdit;
@@ -64,7 +71,8 @@ public class LoginFragment extends Fragment {
             }
         };
 
-        String serverUrl = mainActivity().getCredStore().getServerUrl();
+        CredStore credStore = new CredStore(getContext());
+        String serverUrl = credStore.getServerUrl();
         if (serverUrl == null) {
             serverUrl = "";
         }
@@ -83,6 +91,25 @@ public class LoginFragment extends Fragment {
 
         updateLoginButton();
 
+
+        progressDialog = new ProgressDialog(getContext());
+        progressDialog.setProgressStyle(ProgressDialog.STYLE_SPINNER);
+        progressDialog.setMessage(getString(R.string.LoggingInMessage));
+
+        progressDialog.show();
+        testLogin(new Promise<Object, String>() {
+            @Override
+            public void succeeded(Object o) {
+                progressDialog.hide();
+                moveToLoggedIn();
+            }
+
+            @Override
+            public void failed(String s) {
+                progressDialog.hide();
+            }
+        });
+
         return binding.getRoot();
     }
 
@@ -96,8 +123,38 @@ public class LoginFragment extends Fragment {
         binding = null;
     }
 
+    private void testLogin(Promise<Object, String> promise) {
+        CredStore credStore = new CredStore(getContext());
+        if (credStore.getAppToken() != null) {
+            BabyBuddyClient client = new BabyBuddyClient(getActivity().getMainLooper(), credStore);
+            client.listChildren(new BabyBuddyClient.RequestCallback<BabyBuddyClient.Child[]>() {
+                @Override
+                public void error(Exception error) {
+                    promise.failed(error.getMessage());
+                    new AlertDialog.Builder(getActivity())
+                            .setTitle("Login failed")
+                            .setMessage("[Login failed?]")
+                            .setPositiveButton("Ok", new DialogInterface.OnClickListener() {
+                                @Override
+                                public void onClick(DialogInterface dialogInterface, int i) {
+                                    dialogInterface.cancel();
+                                }
+                            })
+                            .show();
+                }
+
+                @Override
+                public void response(BabyBuddyClient.Child[] response) {
+                    promise.succeeded(new Object());
+                }
+            });
+        }
+    }
+
     private void performLogin() {
-        CredStore credStore = mainActivity().getCredStore();
+        progressDialog.show();
+
+        CredStore credStore = new CredStore(getContext());
         credStore.storeServerUrl(addressEdit.getText().toString());
         String token = GrabAppToken.grabToken(
                 addressEdit.getText().toString(),
@@ -105,20 +162,32 @@ public class LoginFragment extends Fragment {
                 loginPasswordEdit.getText().toString());
         credStore.storeAppToken(token);
 
-        if (token == null) {
-            new AlertDialog.Builder(getContext())
-                    .setTitle("Login failed")
-                    .setMessage("[Login failed?]")
-                    .setPositiveButton("Ok", new DialogInterface.OnClickListener() {
-                        @Override
-                        public void onClick(DialogInterface dialogInterface, int i) {
-                            dialogInterface.cancel();
-                        }
-                    })
-                    .show();
-        } else {
-            NavController controller = Navigation.findNavController(getView());
-            controller.navigate(R.id.action_LoginFragment_to_loggedInFragment2);
-        }
+        testLogin(new Promise<Object, String>() {
+            @Override
+            public void succeeded(Object o) {
+                progressDialog.hide();
+                moveToLoggedIn();
+            }
+
+            @Override
+            public void failed(String s) {
+                progressDialog.hide();
+                new AlertDialog.Builder(getContext())
+                        .setTitle("Login failed")
+                        .setMessage("[Login failed?]")
+                        .setPositiveButton("Ok", new DialogInterface.OnClickListener() {
+                            @Override
+                            public void onClick(DialogInterface dialogInterface, int i) {
+                                dialogInterface.cancel();
+                            }
+                        })
+                        .show();
+            }
+        });
+    }
+
+    private void moveToLoggedIn() {
+        NavController controller = Navigation.findNavController(getView());
+        controller.navigate(R.id.action_LoginFragment_to_loggedInFragment2);
     }
 }

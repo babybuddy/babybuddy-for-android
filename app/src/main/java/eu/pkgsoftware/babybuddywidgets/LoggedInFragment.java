@@ -89,25 +89,34 @@ public class LoggedInFragment extends Fragment {
                             .show();
                 }
 
+                class StoreActivityCallback implements BabyBuddyClient.RequestCallback<Boolean> {
+                    private String errorMessage;
+
+                    public StoreActivityCallback(String errorMessage) {
+                        this.errorMessage = errorMessage;
+                    }
+
+                    @Override
+                    public void error(Exception error) {
+                        reportError(errorMessage);
+                    }
+
+                    @Override
+                    public void response(Boolean response) {
+                    }
+                }
+
                 private void storeActivity() {
+
                     int selectedActivity = (int) binding.appTimerDefaultType.getSelectedItemId();
                     if (selectedActivity == 1) {
-                        client.createSleepRecordFromTimer(timer, new BabyBuddyClient.RequestCallback<Boolean>() {
-                            @Override
-                            public void error(Exception error) {
-                                reportError("Storing Sleep Time failed.");
-                            }
-
-                            @Override
-                            public void response(Boolean response) {
-                                // all done :)
-                            }
-                        });
+                        client.createSleepRecordFromTimer(timer, new StoreActivityCallback("Storing Sleep Time failed."));
                     } else if (selectedActivity == 2) {
+                        client.createSleepRecordFromTimer(timer, new StoreActivityCallback("Storing Tummy Time failed."));
                         client.createTummyTimeRecordFromTimer(timer, new BabyBuddyClient.RequestCallback<Boolean>() {
                             @Override
                             public void error(Exception error) {
-                                reportError("Storing Tummy Time failed.");
+                                reportError(error.getMessage());
                             }
 
                             @Override
