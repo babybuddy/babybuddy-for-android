@@ -38,7 +38,7 @@ public class LoginFragment extends Fragment {
                         (loginPasswordEdit.getText().length() > 0));
     }
 
-    public MainActivity mainActivity() {
+    private MainActivity mainActivity() {
         return (MainActivity) getActivity();
     }
 

@@ -1,22 +1,39 @@
 <resources>
-    <string name="app_name">Baby Buddy Widgets</string>
-    <string name="action_settings">Settings</string>
-    <!-- Strings used for fragments for navigation -->
-    <string name="first_fragment_label">Login to Baby Buddy</string>
-    <string name="logged_in_label">Logged in to Baby Buddy</string>
-    <string name="next">Next</string>
-    <string name="previous">Previous</string>
-
-    <string name="hello_first_fragment">Hello first fragment</string>
-    <string name="hello_second_fragment">Hello second fragment. Arg: %1$s</string>
-    <string name="appwidget_text">EXAMPLE</string>
-    <string name="configure">Configure</string>
-    <string name="add_widget">Add widget</string>
-    <string name="LoggingInMessage">Logging in...</string>
-
     <array name="timerTypes">
         <item>Feeding</item>
         <item>Sleep</item>
         <item>Tummy time</item>
     </array>
+    <array name="feedingTypes">
+        <item>Breast milk</item>
+        <item>Formula</item>
+        <item>Fortified breast milk</item>
+        <item>Solid food</item>
+    </array>
+    <array name="feedingMethods">
+        <item>Bottle</item>
+        <item>Left breast</item>
+        <item>Right breast</item>
+        <item>Both breasts</item>
+        <item>Parent fed</item>
+        <item>Self fed</item>
+    </array>
+
+    <string name="app_name">Baby Buddy Widgets</string>
+    <!-- Strings used for fragments for navigation -->
+    <string name="action_settings">Settings</string>
+    <string name="first_fragment_label">Login to Baby Buddy</string>
+    <string name="logged_in_label">Logged in to Baby Buddy</string>
+    <string name="next">Next</string>
+
+    <string name="previous">Previous</string>
+    <string name="hello_first_fragment">Hello first fragment</string>
+    <string name="hello_second_fragment">Hello second fragment. Arg: %1$s</string>
+    <string name="appwidget_text">EXAMPLE</string>
+    <string name="configure">Configure</string>
+    <string name="add_widget">Add widget</string>
+
+    <string name="LoggingInMessage">Logging in...</string>
+    <!-- TODO: Remove or change this placeholder text -->
+    <string name="hello_blank_fragment">Hello blank fragment</string>
 </resources>

@@ -104,19 +104,24 @@ public class BabyBuddyClient extends StreamReader {
             @Override
             public void run() {
                 try {
+                    System.out.println("SEND: " + method + "  path: " + path + "  " + payload);
                     HttpURLConnection query = doQuery(path);
                     query.setRequestMethod(method);
                     if (payload != null) {
                         query.setDoOutput(true);
-                        query.setRequestProperty("Content-Type", "application/json");
+                        query.setRequestProperty("Content-Type", "application/json; utf-8");
+                        query.setRequestProperty("Accept", "application/json");
                         OutputStream os = query.getOutputStream();
                         os.write(payload.getBytes(StandardCharsets.UTF_8));
                         os.flush();
                     }
 
+                    query.connect();
+
                     if ((query.getResponseCode() < 200) && (query.getResponseCode() >= 300)) {
                         throw new RequestCodeFailure(query.getResponseMessage());
                     }
+                    System.out.println("RESPONSE: " + query.getResponseCode());
 
 
                     String result = loadHtml(query);
@@ -309,5 +314,27 @@ public class BabyBuddyClient extends StreamReader {
                 callback.response(true);
             }
         });
+    }
+
+    public void createFeedingRecordFromTimer(Timer timer, String type, String method, float amount, RequestCallback<Boolean> callback) {
+        dispatchQuery(
+            "POST",
+            "api/feedings/",
+            "{\"timer\": XXTimer, \"type\": \"XXType\", \"method\": \"XXMethod\", \"amount\": XXAmount, \"notes\": \"\"}"
+                .replaceAll("XXTimer", "" + timer.id)
+                .replaceAll("XXType", type)
+                .replaceAll("XXMethod", method)
+                .replaceAll("XXAmount", "" + amount),
+            new RequestCallback<String>() {
+                @Override
+                public void error(Exception e) {
+                    callback.error(e);
+                }
+
+                @Override
+                public void response(String response) {
+                    callback.response(true);
+                }
+            });
     }
 }

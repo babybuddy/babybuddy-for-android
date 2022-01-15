@@ -2,8 +2,11 @@ package eu.pkgsoftware.babybuddywidgets;
 
 import android.app.AlertDialog;
 import android.content.DialogInterface;
+import android.content.Intent;
 import android.os.Bundle;
+import android.view.View;
 
+import androidx.annotation.Nullable;
 import androidx.appcompat.app.AppCompatActivity;
 
 import androidx.navigation.NavController;
@@ -17,6 +20,14 @@ public class MainActivity extends AppCompatActivity {
     private AppBarConfiguration appBarConfiguration;
     private ActivityMainBinding binding;
 
+    public BabyBuddyClient.Timer selectedTimer = null;
+
+    public BabyBuddyClient getClient() {
+        CredStore credStore = new CredStore(getApplicationContext());
+        BabyBuddyClient client = new BabyBuddyClient(getMainLooper(), credStore);
+        return client;
+    }
+
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
@@ -25,9 +36,14 @@ public class MainActivity extends AppCompatActivity {
         setContentView(binding.getRoot());
         setSupportActionBar(binding.toolbar);
 
-        NavController navController = Navigation.findNavController(this, R.id.nav_host_fragment_content_main);
-        appBarConfiguration = new AppBarConfiguration.Builder(navController.getGraph()).build();
-        NavigationUI.setupActionBarWithNavController(this, navController, appBarConfiguration);
-    }
+        binding.toolbar.setNavigationOnClickListener(
+            new View.OnClickListener() {
+                @Override
+                public void onClick(View view) {
+                }
+            }
+        );
 
+        binding.toolbar.setNavigationIcon(null);
+    }
 }

@@ -13,6 +13,7 @@
         <action
             android:id="@+id/action_LoginFragment_to_loggedInFragment2"
             app:destination="@id/loggedInFragment2"
+            app:launchSingleTop="false"
             app:popUpTo="@id/LoginFragment"
             app:popUpToInclusive="true" />
     </fragment>
@@ -20,5 +21,13 @@
         android:id="@+id/loggedInFragment2"
         android:name="eu.pkgsoftware.babybuddywidgets.LoggedInFragment"
         android:label="@string/logged_in_label"
-        tools:layout="@layout/logged_in_fragment" />
+        tools:layout="@layout/logged_in_fragment" >
+        <action
+            android:id="@+id/action_loggedInFragment2_to_feedingFragment"
+            app:destination="@id/feedingFragment" />
+    </fragment>
+    <fragment
+        android:id="@+id/feedingFragment"
+        android:name="eu.pkgsoftware.babybuddywidgets.FeedingFragment"
+        android:label="FeedingFragment" />
 </navigation>
