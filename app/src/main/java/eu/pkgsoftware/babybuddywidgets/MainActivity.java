@@ -20,12 +20,28 @@ public class MainActivity extends AppCompatActivity {
     private AppBarConfiguration appBarConfiguration;
     private ActivityMainBinding binding;
 
+    private CredStore credStore = null;
+    private BabyBuddyClient client = null;
+
     public BabyBuddyClient.Timer selectedTimer = null;
+    public BabyBuddyClient.Child[] children = null;
+
+    public CredStore getCredStore() {
+        if (credStore == null) {
+            credStore = new CredStore(getApplicationContext());
+        }
+        return credStore;
+    }
 
     public BabyBuddyClient getClient() {
-        CredStore credStore = new CredStore(getApplicationContext());
-        BabyBuddyClient client = new BabyBuddyClient(getMainLooper(), credStore);
+        if (client == null) {
+            client = new BabyBuddyClient(getMainLooper(), getCredStore());
+        }
         return client;
+    }
+
+    public void setTitle(String title) {
+        getSupportActionBar().setTitle(title);
     }
 
     @Override

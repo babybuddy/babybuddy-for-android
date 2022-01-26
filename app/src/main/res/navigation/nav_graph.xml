@@ -25,6 +25,11 @@
         <action
             android:id="@+id/action_loggedInFragment2_to_feedingFragment"
             app:destination="@id/feedingFragment" />
+        <action
+            android:id="@+id/logoutOperation"
+            app:destination="@id/LoginFragment"
+            app:popUpTo="@id/loggedInFragment2"
+            app:popUpToInclusive="true" />
     </fragment>
     <fragment
         android:id="@+id/feedingFragment"

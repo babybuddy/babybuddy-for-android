@@ -35,6 +35,9 @@ public class CredStore {
     private String encryptedToken;
     private Map<Integer, Integer> timerAssignments = new HashMap<Integer, Integer>();
 
+    private String currentChild = null;
+    // private Map<String, String> children = new HashMap<>();
+
     public CredStore(Context context) {
         settingsFilePath = context.getFilesDir().getAbsolutePath().toString() + "/settings.conf";
         Properties props = new Properties();
@@ -60,6 +63,47 @@ public class CredStore {
         }
 
         encryptedToken = props.getProperty("token");
+
+        // children = props.getProperty("children_cache", "");
+        currentChild = props.getProperty("selected_child", null);
+    }
+
+    private String stringMapToString(Map<String, String> m) {
+        StringBuilder result = new StringBuilder();
+        for (Map.Entry<String, String> e : m.entrySet()) {
+            String k = new String(
+                Base64.encode(e.getKey().getBytes(StandardCharsets.UTF_8), Base64.DEFAULT),
+                StandardCharsets.UTF_8
+            );
+            String v = new String(
+                Base64.encode(e.getValue().getBytes(StandardCharsets.UTF_8), Base64.DEFAULT),
+                StandardCharsets.UTF_8
+            );
+            result.append(k);
+            result.append(":");
+            result.append(v);
+            result.append("\n");
+        }
+        return result.toString();
+    }
+
+    private Map<String, String> stringToStringMap(String s) {
+        Map<String, String> result = new HashMap<>();
+        for (String split : s.split("\n")) {
+            String[] assignmentParts = s.trim().split(":");
+            if (assignmentParts.length != 2) {
+                continue;
+            }
+
+            String key = new String(
+                Base64.decode(assignmentParts[0].trim(), Base64.DEFAULT), StandardCharsets.UTF_8
+            );
+            String value = new String(
+                Base64.decode(assignmentParts[1].trim(), Base64.DEFAULT), StandardCharsets.UTF_8
+            );
+            result.put(key, value);
+        }
+        return result;
     }
 
     private void storePrefs() {
@@ -80,6 +124,9 @@ public class CredStore {
             timerAssignmentsString.append(";");
         }
         props.setProperty("timer_default_types", timerAssignmentsString.toString());
+
+        // props.setProperty("children_cache", stringMapToString(children));
+        props.setProperty("selected_child", currentChild);
 
         try (FileOutputStream fos = new FileOutputStream(settingsFilePath.toString())) {
             props.store(fos, "");
@@ -154,5 +201,14 @@ public class CredStore {
 
     public Map<Integer, Integer> getTimerDefaultSelections() {
         return new HashMap<>(timerAssignments);
+    }
+
+    public String getSelectedChild() {
+        return currentChild;
+    }
+
+    public void setSelectedChild(String c) {
+        currentChild = c;
+        storePrefs();
     }
 }

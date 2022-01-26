@@ -7,18 +7,76 @@
     android:padding="16dp"
     tools:context=".LoggedInFragment">
 
-    <TextView
-        android:id="@+id/textView3"
-        android:layout_width="wrap_content"
+    <LinearLayout
+        android:id="@+id/changeButtons"
+        android:layout_width="match_parent"
         android:layout_height="wrap_content"
-        android:text="Timers"
-        android:textAppearance="@style/TextAppearance.AppCompat.Display1" />
+        android:gravity="center"
+        android:orientation="horizontal">
+
+        <ImageButton
+            android:id="@+id/wetDisabledButton"
+            android:layout_width="72dp"
+            android:layout_height="72dp"
+            android:scaleType="fitCenter"
+            android:src="@drawable/pkg_not_wet"
+            android:layout_weight="0"/>
+
+        <ImageButton
+            android:id="@+id/wetEnabledButton"
+            android:layout_width="72dp"
+            android:layout_height="72dp"
+            android:layout_weight="0"
+            android:backgroundTint="#80FF80"
+            android:scaleType="fitCenter"
+            android:src="@drawable/pkg_wet"
+            android:visibility="gone"
+            tools:visibility="visible" />
+
+        <ImageButton
+            android:id="@+id/solidDisabledButton"
+            android:layout_weight="0"
+            android:layout_width="72dp"
+            android:layout_height="72dp"
+            android:scaleType="fitCenter"
+            android:src="@drawable/pkg_no_poop"/>
+
+        <ImageButton
+            android:id="@+id/solidEnabledButton"
+            android:layout_width="72dp"
+            android:layout_height="72dp"
+            android:layout_weight="0"
+            android:scaleType="fitCenter"
+            android:src="@drawable/pkg_poop"
+            android:backgroundTint="#80FF80"
+            android:visibility="gone"
+            tools:visibility="visible" />
+
+        <LinearLayout
+            android:layout_width="wrap_content"
+            android:layout_height="match_parent"
+            android:layout_weight="1"
+            android:orientation="horizontal"></LinearLayout>
+
+        <ImageButton
+            android:id="@+id/sendChangeButton"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_marginEnd="16dp"
+            android:layout_weight="0"
+            android:visibility="visible"
+            app:layout_constraintBottom_toBottomOf="parent"
+            app:layout_constraintEnd_toEndOf="parent"
+            app:layout_constraintTop_toTopOf="parent"
+            app:srcCompat="@android:drawable/ic_menu_save"/>
+    </LinearLayout>
 
     <androidx.recyclerview.widget.RecyclerView
         android:id="@+id/timersList"
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
-        android:layout_below="@+id/textView3"
-        android:layout_marginTop="16dp" />
+        android:layout_below="@+id/changeButtons"
+        android:layout_centerHorizontal="true"
+        android:layout_marginTop="0dp" />
 
 </RelativeLayout>

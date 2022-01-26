@@ -19,7 +19,7 @@ import androidx.navigation.NavController;
 import androidx.navigation.Navigation;
 import eu.pkgsoftware.babybuddywidgets.databinding.LoginFragmentBinding;
 
-public class LoginFragment extends Fragment {
+public class LoginFragment extends BaseFragment {
     public static interface Promise<S, F> {
         public void succeeded(S s);
         public void failed(F f);
@@ -38,7 +38,7 @@ public class LoginFragment extends Fragment {
                         (loginPasswordEdit.getText().length() > 0));
     }
 
-    private MainActivity mainActivity() {
+    private MainActivity getMainActivity() {
         return (MainActivity) getActivity();
     }
 
@@ -71,7 +71,7 @@ public class LoginFragment extends Fragment {
             }
         };
 
-        CredStore credStore = new CredStore(getContext());
+        CredStore credStore = getMainActivity().getCredStore();
         String serverUrl = credStore.getServerUrl();
         if (serverUrl == null) {
             serverUrl = "";
@@ -95,26 +95,42 @@ public class LoginFragment extends Fragment {
         progressDialog = new ProgressDialog(getContext());
         progressDialog.setProgressStyle(ProgressDialog.STYLE_SPINNER);
         progressDialog.setMessage(getString(R.string.LoggingInMessage));
-
-        progressDialog.show();
-        testLogin(new Promise<Object, String>() {
-            @Override
-            public void succeeded(Object o) {
-                progressDialog.hide();
-                moveToLoggedIn();
-            }
-
-            @Override
-            public void failed(String s) {
-                progressDialog.hide();
-            }
-        });
+        progressDialog.hide();
 
         return binding.getRoot();
     }
 
     public void onViewCreated(@NonNull View view, Bundle savedInstanceState) {
         super.onViewCreated(view, savedInstanceState);
+    }
+
+    @Override
+    public void onStart() {
+        super.onStart();
+        binding.passwordEdit.setText("");
+        binding.loginNameEdit.setText("");
+
+        if (getMainActivity().getCredStore().getAppToken() != null) {
+            progressDialog.show();
+            testLogin(new Promise<Object, String>() {
+                @Override
+                public void succeeded(Object o) {
+                    progressDialog.hide();
+                    moveToLoggedIn();
+                }
+
+                @Override
+                public void failed(String s) {
+                    progressDialog.hide();
+                }
+            });
+        }
+    }
+
+    @Override
+    public void onResume() {
+        super.onResume();
+        getMainActivity().setTitle("Login to Baby Buddy");
     }
 
     @Override
@@ -126,35 +142,28 @@ public class LoginFragment extends Fragment {
     private void testLogin(Promise<Object, String> promise) {
         CredStore credStore = new CredStore(getContext());
         if (credStore.getAppToken() != null) {
-            BabyBuddyClient client = new BabyBuddyClient(getActivity().getMainLooper(), credStore);
+            BabyBuddyClient client = getMainActivity().getClient();
             client.listChildren(new BabyBuddyClient.RequestCallback<BabyBuddyClient.Child[]>() {
                 @Override
                 public void error(Exception error) {
                     promise.failed(error.getMessage());
-                    new AlertDialog.Builder(getActivity())
-                            .setTitle("Login failed")
-                            .setMessage("[Login failed?]")
-                            .setPositiveButton("Ok", new DialogInterface.OnClickListener() {
-                                @Override
-                                public void onClick(DialogInterface dialogInterface, int i) {
-                                    dialogInterface.cancel();
-                                }
-                            })
-                            .show();
                 }
 
                 @Override
                 public void response(BabyBuddyClient.Child[] response) {
+                    getMainActivity().children = response;
                     promise.succeeded(new Object());
                 }
             });
+        } else {
+            promise.failed("No app token found.");
         }
     }
 
     private void performLogin() {
         progressDialog.show();
 
-        CredStore credStore = new CredStore(getContext());
+        CredStore credStore = getMainActivity().getCredStore();
         credStore.storeServerUrl(addressEdit.getText().toString());
         String token = GrabAppToken.grabToken(
                 addressEdit.getText().toString(),
@@ -172,16 +181,7 @@ public class LoginFragment extends Fragment {
             @Override
             public void failed(String s) {
                 progressDialog.hide();
-                new AlertDialog.Builder(getContext())
-                        .setTitle("Login failed")
-                        .setMessage("[Login failed?]")
-                        .setPositiveButton("Ok", new DialogInterface.OnClickListener() {
-                            @Override
-                            public void onClick(DialogInterface dialogInterface, int i) {
-                                dialogInterface.cancel();
-                            }
-                        })
-                        .show();
+                showError(false, "Login failed", s);
             }
         });
     }
@@ -190,4 +190,6 @@ public class LoginFragment extends Fragment {
         NavController controller = Navigation.findNavController(getView());
         controller.navigate(R.id.action_LoginFragment_to_loggedInFragment2);
     }
+
+
 }

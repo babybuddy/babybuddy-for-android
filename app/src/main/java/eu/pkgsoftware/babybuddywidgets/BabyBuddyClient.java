@@ -18,9 +18,11 @@ import java.nio.charset.StandardCharsets;
 import java.text.ParseException;
 import java.text.SimpleDateFormat;
 import java.util.ArrayList;
+import java.util.Base64;
 import java.util.Comparator;
 import java.util.Date;
 import java.util.List;
+import java.util.TimeZone;
 import java.util.regex.Pattern;
 
 public class BabyBuddyClient extends StreamReader {
@@ -30,6 +32,34 @@ public class BabyBuddyClient extends StreamReader {
         public String first_name;
         public String last_name;
         public String birth_date;
+
+        public static Child fromJSON(String s) throws JSONException {
+            return fromJSON(new JSONObject(s));
+        }
+
+        public static Child fromJSON(JSONObject obj) throws JSONException {
+            Child c = new Child();
+            c.id = obj.getInt("id");
+            c.slug = obj.getString("slug");
+            c.first_name = obj.getString("first_name");
+            c.last_name = obj.getString("last_name");
+            c.birth_date = obj.getString("birth_date");
+            return c;
+        }
+
+        public JSONObject toJSON() {
+            JSONObject o = new JSONObject();
+            try {
+                o.put("id", id);
+                o.put("slug", slug);
+                o.put("first_name", first_name);
+                o.put("last_name", last_name);
+                o.put("birth_date", birth_date);
+            } catch (JSONException e) {
+                throw new RuntimeException("ERROR should not happen");
+            }
+            return o;
+        }
     }
 
     public static class Timer {
@@ -95,7 +125,6 @@ public class BabyBuddyClient extends StreamReader {
     public BabyBuddyClient(Looper mainLoop, CredStore credStore) {
         this.mainLoop = mainLoop;
         this.credStore = credStore;
-
         this.syncMessage = new Handler(mainLoop);
     }
 
@@ -118,7 +147,8 @@ public class BabyBuddyClient extends StreamReader {
 
                     query.connect();
 
-                    if ((query.getResponseCode() < 200) && (query.getResponseCode() >= 300)) {
+                    int responseCode = query.getResponseCode();
+                    if ((responseCode < 200) || (responseCode >= 300)) {
                         throw new RequestCodeFailure(query.getResponseMessage());
                     }
                     System.out.println("RESPONSE: " + query.getResponseCode());
@@ -160,13 +190,7 @@ public class BabyBuddyClient extends StreamReader {
                     List<Child> result = new ArrayList<Child>(children.length());
                     for (int i = 0; i < children.length(); i++) {
                         JSONObject c = children.getJSONObject(i);
-                        Child child = new Child();
-                        child.id = c.getInt("id");
-                        child.slug = c.getString("slug");
-                        child.first_name = c.getString("first_name");
-                        child.last_name = c.getString("last_name");
-                        child.birth_date = c.getString("birth_date");
-                        result.add(child);
+                        result.add(Child.fromJSON(c));
                     }
                     callback.response(result.toArray(new Child[0]));
                 } catch (JSONException e) {
@@ -325,6 +349,32 @@ public class BabyBuddyClient extends StreamReader {
                 .replaceAll("XXType", type)
                 .replaceAll("XXMethod", method)
                 .replaceAll("XXAmount", "" + amount),
+            new RequestCallback<String>() {
+                @Override
+                public void error(Exception e) {
+                    callback.error(e);
+                }
+
+                @Override
+                public void response(String response) {
+                    callback.response(true);
+                }
+            });
+    }
+
+    public void createChangeRecord(Child child, boolean wet, boolean solid, RequestCallback<Boolean> callback) {
+        SimpleDateFormat sdf = new SimpleDateFormat("yyyy-MM-dd'T'HH:mm:ss.SSSXXX");
+        sdf.setTimeZone(TimeZone.getTimeZone("UTC"));
+        String nowIso8601 = sdf.format(new Date(System.currentTimeMillis()));
+
+        dispatchQuery(
+            "POST",
+            "api/changes/",
+            "{\"child\": XXChild, \"time\": \"XXTime\", \"wet\": XXWet, \"solid\": XXSolid, \"color\": \"\", \"amount\": null, \"notes\": \"\"}"
+                .replaceAll("XXChild", "" + child.id)
+                .replaceAll("XXTime", nowIso8601)
+                .replaceAll("XXWet", wet ? "true" : "false")
+                .replaceAll("XXSolid", solid ? "true" : "false"),
             new RequestCallback<String>() {
                 @Override
                 public void error(Exception e) {

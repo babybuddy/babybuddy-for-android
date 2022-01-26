@@ -1,37 +1,34 @@
 package eu.pkgsoftware.babybuddywidgets;
 
-import android.app.AlertDialog;
-import android.content.DialogInterface;
-import android.graphics.Canvas;
-import android.graphics.Paint;
 import android.os.Bundle;
-import android.view.DragEvent;
 import android.view.LayoutInflater;
-import android.view.MotionEvent;
-import android.view.VelocityTracker;
+import android.view.Menu;
+import android.view.MenuInflater;
+import android.view.MenuItem;
 import android.view.View;
 import android.view.ViewGroup;
 import android.widget.AdapterView;
-import android.widget.GridLayout;
 
+import java.net.ConnectException;
 import java.util.Timer;
 import java.util.TimerTask;
 
-import androidx.annotation.NonNull;
-import androidx.fragment.app.Fragment;
 import androidx.navigation.Navigation;
 import androidx.recyclerview.widget.GridLayoutManager;
-import androidx.recyclerview.widget.ItemTouchHelper;
-import androidx.recyclerview.widget.LinearLayoutManager;
 import androidx.recyclerview.widget.RecyclerView;
 import eu.pkgsoftware.babybuddywidgets.databinding.LoggedInFragmentBinding;
 import eu.pkgsoftware.babybuddywidgets.databinding.QuickTimerEntryBinding;
 
-public class LoggedInFragment extends Fragment {
+public class LoggedInFragment extends BaseFragment {
     private LoggedInFragmentBinding binding;
 
     private BabyBuddyClient client = null;
     private CredStore credStore = null;
+
+    private BabyBuddyClient.Child selectedChild = null;
+
+    private boolean changeWet = false;
+    private boolean changeSolid = false;
 
     private MainActivity getMainActivity() {
         return (MainActivity) getActivity();
@@ -92,19 +89,6 @@ public class LoggedInFragment extends Fragment {
                     }
                 }
 
-                private void reportError(String message) {
-                    new AlertDialog.Builder(getContext())
-                            .setTitle("Could not store activity")
-                            .setMessage(message)
-                            .setPositiveButton("Ok", new DialogInterface.OnClickListener() {
-                                @Override
-                                public void onClick(DialogInterface dialogInterface, int i) {
-                                    dialogInterface.cancel();
-                                }
-                            })
-                            .show();
-                }
-
                 class StoreActivityCallback implements BabyBuddyClient.RequestCallback<Boolean> {
                     private final String errorMessage;
 
@@ -114,7 +98,7 @@ public class LoggedInFragment extends Fragment {
 
                     @Override
                     public void error(Exception error) {
-                        reportError(errorMessage);
+                        showError(false, "Could not store activity", errorMessage);
                     }
 
                     @Override
@@ -131,7 +115,7 @@ public class LoggedInFragment extends Fragment {
                         client.createTummyTimeRecordFromTimer(timer, new BabyBuddyClient.RequestCallback<Boolean>() {
                             @Override
                             public void error(Exception error) {
-                                reportError(error.getMessage());
+                                showError(false, "Could not store activity", error.getMessage());
                             }
 
                             @Override
@@ -140,7 +124,7 @@ public class LoggedInFragment extends Fragment {
                             }
                         });
                     } else {
-                        reportError("Unsupported activity");
+                        showError(false, "Could not store activity", "Unsupported activity");
                     }
                 }
             });
@@ -196,8 +180,8 @@ public class LoggedInFragment extends Fragment {
     ) {
         binding = LoggedInFragmentBinding.inflate(inflater, container, false);
 
-        credStore = new CredStore(getContext());
-        client = new BabyBuddyClient(getActivity().getMainLooper(), credStore);
+        credStore = getMainActivity().getCredStore();
+        client = getMainActivity().getClient();
 
         GridLayoutManager l = new GridLayoutManager(binding.timersList.getContext(), 1);
         binding.timersList.setLayoutManager(l);
@@ -210,14 +194,49 @@ public class LoggedInFragment extends Fragment {
             }
         }, 0, 1000);
 
+        setHasOptionsMenu(true);
+
+        View.OnClickListener invertSolid = new View.OnClickListener() {
+            @Override
+            public void onClick(View view) {
+                changeSolid = !changeSolid;
+                updateDiaperBar();
+            }
+        };
+        binding.solidEnabledButton.setOnClickListener(invertSolid);
+        binding.solidDisabledButton.setOnClickListener(invertSolid);
+
+        View.OnClickListener invertWet = new View.OnClickListener() {
+            @Override
+            public void onClick(View view) {
+                changeWet = !changeWet;
+                updateDiaperBar();
+            }
+        };
+        binding.wetEnabledButton.setOnClickListener(invertWet);
+        binding.wetDisabledButton.setOnClickListener(invertWet);
+        binding.sendChangeButton.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View view) {
+                storeDiaperChange();
+            }
+        });
+
         return binding.getRoot();
     }
 
     @Override
-    public void onResume() {
-        super.onResume();
-        oldTimerList = new BabyBuddyClient.Timer[0];
-        refreshTimerList();
+    public void onCreateOptionsMenu(Menu menu, MenuInflater inflater) {
+        inflater.inflate(R.menu.loggedin_menu, menu);
+    }
+
+    @Override
+    public boolean onOptionsItemSelected(MenuItem item) {
+        if (item.getItemId() == R.id.logoutMenuButton) {
+            getMainActivity().getCredStore().storeAppToken(null);
+            Navigation.findNavController(getView()).navigate(R.id.logoutOperation);
+        }
+        return false;
     }
 
     private boolean timerListRefreshing = false;
@@ -236,17 +255,14 @@ public class LoggedInFragment extends Fragment {
                     return;
                 }
 
-                new AlertDialog.Builder(getContext())
-                        .setTitle("Login failed")
-                        .setMessage("Error occurred while obtaining timers: " + error.getMessage())
-                        .setPositiveButton("Ok", new DialogInterface.OnClickListener() {
-                            @Override
-                            public void onClick(DialogInterface dialogInterface, int i) {
-                                timerListRefreshing = false;
-                                dialogInterface.cancel();
-                            }
-                        })
-                        .show();
+                // Connect exceptions happen regularly... we just ignore them
+                if (ConnectException.class.isInstance(error)) return;
+
+                showError(
+                    false,
+                    "Login failed",
+                    "Error occurred while obtaining timers: " + error.getMessage()
+                );
             }
 
             @Override
@@ -282,8 +298,78 @@ public class LoggedInFragment extends Fragment {
     }
 
     @Override
+    public void onResume() {
+        super.onResume();
+        oldTimerList = new BabyBuddyClient.Timer[0];
+        refreshTimerList();
+
+        selectedChild = null;
+        String selectedChildName = credStore.getSelectedChild();
+        for (BabyBuddyClient.Child c : getMainActivity().children) {
+            if (c.slug.equals(selectedChildName)) {
+                selectedChild = c;
+                break;
+            }
+        }
+        if (selectedChild == null) {
+            if (getMainActivity().children.length > 0) {
+                selectedChild = getMainActivity().children[0];
+            }
+        }
+
+        credStore.setSelectedChild(selectedChild != null ? selectedChild.slug : null);
+        updateTitle();
+
+        resetDiaperUi();
+    }
+
+    @Override
     public void onDestroyView() {
         super.onDestroyView();
         binding = null;
+    }
+
+    private void resetDiaperUi() {
+        changeSolid = false;
+        changeWet = false;
+        updateDiaperBar();
+    }
+
+    private void updateTitle() {
+        if (selectedChild == null) {
+            getMainActivity().setTitle("(No children found)");
+        } else {
+            getMainActivity().setTitle(selectedChild.first_name + " " + selectedChild.last_name);
+        }
+    }
+
+    private void updateDiaperBar() {
+        binding.sendChangeButton.setVisibility((changeSolid || changeWet) ? View.VISIBLE : View.GONE);
+        binding.solidEnabledButton.setVisibility(changeSolid ? View.VISIBLE : View.GONE);
+        binding.solidDisabledButton.setVisibility(!changeSolid ? View.VISIBLE : View.GONE);
+        binding.wetEnabledButton.setVisibility(changeWet ? View.VISIBLE : View.GONE);
+        binding.wetDisabledButton.setVisibility(!changeWet ? View.VISIBLE : View.GONE);
+    }
+
+    private void storeDiaperChange() {
+        client.createChangeRecord(selectedChild, changeWet, changeSolid,
+            new BabyBuddyClient.RequestCallback<Boolean>() {
+                @Override
+                public void error(Exception error) {
+                    showError(
+                        true,
+                        "Failed to save",
+                        "Diaper change not saved"
+                    );
+                }
+
+                @Override
+                public void response(Boolean response) {
+                    // Pass
+                }
+            }
+        );
+
+        resetDiaperUi();
     }
 }
