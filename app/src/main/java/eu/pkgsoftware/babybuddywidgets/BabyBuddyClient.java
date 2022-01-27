@@ -18,7 +18,9 @@ import java.nio.charset.StandardCharsets;
 import java.text.ParseException;
 import java.text.SimpleDateFormat;
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.Base64;
+import java.util.Collections;
 import java.util.Comparator;
 import java.util.Date;
 import java.util.List;
@@ -26,6 +28,17 @@ import java.util.TimeZone;
 import java.util.regex.Pattern;
 
 public class BabyBuddyClient extends StreamReader {
+    private static Date parseNullOrDate(JSONObject o, String field) throws JSONException, ParseException {
+        if (o.isNull(field)) {
+            return null;
+        }
+        SimpleDateFormat sdf = new SimpleDateFormat("yyyy-MM-dd'T'HH:mm:ss");
+        String strDate = o.getString(field);
+        strDate = strDate.split(Pattern.quote("+"))[0];
+        strDate = strDate.split(Pattern.quote("."))[0];
+        return sdf.parse(strDate);
+    }
+
     public static class Child {
         public int id;
         public String slug;
@@ -64,7 +77,7 @@ public class BabyBuddyClient extends StreamReader {
 
     public static class Timer {
         public int id;
-        public int child_id;
+        public Integer child_id;
         public String name;
         public Date start;
         public Date end;
@@ -76,6 +89,18 @@ public class BabyBuddyClient extends StreamReader {
                 return name;
             }
             return "Quick timer #" + id;
+        }
+
+        public static Timer fromJSON(JSONObject obj) throws JSONException, ParseException {
+            Timer t = new Timer();
+            t.id = obj.getInt("id");
+            t.child_id = obj.isNull("child") ? null : obj.getInt("child");
+            t.name = obj.isNull("name") ? null : obj.getString("name");
+            t.start = parseNullOrDate(obj, "start");
+            t.end = parseNullOrDate(obj, "end");
+            t.active = obj.getBoolean("active");
+            t.user_id = obj.getInt("user");
+            return t;
         }
     }
 
@@ -200,19 +225,13 @@ public class BabyBuddyClient extends StreamReader {
         });
     }
 
-    private static Date parseNullOrDate(JSONObject o, String field) throws JSONException, ParseException {
-        if (o.isNull(field)) {
-            return null;
-        }
-        SimpleDateFormat sdf = new SimpleDateFormat("yyyy-MM-dd'T'HH:mm:ss");
-        String strDate = o.getString(field);
-        strDate = strDate.split(Pattern.quote("+"))[0];
-        strDate = strDate.split(Pattern.quote("."))[0];
-        return sdf.parse(strDate);
+    public void listTimers(RequestCallback<Timer[]> callback) {
+        listTimers(null, callback);
     }
 
-    public void listTimers(RequestCallback<Timer[]> callback) {
-        dispatchQuery("GET", "api/timers/", null, new RequestCallback<String>() {
+    public void listTimers(Integer child_id, RequestCallback<Timer[]> callback) {
+        String queryString = "?" + (child_id == null ? "" : ("child=" + child_id));
+        dispatchQuery("GET", "api/timers/" + queryString, null, new RequestCallback<String>() {
             @Override
             public void error(Exception e) {
                 callback.error(e);
@@ -226,32 +245,23 @@ public class BabyBuddyClient extends StreamReader {
                     List<Timer> result = new ArrayList<Timer>(timers.length());
                     for (int i = 0; i < timers.length(); i++) {
                         JSONObject item = timers.getJSONObject(i);
-                        result.add(readTimerFromJson(item));
+                        result.add(Timer.fromJSON(item));
                     }
-                    result.sort(new Comparator<Timer>() {
-                        @Override
-                        public int compare(Timer t1, Timer t2) {
-                            return Integer.compare(t1.id, t2.id);
+                    Collections.sort(
+                        result,
+                        new Comparator<Timer>() {
+                            @Override
+                            public int compare(Timer t1, Timer t2) {
+                                return Integer.compare(t1.id, t2.id);
+                            }
                         }
-                    });
+                    );
                     callback.response(result.toArray(new Timer[0]));
                 } catch (JSONException | ParseException e) {
                     this.error(e);
                 }
             }
         });
-    }
-
-    private Timer readTimerFromJson(JSONObject item) throws JSONException, ParseException {
-        Timer timer = new Timer();
-        timer.id = item.getInt("id");
-        timer.child_id = item.getInt("child");
-        timer.name = item.isNull("name") ? null : item.getString("name");
-        timer.start = parseNullOrDate(item, "start");
-        timer.end = parseNullOrDate(item, "end");
-        timer.active = item.getBoolean("active");
-        timer.user_id = item.getInt("user");
-        return timer;
     }
 
     private static String urlencode(String s) {
@@ -296,7 +306,7 @@ public class BabyBuddyClient extends StreamReader {
                 JSONObject obj = null;
                 try {
                     obj = new JSONObject(response);
-                    callback.response(readTimerFromJson(obj));
+                    callback.response( Timer.fromJSON(obj));
                 } catch (JSONException | ParseException e) {
                     error(e);
                 }

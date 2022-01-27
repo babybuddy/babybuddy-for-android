@@ -1,0 +1,90 @@
+<?xml version="1.0" encoding="utf-8"?>
+<RelativeLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    xmlns:tools="http://schemas.android.com/tools"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent"
+    android:padding="16dp">
+
+    <LinearLayout
+        android:id="@+id/changeButtons"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:gravity="center"
+        android:orientation="horizontal">
+
+        <TextView
+            android:id="@+id/textView"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_marginRight="24dp"
+            android:layout_weight="0"
+            android:text="Diaper"
+            android:textAppearance="@style/TextAppearance.AppCompat.Large" />
+
+        <ImageButton
+            android:id="@+id/wetDisabledButton"
+            android:layout_width="72dp"
+            android:layout_height="72dp"
+            android:scaleType="fitCenter"
+            android:src="@drawable/pkg_not_wet"
+            android:layout_weight="0"/>
+
+        <ImageButton
+            android:id="@+id/wetEnabledButton"
+            android:layout_width="72dp"
+            android:layout_height="72dp"
+            android:layout_weight="0"
+            android:backgroundTint="#80FF80"
+            android:scaleType="fitCenter"
+            android:src="@drawable/pkg_wet"
+            android:visibility="gone" />
+
+        <ImageButton
+            android:id="@+id/solidDisabledButton"
+            android:layout_weight="0"
+            android:layout_width="72dp"
+            android:layout_height="72dp"
+            android:scaleType="fitCenter"
+            android:src="@drawable/pkg_no_poop"/>
+
+        <ImageButton
+            android:id="@+id/solidEnabledButton"
+            android:layout_width="72dp"
+            android:layout_height="72dp"
+            android:layout_weight="0"
+            android:backgroundTint="#80FF80"
+            android:scaleType="fitCenter"
+            android:src="@drawable/pkg_poop"
+            android:visibility="gone" />
+
+        <LinearLayout
+            android:layout_width="wrap_content"
+            android:layout_height="match_parent"
+            android:layout_weight="1"
+            android:orientation="horizontal"></LinearLayout>
+
+        <ImageButton
+            android:id="@+id/sendChangeButton"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_marginEnd="16dp"
+            android:layout_weight="0"
+            android:visibility="visible"
+            app:layout_constraintBottom_toBottomOf="parent"
+            app:layout_constraintEnd_toEndOf="parent"
+            app:layout_constraintTop_toTopOf="parent"
+            app:srcCompat="@android:drawable/ic_menu_save"/>
+    </LinearLayout>
+
+    <androidx.recyclerview.widget.RecyclerView
+        android:id="@+id/timersList"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:layout_below="@+id/changeButtons"
+        android:layout_centerHorizontal="true"
+        android:layout_marginTop="8dp" >
+
+    </androidx.recyclerview.widget.RecyclerView>
+
+</RelativeLayout>
