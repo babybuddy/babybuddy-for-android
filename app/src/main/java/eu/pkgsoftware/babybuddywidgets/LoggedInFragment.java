@@ -352,6 +352,9 @@ public class LoggedInFragment extends BaseFragment {
 
         @Override
         public int getItemCount() {
+            if (getMainActivity().children == null) {
+                return 0;
+            }
             return getMainActivity().children.length;
         }
 
@@ -437,7 +440,8 @@ public class LoggedInFragment extends BaseFragment {
     private BabyBuddyClient.Child selectedChild() {
         int childIndex = binding.babyViewPagerSwitcher.getCurrentItem();
         BabyBuddyClient.Child child = null;
-        if ((childIndex >= 0) && (childIndex < getMainActivity().children.length)) {
+        int childCount = getMainActivity().children != null ? getMainActivity().children.length : 0;
+        if ((childIndex >= 0) && (childIndex < childCount)) {
             child = getMainActivity().children[childIndex];
         }
         return child;

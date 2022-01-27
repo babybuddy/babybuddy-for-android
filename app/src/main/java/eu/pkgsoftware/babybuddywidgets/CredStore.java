@@ -126,7 +126,9 @@ public class CredStore {
         props.setProperty("timer_default_types", timerAssignmentsString.toString());
 
         // props.setProperty("children_cache", stringMapToString(children));
-        props.setProperty("selected_child", currentChild);
+        if (currentChild != null) {
+            props.setProperty("selected_child", currentChild);
+        }
 
         try (FileOutputStream fos = new FileOutputStream(settingsFilePath.toString())) {
             props.store(fos, "");

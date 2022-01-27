@@ -20,13 +20,7 @@ import androidx.navigation.Navigation;
 import eu.pkgsoftware.babybuddywidgets.databinding.LoginFragmentBinding;
 
 public class LoginFragment extends BaseFragment {
-    public static interface Promise<S, F> {
-        public void succeeded(S s);
-        public void failed(F f);
-    }
-
     private LoginFragmentBinding binding;
-    private ProgressDialog progressDialog;
 
     private Button loginButton;
     private EditText addressEdit, loginNameEdit, loginPasswordEdit;
@@ -91,17 +85,15 @@ public class LoginFragment extends BaseFragment {
 
         updateLoginButton();
 
-
-        progressDialog = new ProgressDialog(getContext());
-        progressDialog.setProgressStyle(ProgressDialog.STYLE_SPINNER);
-        progressDialog.setMessage(getString(R.string.LoggingInMessage));
-        progressDialog.hide();
-
         return binding.getRoot();
     }
 
     public void onViewCreated(@NonNull View view, Bundle savedInstanceState) {
         super.onViewCreated(view, savedInstanceState);
+    }
+
+    private void showProgress() {
+        showProgress(getString(R.string.LoggingInMessage));
     }
 
     @Override
@@ -111,7 +103,7 @@ public class LoginFragment extends BaseFragment {
         binding.loginNameEdit.setText("");
 
         if (getMainActivity().getCredStore().getAppToken() != null) {
-            progressDialog.show();
+            showProgress();
             testLogin(new Promise<Object, String>() {
                 @Override
                 public void succeeded(Object o) {
@@ -161,7 +153,7 @@ public class LoginFragment extends BaseFragment {
     }
 
     private void performLogin() {
-        progressDialog.show();
+        showProgress();
 
         CredStore credStore = getMainActivity().getCredStore();
         credStore.storeServerUrl(addressEdit.getText().toString());
@@ -190,6 +182,4 @@ public class LoginFragment extends BaseFragment {
         NavController controller = Navigation.findNavController(getView());
         controller.navigate(R.id.action_LoginFragment_to_loggedInFragment2);
     }
-
-
 }
