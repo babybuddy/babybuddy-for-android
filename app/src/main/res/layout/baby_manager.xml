@@ -77,11 +77,21 @@
             app:srcCompat="@android:drawable/ic_menu_save"/>
     </LinearLayout>
 
+    <Button
+        android:id="@+id/createDefaultTimers"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_centerHorizontal="true"
+        android:layout_below="@id/changeButtons"
+        android:layout_marginTop="8dp"
+        android:visibility="gone"
+        android:text="Create default timers" />
+
     <androidx.recyclerview.widget.RecyclerView
         android:id="@+id/timersList"
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
-        android:layout_below="@+id/changeButtons"
+        android:layout_below="@+id/createDefaultTimers"
         android:layout_centerHorizontal="true"
         android:layout_marginTop="8dp" >
 

@@ -2,12 +2,14 @@ package eu.pkgsoftware.babybuddywidgets;
 
 import android.content.Context;
 import android.os.Bundle;
+import android.os.Handler;
 import android.view.LayoutInflater;
 import android.view.Menu;
 import android.view.MenuInflater;
 import android.view.MenuItem;
 import android.view.View;
 import android.view.ViewGroup;
+import android.widget.Adapter;
 import android.widget.AdapterView;
 import android.widget.ArrayAdapter;
 import android.widget.LinearLayout;
@@ -20,6 +22,7 @@ import java.util.Timer;
 import java.util.TimerTask;
 
 import androidx.annotation.NonNull;
+import androidx.annotation.Nullable;
 import androidx.navigation.Navigation;
 import androidx.recyclerview.widget.GridLayoutManager;
 import androidx.recyclerview.widget.RecyclerView;
@@ -40,6 +43,9 @@ public class LoggedInFragment extends BaseFragment {
 
     private BabyPagerAdapter babyAdapter = null;
 
+    private boolean timerListRefreshing = false;
+    private BabyBuddyClient.Timer[] oldTimerList = null;
+
     private class BabyLayoutHolder extends RecyclerView.ViewHolder {
         private class TimerListViewHolder extends RecyclerView.ViewHolder {
             public QuickTimerEntryBinding binding;
@@ -58,22 +64,19 @@ public class LoggedInFragment extends BaseFragment {
                     public void onNothingSelected(AdapterView<?> adapterView) {
                     }
                 });
-                binding.appStartTimerButton.setOnClickListener(new View.OnClickListener() {
-                    @Override
-                    public void onClick(View view) {
-                        client.setTimerActive(timer.id, true, new BabyBuddyClient.RequestCallback<Boolean>() {
-                            @Override
-                            public void error(Exception error) {
-                            }
+                binding.appStartTimerButton.setOnClickListener(
+                    view -> client.setTimerActive(timer.id, true, new BabyBuddyClient.RequestCallback<Boolean>() {
+                        @Override
+                        public void error(Exception error) {
+                        }
 
-                            @Override
-                            public void response(Boolean response) {
-                                timer.active = true;
-                                updateActiveState();
-                            }
-                        });
+                        @Override
+                        public void response(Boolean response) {
+                            timer.active = true;
+                            updateActiveState();
+                        }
                     }
-                });
+                ));
                 binding.appStopTimerButton.setOnClickListener(new View.OnClickListener() {
                     @Override
                     public void onClick(View view) {
@@ -116,9 +119,15 @@ public class LoggedInFragment extends BaseFragment {
                     private void storeActivity() {
                         int selectedActivity = (int) binding.appTimerDefaultType.getSelectedItemId();
                         if (selectedActivity == 1) {
-                            client.createSleepRecordFromTimer(timer, new StoreActivityCallback("Storing Sleep Time failed."));
+                            client.createSleepRecordFromTimer(
+                                timer,
+                                new StoreActivityCallback("Storing Sleep Time failed.")
+                            );
                         } else if (selectedActivity == 2) {
-                            client.createSleepRecordFromTimer(timer, new StoreActivityCallback("Storing Tummy Time failed."));
+                            client.createSleepRecordFromTimer(
+                                timer,
+                                new StoreActivityCallback("Storing Tummy Time failed.")
+                            );
                             client.createTummyTimeRecordFromTimer(timer, new BabyBuddyClient.RequestCallback<Boolean>() {
                                 @Override
                                 public void error(Exception error) {
@@ -187,23 +196,12 @@ public class LoggedInFragment extends BaseFragment {
         private boolean changeWet = false;
         private boolean changeSolid = false;
 
-        private boolean timerListRefreshing = false;
-        private BabyBuddyClient.Timer[] oldTimerList = new BabyBuddyClient.Timer[0];
-
         public BabyLayoutHolder(BabyManagerBinding bmb) {
             super(bmb.getRoot());
             binding = bmb;
 
             GridLayoutManager l = new GridLayoutManager(binding.timersList.getContext(), 1);
             binding.timersList.setLayoutManager(l);
-
-            Timer timer = new Timer(true);
-            timer.scheduleAtFixedRate(new TimerTask() {
-                @Override
-                public void run() {
-                    refreshTimerList();
-                }
-            }, 0, 1000);
 
             setHasOptionsMenu(true);
 
@@ -221,61 +219,7 @@ public class LoggedInFragment extends BaseFragment {
             binding.wetEnabledButton.setOnClickListener(invertWet);
             binding.wetDisabledButton.setOnClickListener(invertWet);
             binding.sendChangeButton.setOnClickListener(view -> storeDiaperChange());
-        }
-
-        public void refreshTimerList() {
-            if (timerListRefreshing) {
-                return;
-            }
-            if (child == null) {
-                return;
-            }
-
-            timerListRefreshing = true;
-            client.listTimers(child.id, new BabyBuddyClient.RequestCallback<BabyBuddyClient.Timer[]>() {
-                @Override
-                public void error(Exception error) {
-                    timerListRefreshing = false;
-                    if (!isVisible()) {
-                        return;
-                    }
-
-                    // Connect exceptions happen regularly... we just ignore them
-                    if (ConnectException.class.isInstance(error)) return;
-
-                    showError(
-                        false,
-                        "Login failed",
-                        "Error occurred while obtaining timers: " + error.getMessage()
-                    );
-                }
-
-                @Override
-                public void response(BabyBuddyClient.Timer[] response) {
-                    timerListRefreshing = false;
-                    if (!isVisible()) {
-                        return;
-                    }
-
-                    boolean changed = false;
-                    if (!changed) {
-                        changed = oldTimerList.length != response.length;
-                    }
-                    if (!changed) {
-                        for (int i = 0; i < oldTimerList.length; i++) {
-                            changed = (oldTimerList[i].id != response[i].id) ||
-                                (oldTimerList[i].active != response[i].active) ||
-                                (!oldTimerList[i].start.equals(response[i].start));
-                            if (changed) break;
-                        }
-                    }
-
-                    if (changed) {
-                        oldTimerList = response;
-                        binding.timersList.setAdapter(new TimerListProvider(response));
-                    }
-                }
-            });
+            binding.createDefaultTimers.setOnClickListener(view -> createDefaultTimers());
         }
 
         private void resetDiaperUi() {
@@ -314,13 +258,52 @@ public class LoggedInFragment extends BaseFragment {
             resetDiaperUi();
         }
 
+        private void createDefaultTimers() {
+            int i = 0;
+            for (String timerTypeName : getResources().getStringArray(R.array.timerTypes)) {
+                final int finalI = i;
+                client.createTimer(child, timerTypeName, new BabyBuddyClient.RequestCallback<BabyBuddyClient.Timer>() {
+                    @Override
+                    public void error(Exception error) {
+                    }
+
+                    @Override
+                    public void response(BabyBuddyClient.Timer response) {
+                        credStore.setTimerDefaultSelection(response.id, finalI);
+                        client.setTimerActive(response.id, false, new BabyBuddyClient.RequestCallback<Boolean>() {
+                                @Override
+                                public void error(Exception error) {
+                                }
+
+                                @Override
+                                public void response(Boolean response) {
+                                }
+                            }
+                        );
+
+                        RecyclerView.Adapter a = binding.timersList.getAdapter();
+                        for (int i = 0; i < a.getItemCount(); i++) {
+                            a.notifyItemChanged(i);
+                        }
+                    }
+                });
+                i++;
+            }
+        }
+
         public void updateChild(BabyBuddyClient.Child c) {
             this.child = c;
             resetDiaperUi();
         }
 
+        public void updateTimerList(BabyBuddyClient.Timer[] timers) {
+            binding.timersList.setAdapter(new BabyLayoutHolder.TimerListProvider(timers));
+            binding.createDefaultTimers.setVisibility(timers.length == 0 ? View.VISIBLE : View.GONE);
+        }
+
         public void onViewSelected() {
             resetDiaperUi();
+            binding.createDefaultTimers.setVisibility(View.GONE);
         }
 
         public void onViewDeselected() {
@@ -329,7 +312,17 @@ public class LoggedInFragment extends BaseFragment {
     }
 
     private class BabyPagerAdapter extends RecyclerView.Adapter<BabyLayoutHolder> {
-        private ArrayList<BabyLayoutHolder> holders = new ArrayList<>();
+        private class HolderChildPair {
+            public BabyBuddyClient.Child child;
+            public BabyLayoutHolder holder;
+
+            public HolderChildPair(BabyBuddyClient.Child child, BabyLayoutHolder holder) {
+                this.child = child;
+                this.holder = holder;
+            }
+        }
+
+        private ArrayList<HolderChildPair> holders = new ArrayList<>();
 
         @Override
         public BabyLayoutHolder onCreateViewHolder(ViewGroup parent, int viewType) {
@@ -346,8 +339,10 @@ public class LoggedInFragment extends BaseFragment {
         @Override
         public void onBindViewHolder(BabyLayoutHolder holder, int position) {
             while (position >= holders.size()) holders.add(null);
-            holders.set(position, holder);
-            holder.updateChild(getMainActivity().children[position]);
+
+            BabyBuddyClient.Child c = getMainActivity().children[position];
+            holders.set(position, new HolderChildPair(c, holder));
+            holder.updateChild(c);
         }
 
         @Override
@@ -360,7 +355,7 @@ public class LoggedInFragment extends BaseFragment {
 
         public void activeViewChanged(int position) {
             for (int i = 0; i < holders.size(); i++) {
-                BabyLayoutHolder holder = holders.get(position);
+                BabyLayoutHolder holder = holders.get(position).holder;
                 if (holder == null) continue;
                 if (i == position) {
                     holder.onViewSelected();
@@ -368,6 +363,15 @@ public class LoggedInFragment extends BaseFragment {
                     holder.onViewDeselected();
                 }
             }
+        }
+
+        public BabyLayoutHolder getHolderFor(BabyBuddyClient.Child c) {
+            for (HolderChildPair p : holders) {
+                if ((p.child != null) && (p.child.id == c.id)) {
+                    return p.holder;
+                }
+            }
+            return null;
         }
     }
 
@@ -390,6 +394,8 @@ public class LoggedInFragment extends BaseFragment {
                     super.onPageSelected(position);
                     babyAdapter.activeViewChanged(position);
                     updateTitle();
+                    oldTimerList = null;
+                    refreshTimerList();
                 }
             }
         );
@@ -411,25 +417,34 @@ public class LoggedInFragment extends BaseFragment {
     }
 
     @Override
+    public void onCreate(@Nullable Bundle savedInstanceState) {
+        super.onCreate(savedInstanceState);
+
+        Handler handler = new Handler(getMainActivity().getMainLooper());
+        Runnable runRefreshTask = new Runnable() {
+            @Override
+            public void run() {
+                refreshTimerList();
+            }
+        };
+
+        Timer timer = new Timer(true);
+        timer.scheduleAtFixedRate(new TimerTask() {
+            @Override
+            public void run() {
+                handler.post(runRefreshTask);
+            }
+        }, 0, 1000);
+    }
+
+    @Override
     public void onResume() {
         super.onResume();
 
-        System.out.println("RESTORE BELOW");
-        /*
-        String selectedChildName = credStore.getSelectedChild();
-        for (BabyBuddyClient.Child c : getMainActivity().children) {
-            if (c.slug.equals(selectedChildName)) {
-                selectedChild = c;
-                break;
-            }
-        }
-        if (selectedChild == null) {
-            if (getMainActivity().children.length > 0) {
-                selectedChild = getMainActivity().children[0];
-            }
-        }
-        */
         updateTitle();
+
+        oldTimerList = null;
+        refreshTimerList();
     }
 
     @Override
@@ -455,4 +470,64 @@ public class LoggedInFragment extends BaseFragment {
             getMainActivity().setTitle(child.first_name + " " + child.last_name);
         }
     }
+
+    public void refreshTimerList() {
+        if (!isResumed()) {
+            return;
+        }
+        if (timerListRefreshing) {
+            return;
+        }
+        if (selectedChild() == null) {
+            return;
+        }
+
+        timerListRefreshing = true;
+        BabyBuddyClient.Child requestedFor = selectedChild();
+        client.listTimers(requestedFor.id, new BabyBuddyClient.RequestCallback<BabyBuddyClient.Timer[]>() {
+            @Override
+            public void error(Exception error) {
+                timerListRefreshing = false;
+                if (!isVisible()) {
+                    return;
+                }
+
+                showError(
+                    true,
+                    "Login failed",
+                    "Error occurred while obtaining timers: " + error.getMessage()
+                );
+            }
+
+            @Override
+            public void response(BabyBuddyClient.Timer[] response) {
+                timerListRefreshing = false;
+                if (!isVisible()) {
+                    return;
+                }
+
+                boolean changed = oldTimerList == null;
+                if (!changed) {
+                    changed = oldTimerList.length != response.length;
+                }
+                if (!changed) {
+                    for (int i = 0; i < oldTimerList.length; i++) {
+                        changed = (oldTimerList[i].id != response[i].id) ||
+                            (oldTimerList[i].active != response[i].active) ||
+                            (!oldTimerList[i].start.equals(response[i].start));
+                        if (changed) break;
+                    }
+                }
+
+                if (changed) {
+                    oldTimerList = response;
+                    BabyLayoutHolder holder = babyAdapter.getHolderFor(requestedFor);
+                    if (holder != null) {
+                        holder.updateTimerList(response);
+                    }
+                }
+            }
+        });
+    }
+
 }

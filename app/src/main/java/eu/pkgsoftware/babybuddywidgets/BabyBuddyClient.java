@@ -18,14 +18,14 @@ import java.nio.charset.StandardCharsets;
 import java.text.ParseException;
 import java.text.SimpleDateFormat;
 import java.util.ArrayList;
-import java.util.Arrays;
-import java.util.Base64;
 import java.util.Collections;
 import java.util.Comparator;
 import java.util.Date;
 import java.util.List;
 import java.util.TimeZone;
 import java.util.regex.Pattern;
+
+import androidx.annotation.NonNull;
 
 public class BabyBuddyClient extends StreamReader {
     private static Date parseNullOrDate(JSONObject o, String field) throws JSONException, ParseException {
@@ -145,6 +145,14 @@ public class BabyBuddyClient extends StreamReader {
         con.setRequestProperty("Authorization", "Token " + token);
         con.setDoInput(true);
         return con;
+    }
+
+    @NonNull
+    private String now() {
+        SimpleDateFormat sdf = new SimpleDateFormat("yyyy-MM-dd'T'HH:mm:ss.SSSXXX");
+        sdf.setTimeZone(TimeZone.getTimeZone("UTC"));
+        String nowIso8601 = sdf.format(new Date(System.currentTimeMillis()));
+        return nowIso8601;
     }
 
     public BabyBuddyClient(Looper mainLoop, CredStore credStore) {
@@ -373,16 +381,12 @@ public class BabyBuddyClient extends StreamReader {
     }
 
     public void createChangeRecord(Child child, boolean wet, boolean solid, RequestCallback<Boolean> callback) {
-        SimpleDateFormat sdf = new SimpleDateFormat("yyyy-MM-dd'T'HH:mm:ss.SSSXXX");
-        sdf.setTimeZone(TimeZone.getTimeZone("UTC"));
-        String nowIso8601 = sdf.format(new Date(System.currentTimeMillis()));
-
         dispatchQuery(
             "POST",
             "api/changes/",
             "{\"child\": XXChild, \"time\": \"XXTime\", \"wet\": XXWet, \"solid\": XXSolid, \"color\": \"\", \"amount\": null, \"notes\": \"\"}"
                 .replaceAll("XXChild", "" + child.id)
-                .replaceAll("XXTime", nowIso8601)
+                .replaceAll("XXTime", now())
                 .replaceAll("XXWet", wet ? "true" : "false")
                 .replaceAll("XXSolid", solid ? "true" : "false"),
             new RequestCallback<String>() {
@@ -396,5 +400,31 @@ public class BabyBuddyClient extends StreamReader {
                     callback.response(true);
                 }
             });
+    }
+
+    public void createTimer(Child child, String name, RequestCallback<Timer> callback) {
+        dispatchQuery(
+            "POST",
+            "api/timers/",
+            "{\"child\": XXChild, \"name\": \"XXName\", \"start\": \"XXStart\"}"
+                .replaceAll("XXChild", "" + child.id)
+                .replaceAll("XXStart", now())
+                .replaceAll("XXName", name),
+            new RequestCallback<String>() {
+                @Override
+                public void error(Exception e) {
+                    callback.error(e);
+                }
+
+                @Override
+                public void response(String response) {
+                    try {
+                        callback.response( Timer.fromJSON(new JSONObject(response)));
+                    } catch (JSONException | ParseException e) {
+                        error(e);
+                    }
+                }
+            }
+        );
     }
 }
