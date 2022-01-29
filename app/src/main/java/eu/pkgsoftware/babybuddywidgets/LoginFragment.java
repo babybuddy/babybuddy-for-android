@@ -1,10 +1,7 @@
 package eu.pkgsoftware.babybuddywidgets;
 
 import android.app.AlertDialog;
-import android.app.ProgressDialog;
-import android.content.DialogInterface;
 import android.os.Bundle;
-import android.os.Message;
 import android.text.Editable;
 import android.text.TextWatcher;
 import android.view.LayoutInflater;
@@ -13,8 +10,6 @@ import android.view.ViewGroup;
 import android.widget.Button;
 import android.widget.EditText;
 
-import androidx.annotation.NonNull;
-import androidx.fragment.app.Fragment;
 import androidx.navigation.NavController;
 import androidx.navigation.Navigation;
 import eu.pkgsoftware.babybuddywidgets.databinding.LoginFragmentBinding;
@@ -34,6 +29,12 @@ public class LoginFragment extends BaseFragment {
 
     private MainActivity getMainActivity() {
         return (MainActivity) getActivity();
+    }
+
+    @Override
+    public void onCreate(Bundle savedInstanceState) {
+        super.onCreate(savedInstanceState);
+        setRetainInstance(true);
     }
 
     @Override
@@ -76,20 +77,38 @@ public class LoginFragment extends BaseFragment {
         loginNameEdit.addTextChangedListener(tw);
         loginPasswordEdit.addTextChangedListener(tw);
 
-        loginButton.setOnClickListener(new View.OnClickListener() {
-            @Override
-            public void onClick(View view) {
+        loginButton.setOnClickListener(view1 -> {
+            hideKeyboard();
+
+            String cleanedAddress = ("" + addressEdit.getText()).trim();
+            if (cleanedAddress.toLowerCase().startsWith("http:")) {
+                new AlertDialog.Builder(getContext())
+                    .setTitle("Insecure connection")
+                    .setMessage(
+                        "You have entered a URL  that does not start with 'https'. This means " +
+                            "that the password you entered can be intercepted and stolen!")
+                    .setPositiveButton(
+                        "Cancel (advised)",
+                        (dialogInterface, i) -> dialogInterface.dismiss()
+                    )
+                    .setNegativeButton(
+                        "Continue anyway",
+                        (dialogInterface, i) -> performLogin()
+                    ).show();
+            } else {
+                if (!cleanedAddress.toLowerCase().startsWith("https:")) {
+                    addressEdit.setText("https://" + addressEdit.getText());
+                }
                 performLogin();
             }
         });
 
+        binding.passwordEdit.setText("");
+        binding.loginNameEdit.setText("");
+
         updateLoginButton();
 
         return binding.getRoot();
-    }
-
-    public void onViewCreated(@NonNull View view, Bundle savedInstanceState) {
-        super.onViewCreated(view, savedInstanceState);
     }
 
     private void showProgress() {
@@ -97,10 +116,9 @@ public class LoginFragment extends BaseFragment {
     }
 
     @Override
-    public void onStart() {
-        super.onStart();
-        binding.passwordEdit.setText("");
-        binding.loginNameEdit.setText("");
+    public void onResume() {
+        super.onResume();
+        getMainActivity().setTitle("Login to Baby Buddy");
 
         if (getMainActivity().getCredStore().getAppToken() != null) {
             showProgress();
@@ -117,12 +135,6 @@ public class LoginFragment extends BaseFragment {
                 }
             });
         }
-    }
-
-    @Override
-    public void onResume() {
-        super.onResume();
-        getMainActivity().setTitle("Login to Baby Buddy");
     }
 
     @Override

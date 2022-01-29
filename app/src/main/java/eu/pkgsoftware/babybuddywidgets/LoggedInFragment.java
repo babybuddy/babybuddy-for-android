@@ -201,8 +201,6 @@ public class LoggedInFragment extends BaseFragment {
             GridLayoutManager l = new GridLayoutManager(binding.timersList.getContext(), 1);
             binding.timersList.setLayoutManager(l);
 
-            setHasOptionsMenu(true);
-
             View.OnClickListener invertSolid = view -> {
                 changeSolid = !changeSolid;
                 updateDiaperBar();
@@ -376,7 +374,7 @@ public class LoggedInFragment extends BaseFragment {
     @Override
     public void onCreate(@Nullable Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
-
+        setHasOptionsMenu(true);
         setRetainInstance(true);
     }
 
