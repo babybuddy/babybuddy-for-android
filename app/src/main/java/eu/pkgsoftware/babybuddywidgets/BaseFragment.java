@@ -13,6 +13,10 @@ import androidx.annotation.Nullable;
 import androidx.fragment.app.Fragment;
 
 public class BaseFragment extends Fragment {
+    public static interface Callback<T> {
+        public void call(T t);
+    }
+
     public static interface Promise<S, F> {
         public void succeeded(S s);
         public void failed(F f);
@@ -22,6 +26,10 @@ public class BaseFragment extends Fragment {
     protected ProgressDialog progressDialog;
 
     protected AlertDialog showError(boolean override, String title, String errorMessage) {
+        return showError(override, title, errorMessage, aBoolean -> {});
+    }
+
+    protected AlertDialog showError(boolean override, String title, String errorMessage, Callback<Boolean> callback) {
         if (override) {
             hideError();
         }
@@ -33,6 +41,7 @@ public class BaseFragment extends Fragment {
                 @Override
                 public void onClick(DialogInterface dialogInterface, int i) {
                     hideError();
+                    callback.call(true);
                 }
             })
             .show();

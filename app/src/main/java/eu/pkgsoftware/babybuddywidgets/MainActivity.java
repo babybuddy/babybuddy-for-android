@@ -24,7 +24,7 @@ public class MainActivity extends AppCompatActivity {
     private BabyBuddyClient client = null;
 
     public BabyBuddyClient.Timer selectedTimer = null;
-    public BabyBuddyClient.Child[] children = null;
+    public BabyBuddyClient.Child[] children = new BabyBuddyClient.Child[0];
 
     public CredStore getCredStore() {
         if (credStore == null) {
@@ -47,20 +47,12 @@ public class MainActivity extends AppCompatActivity {
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
-        System.out.println("AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA");
 
         binding = ActivityMainBinding.inflate(getLayoutInflater());
         setContentView(binding.getRoot());
         setSupportActionBar(binding.toolbar);
 
-        binding.toolbar.setNavigationOnClickListener(
-            new View.OnClickListener() {
-                @Override
-                public void onClick(View view) {
-                }
-            }
-        );
-
+        binding.toolbar.setNavigationOnClickListener(view -> {});
         binding.toolbar.setNavigationIcon(null);
     }
 }

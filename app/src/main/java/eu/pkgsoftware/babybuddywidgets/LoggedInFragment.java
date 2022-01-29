@@ -9,20 +9,16 @@ import android.view.MenuInflater;
 import android.view.MenuItem;
 import android.view.View;
 import android.view.ViewGroup;
-import android.widget.Adapter;
 import android.widget.AdapterView;
-import android.widget.ArrayAdapter;
-import android.widget.LinearLayout;
 import android.widget.RelativeLayout;
 
-import java.lang.reflect.Array;
-import java.net.ConnectException;
 import java.util.ArrayList;
 import java.util.Timer;
 import java.util.TimerTask;
 
 import androidx.annotation.NonNull;
 import androidx.annotation.Nullable;
+import androidx.fragment.app.Fragment;
 import androidx.navigation.Navigation;
 import androidx.recyclerview.widget.GridLayoutManager;
 import androidx.recyclerview.widget.RecyclerView;
@@ -45,6 +41,8 @@ public class LoggedInFragment extends BaseFragment {
 
     private boolean timerListRefreshing = false;
     private BabyBuddyClient.Timer[] oldTimerList = null;
+
+    private BabyBuddyClient.Child[] children = null;
 
     private class BabyLayoutHolder extends RecyclerView.ViewHolder {
         private class TimerListViewHolder extends RecyclerView.ViewHolder {
@@ -108,7 +106,7 @@ public class LoggedInFragment extends BaseFragment {
 
                         @Override
                         public void error(Exception error) {
-                            showError(false, "Could not store activity", errorMessage);
+                            showError(true, "Could not store activity", errorMessage);
                         }
 
                         @Override
@@ -131,7 +129,7 @@ public class LoggedInFragment extends BaseFragment {
                             client.createTummyTimeRecordFromTimer(timer, new BabyBuddyClient.RequestCallback<Boolean>() {
                                 @Override
                                 public void error(Exception error) {
-                                    showError(false, "Could not store activity", error.getMessage());
+                                    showError(true, "Could not store activity", error.getMessage());
                                 }
 
                                 @Override
@@ -140,7 +138,7 @@ public class LoggedInFragment extends BaseFragment {
                                 }
                             });
                         } else {
-                            showError(false, "Could not store activity", "Unsupported activity");
+                            showError(true, "Could not store activity", "Unsupported activity");
                         }
                     }
                 });
@@ -340,17 +338,17 @@ public class LoggedInFragment extends BaseFragment {
         public void onBindViewHolder(BabyLayoutHolder holder, int position) {
             while (position >= holders.size()) holders.add(null);
 
-            BabyBuddyClient.Child c = getMainActivity().children[position];
+            BabyBuddyClient.Child c = children[position];
             holders.set(position, new HolderChildPair(c, holder));
             holder.updateChild(c);
         }
 
         @Override
         public int getItemCount() {
-            if (getMainActivity().children == null) {
+            if (children == null) {
                 return 0;
             }
-            return getMainActivity().children.length;
+            return children.length;
         }
 
         public void activeViewChanged(int position) {
@@ -376,49 +374,22 @@ public class LoggedInFragment extends BaseFragment {
     }
 
     @Override
-    public View onCreateView(
-            LayoutInflater inflater, ViewGroup container,
-            Bundle savedInstanceState
-    ) {
-        binding = LoggedInFragmentBinding.inflate(inflater, container, false);
+    public void onCreate(@Nullable Bundle savedInstanceState) {
+        super.onCreate(savedInstanceState);
+
+        setRetainInstance(true);
+    }
+
+    @Override
+    public void onAttach(@NonNull Context context) {
+        super.onAttach(context);
 
         credStore = getMainActivity().getCredStore();
         client = getMainActivity().getClient();
 
-        babyAdapter = new BabyPagerAdapter();
-        binding.babyViewPagerSwitcher.setAdapter(babyAdapter);
-        binding.babyViewPagerSwitcher.registerOnPageChangeCallback(
-            new ViewPager2.OnPageChangeCallback() {
-                @Override
-                public void onPageSelected(int position) {
-                    super.onPageSelected(position);
-                    babyAdapter.activeViewChanged(position);
-                    updateTitle();
-                    oldTimerList = null;
-                    refreshTimerList();
-                }
-            }
-        );
-        return binding.getRoot();
-    }
-
-    @Override
-    public void onCreateOptionsMenu(Menu menu, MenuInflater inflater) {
-        inflater.inflate(R.menu.loggedin_menu, menu);
-    }
-
-    @Override
-    public boolean onOptionsItemSelected(MenuItem item) {
-        if (item.getItemId() == R.id.logoutMenuButton) {
-            getMainActivity().getCredStore().storeAppToken(null);
-            Navigation.findNavController(getView()).navigate(R.id.logoutOperation);
+        if (children == null) {
+            children = getMainActivity().children;
         }
-        return false;
-    }
-
-    @Override
-    public void onCreate(@Nullable Bundle savedInstanceState) {
-        super.onCreate(savedInstanceState);
 
         Handler handler = new Handler(getMainActivity().getMainLooper());
         Runnable runRefreshTask = new Runnable() {
@@ -438,6 +409,44 @@ public class LoggedInFragment extends BaseFragment {
     }
 
     @Override
+    public View onCreateView(
+        LayoutInflater inflater, ViewGroup container,
+        Bundle savedInstanceState
+    ) {
+        binding = LoggedInFragmentBinding.inflate(inflater, container, false);
+
+        babyAdapter = new BabyPagerAdapter();
+        binding.babyViewPagerSwitcher.setAdapter(babyAdapter);
+        binding.babyViewPagerSwitcher.registerOnPageChangeCallback(
+            new ViewPager2.OnPageChangeCallback() {
+                @Override
+                public void onPageSelected(int position) {
+                    super.onPageSelected(position);
+                    babyAdapter.activeViewChanged(position);
+                    updateTitle();
+                    oldTimerList = null;
+                    refreshTimerList();
+                }
+            }
+        );
+
+        return binding.getRoot();
+    }
+
+    @Override
+    public void onCreateOptionsMenu(Menu menu, MenuInflater inflater) {
+        inflater.inflate(R.menu.loggedin_menu, menu);
+    }
+
+    @Override
+    public boolean onOptionsItemSelected(MenuItem item) {
+        if (item.getItemId() == R.id.logoutMenuButton) {
+            getMainActivity().getCredStore().storeAppToken(null);
+            Navigation.findNavController(getView()).navigate(R.id.logoutOperation);
+        }
+        return false;
+    }
+    @Override
     public void onResume() {
         super.onResume();
 
@@ -455,9 +464,9 @@ public class LoggedInFragment extends BaseFragment {
     private BabyBuddyClient.Child selectedChild() {
         int childIndex = binding.babyViewPagerSwitcher.getCurrentItem();
         BabyBuddyClient.Child child = null;
-        int childCount = getMainActivity().children != null ? getMainActivity().children.length : 0;
+        int childCount = children != null ? children.length : 0;
         if ((childIndex >= 0) && (childIndex < childCount)) {
-            child = getMainActivity().children[childIndex];
+            child = children[childIndex];
         }
         return child;
     }

@@ -29,7 +29,7 @@ import androidx.navigation.NavController;
 import androidx.navigation.Navigation;
 import eu.pkgsoftware.babybuddywidgets.databinding.FeedingFragmentBinding;
 
-public class FeedingFragment extends Fragment {
+public class FeedingFragment extends BaseFragment {
     public interface ButtonListCallback {
         public void onSelectionChanged(int i);
     };
@@ -305,17 +305,13 @@ public class FeedingFragment extends Fragment {
                 @Override
                 public void error(Exception error) {
                     progressDialog.cancel();
-                    new AlertDialog.Builder(getActivity())
-                        .setTitle("Failed storing feeding")
-                        .setMessage("Error: " + error.getMessage())
-                        .setPositiveButton("Ok", new DialogInterface.OnClickListener() {
-                            @Override
-                            public void onClick(DialogInterface dialogInterface, int i) {
-                                dialogInterface.cancel();
-                                navUp();
-                            }
-                        })
-                        .show();
+
+                    showError(
+                        true,
+                        "Failed storing feeding",
+                        "Error: " + error.getMessage(),
+                        b -> navUp()
+                    );
                 }
 
                 @Override

@@ -173,7 +173,7 @@ public class LoginFragment extends BaseFragment {
             @Override
             public void failed(String s) {
                 progressDialog.hide();
-                showError(false, "Login failed", s);
+                showError(true, "Login failed", s);
             }
         });
     }
