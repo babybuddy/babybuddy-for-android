@@ -3,7 +3,7 @@
 When you first lauch the application you will be presented with the
 login screen:
 
-![Baby Buddy login screen](images/login_screen.png)
+![Baby Buddy login screen](images/login_screen-smaller.png)
 
 Enter the URL to the Baby Buddy server you want to use the app with in the
 server-address bar. Then add your login name and password and press "login".
@@ -27,12 +27,12 @@ when logging in to a server over the internet using HTTP and can therefore
 easily be stolen. The HTTP-option really only is there for _local_ installations
 of Baby Buddy in a home network which is not exposed to the internet.
 
-# Chidlren list
+# Children list
 
 After you logged in to the server you should find the app showing information
 for a single child in the Baby Buddy database:
 
-![App after logging in](images/demo_screenie.png)
+![App after logging in](images/demo_screenie-smaller.png)
 
 You can swipe left and right to switch between multiple children.
 
