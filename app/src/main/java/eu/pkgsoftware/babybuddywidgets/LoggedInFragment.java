@@ -13,6 +13,7 @@ import android.widget.AdapterView;
 import android.widget.RelativeLayout;
 
 import java.util.ArrayList;
+import java.util.Locale;
 import java.util.Timer;
 import java.util.TimerTask;
 
@@ -52,6 +53,7 @@ public class LoggedInFragment extends BaseFragment {
             public TimerListViewHolder(View itemView, QuickTimerEntryBinding binding) {
                 super(itemView);
                 this.binding = binding;
+
                 binding.appTimerDefaultType.setOnItemSelectedListener(new AdapterView.OnItemSelectedListener() {
                     @Override
                     public void onItemSelected(AdapterView<?> adapterView, View view, int i, long l) {
@@ -150,13 +152,29 @@ public class LoggedInFragment extends BaseFragment {
                 refreshTimerList();
             }
 
+            private int inferDefaultSelectionFromName(String name) {
+                name = name.toLowerCase();
+                int i = 0;
+                for (CharSequence candidate : getActivity().getResources().getStringArray(R.array.timerTypes)) {
+                    if (name.contains(candidate.toString().toLowerCase())) {
+                        return i;
+                    }
+                    i++;
+                }
+                return 0;
+            }
+
             public void assignTimer(BabyBuddyClient.Timer timer) {
                 this.timer = timer;
                 binding.timerName.setText(timer.readableName());
                 updateActiveState();
                 Integer defaultSelection = credStore.getTimerDefaultSelections().get(timer.id);
                 if (defaultSelection == null) {
-                    defaultSelection = 0;
+                    if (timer.name != null) {
+                        defaultSelection = inferDefaultSelectionFromName(timer.name);
+                    } else {
+                        defaultSelection = 0;
+                    }
                 }
                 binding.appTimerDefaultType.setSelection(defaultSelection);
 
@@ -439,7 +457,8 @@ public class LoggedInFragment extends BaseFragment {
     @Override
     public boolean onOptionsItemSelected(MenuItem item) {
         if (item.getItemId() == R.id.logoutMenuButton) {
-            getMainActivity().getCredStore().storeAppToken(null);
+            credStore.storeAppToken(null);
+            credStore.clearTimerAssociations();
             Navigation.findNavController(getView()).navigate(R.id.logoutOperation);
         }
         return false;

@@ -213,4 +213,9 @@ public class CredStore {
         currentChild = c;
         storePrefs();
     }
+
+    public void clearTimerAssociations() {
+        timerAssignments.clear();
+        storePrefs();
+    }
 }
