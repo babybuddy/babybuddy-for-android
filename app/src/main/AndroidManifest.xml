@@ -11,6 +11,10 @@
         android:usesCleartextTraffic="true"
         android:theme="@style/Theme.BabyBuddyWidgets">
 
+        <!--
+        Disabled for now - does not work right now
+
+
         <activity
             android:name=".TimerStartStopConfigureActivity"
             android:theme="@style/Theme.BabyBuddyWidgets">
@@ -28,6 +32,7 @@
                 android:name="android.appwidget.provider"
                 android:resource="@xml/timer_start_stop_info" />
         </receiver>
+        -->
 
         <activity
             android:name=".MainActivity"
