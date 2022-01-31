@@ -10,11 +10,13 @@ import org.json.JSONObject;
 import java.io.IOException;
 import java.io.OutputStream;
 import java.io.UnsupportedEncodingException;
+import java.math.BigInteger;
 import java.net.HttpURLConnection;
 import java.net.MalformedURLException;
 import java.net.URL;
 import java.net.URLEncoder;
 import java.nio.charset.StandardCharsets;
+import java.text.DateFormat;
 import java.text.ParseException;
 import java.text.SimpleDateFormat;
 import java.util.ArrayList;
@@ -130,9 +132,23 @@ public class BabyBuddyClient extends StreamReader {
         }
     }
 
+    private final SimpleDateFormat SERVER_DATE_FORMAT = new SimpleDateFormat("EEE, d MMM yyyy HH:mm:ss z");
+
     private Handler syncMessage;
     private CredStore credStore;
     private Looper mainLoop;
+    private long serverDateOffset = -1000;
+
+    private void updateServerDateTime(HttpURLConnection con) {
+        String dateString = con.getHeaderField("Date");
+        try {
+            Date serverTime = SERVER_DATE_FORMAT.parse(dateString);
+            Date now = new Date(System.currentTimeMillis());
+
+            serverDateOffset = serverTime.getTime() - now.getTime() - 100; // 100 ms offset
+        } catch (ParseException e) {
+        }
+    }
 
     private URL subPath(String path) throws MalformedURLException {
         String prefix = credStore.getServerUrl().replaceAll("/*$", "");
@@ -151,8 +167,8 @@ public class BabyBuddyClient extends StreamReader {
     private String now() {
         SimpleDateFormat sdf = new SimpleDateFormat("yyyy-MM-dd'T'HH:mm:ss.SSSXXX");
         sdf.setTimeZone(TimeZone.getTimeZone("UTC"));
-        String nowIso8601 = sdf.format(new Date(System.currentTimeMillis()));
-        return nowIso8601;
+        Date now = new Date(System.currentTimeMillis() + serverDateOffset);
+        return sdf.format(now);
     }
 
     public BabyBuddyClient(Looper mainLoop, CredStore credStore) {
@@ -179,10 +195,13 @@ public class BabyBuddyClient extends StreamReader {
                     }
 
                     query.connect();
+                    updateServerDateTime(query);
 
                     int responseCode = query.getResponseCode();
                     if ((responseCode < 200) || (responseCode >= 300)) {
-                        throw new RequestCodeFailure(query.getResponseMessage());
+                        String message = query.getResponseMessage();
+                        System.out.println("RESPONSE: " + query.getResponseCode() + " + " + message);
+                        throw new RequestCodeFailure(message);
                     }
                     System.out.println("RESPONSE: " + query.getResponseCode());
 
