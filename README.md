@@ -8,6 +8,10 @@ while handling children.
 
 ![Example image of the application](doc/images/demo_screenie-smaller.png)
 
+# Documentation
+
+[User documentation](doc/index.md) is available as part of this repository.
+
 # License and attributions
 
 The software is made available under the MIT License.

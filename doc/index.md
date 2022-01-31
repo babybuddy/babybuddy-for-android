@@ -1,4 +1,4 @@
-# Baby Buddy for Android documentation
+# Baby Buddy for Android
 
 The application will only work, if used in combintation with an running
 [Baby Buddy Server](https://docs.baby-buddy.net/). If you do not have
