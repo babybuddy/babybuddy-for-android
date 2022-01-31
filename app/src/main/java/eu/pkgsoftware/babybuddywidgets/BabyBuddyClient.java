@@ -182,7 +182,6 @@ public class BabyBuddyClient extends StreamReader {
             @Override
             public void run() {
                 try {
-                    System.out.println("SEND: " + method + "  path: " + path + "  " + payload);
                     HttpURLConnection query = doQuery(path);
                     query.setRequestMethod(method);
                     if (payload != null) {
@@ -200,10 +199,8 @@ public class BabyBuddyClient extends StreamReader {
                     int responseCode = query.getResponseCode();
                     if ((responseCode < 200) || (responseCode >= 300)) {
                         String message = query.getResponseMessage();
-                        System.out.println("RESPONSE: " + query.getResponseCode() + " + " + message);
                         throw new RequestCodeFailure(message);
                     }
-                    System.out.println("RESPONSE: " + query.getResponseCode());
 
 
                     String result = loadHtml(query);
