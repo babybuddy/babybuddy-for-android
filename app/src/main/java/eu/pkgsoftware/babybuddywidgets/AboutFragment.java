@@ -80,7 +80,7 @@ public class AboutFragment extends BaseFragment {
         }
     }
 
-    private static Pattern HREF_DETECTOR_PATTERN = Pattern.compile("<a .*href=[\"']([^\"]+)[\"'][^>]*>([^<]*)</a>");
+    private static Pattern HREF_DETECTOR_PATTERN = Pattern.compile("<a .*href=[\"']([^\"']+)[\"'][^>]*>([^<]*)</a>");
 
     private void filterLinksFromTextFields(ViewGroup root) {
         for (int i = 0; i < root.getChildCount(); i++) {
@@ -207,7 +207,7 @@ public class AboutFragment extends BaseFragment {
 
         filterLinksFromTextFields(binding.root);
 
-        return binding.root;
+        return binding.getRoot();
     }
 
     @Override
