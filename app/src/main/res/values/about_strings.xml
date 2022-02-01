@@ -1,0 +1,15 @@
+<!-- Auto-generated file - do not edit! -->
+<resources>
+  <string-array name='autostring_about_icon_iconlists'>
+    <item>pkg_poop,pkg_no_poop</item>
+    <item>pkg_wet,pkg_not_wet</item>
+  </string-array>
+  <string-array name='autostring_about_icon_titles'>
+    <item>Poop icons created by Good Ware - Flaticon</item>
+    <item>Humidity icons created by bqlqn - Flaticon</item>
+  </string-array>
+  <string-array name='autostring_about_icon_links'>
+    <item>https://www.flaticon.com/free-icons/poop</item>
+    <item>https://www.flaticon.com/free-icons/humidity</item>
+  </string-array>
+</resources>

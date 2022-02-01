@@ -20,6 +20,7 @@
     </array>
 
     <string name="app_name">Baby Buddy</string>
+
     <!-- Strings used for fragments for navigation -->
     <string name="action_settings">Settings</string>
     <string name="first_fragment_label">Login to Baby Buddy</string>
@@ -27,13 +28,10 @@
     <string name="next">Next</string>
 
     <string name="previous">Previous</string>
-    <string name="hello_first_fragment">Hello first fragment</string>
-    <string name="hello_second_fragment">Hello second fragment. Arg: %1$s</string>
-    <string name="appwidget_text">EXAMPLE</string>
     <string name="configure">Configure</string>
     <string name="add_widget">Add widget</string>
 
-    <string name="LoggingInMessage">Logging in...</string>
-    <!-- TODO: Remove or change this placeholder text -->
-    <string name="hello_blank_fragment">Hello blank fragment</string>
+    <string name="LoggingInMessage">Logging in…</string>
+
+    <string name="about_page_title">About Baby&#160;Buddy for Android</string>
 </resources>

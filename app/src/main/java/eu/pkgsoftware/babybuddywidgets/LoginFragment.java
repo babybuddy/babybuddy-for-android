@@ -42,7 +42,6 @@ public class LoginFragment extends BaseFragment {
             LayoutInflater inflater, ViewGroup container,
             Bundle savedInstanceState
     ) {
-
         binding = LoginFragmentBinding.inflate(inflater, container, false);
         View view = binding.getRoot();
 

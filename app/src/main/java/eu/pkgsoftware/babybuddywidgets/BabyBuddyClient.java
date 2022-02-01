@@ -119,19 +119,6 @@ public class BabyBuddyClient extends StreamReader {
         void response(R response);
     }
 
-    private static class MessageData {
-        public String data = null;
-        public Exception error = null;
-
-        public MessageData(String data) {
-            this.data = data;
-        }
-
-        public MessageData(Exception error) {
-            this.error = error;
-        }
-    }
-
     private final SimpleDateFormat SERVER_DATE_FORMAT = new SimpleDateFormat("EEE, d MMM yyyy HH:mm:ss z");
 
     private Handler syncMessage;

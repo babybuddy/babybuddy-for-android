@@ -461,6 +461,9 @@ public class LoggedInFragment extends BaseFragment {
             credStore.clearTimerAssociations();
             Navigation.findNavController(getView()).navigate(R.id.logoutOperation);
         }
+        if (item.getItemId() == R.id.aboutPageMenuItem) {
+            Navigation.findNavController(getView()).navigate(R.id.action_loggedInFragment2_to_aboutFragment);
+        }
         return false;
     }
     @Override

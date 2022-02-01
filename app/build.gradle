@@ -1,6 +1,63 @@
+import java.util.regex.Matcher
+
 plugins {
     id 'com.android.application'
 }
+
+task generateAboutStrings {
+    String fileContents = new File("ATTRIBUTIONS.md").text
+    String[] sections = fileContents.replaceAll("\n", " ").split("##")
+
+    def outList = []
+
+    for (String sec in sections[1..-1]) {
+        String title = sec.split("!\\[")[0]
+        Matcher tagsMatch = title =~ /.*\(([^)]+)\).*/
+        tagsMatch.find()
+        String tagsList = tagsMatch.group(1).replaceAll(" ", "")
+
+        Matcher addressMatch = sec =~ /(<a .*href.*>.*<\/a>)/
+        addressMatch.find()
+        String aHrefString = addressMatch.group(1)
+
+        Matcher aHrefTitleMatch = aHrefString =~ /<a [^>]*>([^<]+)<\/a>/
+        aHrefTitleMatch.find()
+        String aHrefTitle =  aHrefTitleMatch.group(1)
+
+        Matcher aHrefAddressMatch = aHrefString =~ /<a[^>]+href="([^"]+)"[^>]*>/
+        aHrefAddressMatch.find()
+        String aHrefAddress =  aHrefAddressMatch.group(1)
+
+        outList.add(["icons": tagsList, "title": aHrefTitle, "link": aHrefAddress])
+    }
+
+    def xmlout = new StringWriter()
+    def xml = new groovy.xml.MarkupBuilder(xmlout)
+    xml.resources {
+        xml."string-array"(name:"autostring_about_icon_iconlists") {
+            for (item in outList) {
+                xml.item(item["icons"])
+            }
+        }
+        xml."string-array"(name:"autostring_about_icon_titles") {
+            for (item in outList) {
+                xml.item(item["title"])
+            }
+        }
+        xml."string-array"(name:"autostring_about_icon_links") {
+            for (item in outList) {
+                xml.item(item["link"])
+            }
+        }
+    }
+
+    FileWriter about_strings_file_writer = new FileWriter("app/src/main/res/values/about_strings.xml")
+    about_strings_file_writer.write("<!-- Auto-generated file - do not edit! -->\n")
+    about_strings_file_writer.write(xmlout.getBuffer().toString())
+    about_strings_file_writer.close()
+}
+
+preBuild.finalizedBy(generateAboutStrings)
 
 android {
     compileSdkVersion 30
@@ -31,6 +88,7 @@ android {
 }
 
 dependencies {
+    implementation 'com.squareup.phrase:phrase:1.1.0'
 
     implementation 'androidx.appcompat:appcompat:1.2.0'
     implementation 'com.google.android.material:material:1.2.1'

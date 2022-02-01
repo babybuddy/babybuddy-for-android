@@ -6,4 +6,7 @@
         android:id="@+id/logoutMenuButton"
         android:icon="?attr/actionModeCloseDrawable"
         android:title="Logout" />
+    <item
+        android:id="@+id/aboutPageMenuItem"
+        android:title="@string/about_page_title" />
 </menu>

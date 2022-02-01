@@ -30,9 +30,16 @@
             app:destination="@id/LoginFragment"
             app:popUpTo="@id/loggedInFragment2"
             app:popUpToInclusive="true" />
+        <action
+            android:id="@+id/action_loggedInFragment2_to_aboutFragment"
+            app:destination="@id/aboutFragment" />
     </fragment>
     <fragment
         android:id="@+id/feedingFragment"
         android:name="eu.pkgsoftware.babybuddywidgets.FeedingFragment"
         android:label="FeedingFragment" />
+    <fragment
+        android:id="@+id/aboutFragment"
+        android:name="eu.pkgsoftware.babybuddywidgets.AboutFragment"
+        android:label="AboutFragment" />
 </navigation>
