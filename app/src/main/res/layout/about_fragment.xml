@@ -9,6 +9,11 @@
     tools:context=".AboutFragment">
 
     <TextView
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:text="@string/about_text" />
+
+    <TextView
         android:id="@+id/aboutLicenseTitle"
         android:layout_width="match_parent"
         android:layout_height="wrap_content"

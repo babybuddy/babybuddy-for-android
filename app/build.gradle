@@ -54,7 +54,7 @@ task generateAboutStrings {
                 xml.item(item["link"])
             }
         }
-        xml.string(name:"autostring_about_license_title", "License under ${licenseTitle}")
+        xml.string(name:"autostring_about_license_title", "Licensed under ${licenseTitle}")
         xml.string(name:"autostring_about_license_text", licenseText)
     }
 

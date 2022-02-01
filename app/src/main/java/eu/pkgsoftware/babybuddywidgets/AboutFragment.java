@@ -5,6 +5,7 @@ import android.graphics.drawable.Icon;
 import android.media.Image;
 import android.os.Bundle;
 import android.text.SpannableString;
+import android.text.SpannableStringBuilder;
 import android.text.Spanned;
 import android.text.TextPaint;
 import android.text.method.LinkMovementMethod;
@@ -19,7 +20,11 @@ import android.widget.TextView;
 
 import com.squareup.phrase.Phrase;
 
+import org.w3c.dom.Text;
+
 import java.util.ArrayList;
+import java.util.regex.Matcher;
+import java.util.regex.Pattern;
 
 import androidx.core.content.ContextCompat;
 import androidx.core.content.res.ResourcesCompat;
@@ -42,8 +47,84 @@ public class AboutFragment extends BaseFragment {
         }
     }
 
+    private class ClickableLinkSpan extends ClickableSpan {
+        private String url;
+
+        public ClickableLinkSpan(String url) {
+            this.url = url;
+        }
+
+        @Override
+        public void onClick(@NonNull View view) {
+            showUrlInBrowser(url);
+        }
+
+        @Override
+        public void updateDrawState(@NonNull TextPaint ds) {
+            ds.setUnderlineText(true);
+            ds.setColor(Color.BLUE);
+        }
+    }
+
+    private AboutFragmentBinding binding = null;
+
     private int dpToPx(float dp) {
         return (int) (getContext().getResources().getDisplayMetrics().density * dp + 0.5f);
+    }
+
+    private class Range {
+        public int start, end;
+        public Range(int start, int end) {
+            this.start = start;
+            this.end = end;
+        }
+    }
+
+    private static Pattern HREF_DETECTOR_PATTERN = Pattern.compile("<a .*href=[\"']([^\"]+)[\"'][^>]*>([^<]*)</a>");
+
+    private void filterLinksFromTextFields(ViewGroup root) {
+        for (int i = 0; i < root.getChildCount(); i++) {
+            View v = root.getChildAt(i);
+            if (!(v instanceof TextView)) {
+                continue;
+            }
+
+            TextView tv = (TextView) v;
+
+            String orgText = tv.getText().toString();
+            System.out.println("orgText: " + orgText);
+            Matcher matcher = HREF_DETECTOR_PATTERN.matcher(orgText);
+
+            SpannableStringBuilder builder = null;
+            int prevMatchEnd = 0;
+            while (matcher.find()) {
+                if (builder == null) {
+                    builder = new SpannableStringBuilder();
+                }
+
+                builder.append(orgText.substring(prevMatchEnd, matcher.start()));
+
+                String linkUrl = matcher.group(1);
+                String linkText = matcher.group(2);
+                int startSpanIndex = builder.length();
+                builder.append(linkText);
+                builder.setSpan(
+                    new ClickableLinkSpan(linkUrl),
+                    startSpanIndex,
+                    builder.length(),
+                    Spanned.SPAN_EXCLUSIVE_EXCLUSIVE
+                );
+
+                prevMatchEnd = matcher.end();
+            }
+
+            if (builder != null) {
+                builder.append(orgText.substring(prevMatchEnd));
+
+                tv.setMovementMethod(LinkMovementMethod.getInstance());
+                tv.setText(builder);
+            }
+        }
     }
 
     @Override
@@ -51,7 +132,7 @@ public class AboutFragment extends BaseFragment {
             @NonNull LayoutInflater inflater,
             @Nullable ViewGroup container,
             @Nullable Bundle savedInstanceState) {
-        AboutFragmentBinding binding = AboutFragmentBinding.inflate(inflater);
+        binding = AboutFragmentBinding.inflate(inflater);
 
         String[] aboutIconLists = getResources().getStringArray(R.array.autostring_about_icon_iconlists);
         String[] aboutIconTitles = getResources().getStringArray(R.array.autostring_about_icon_titles);
@@ -123,6 +204,8 @@ public class AboutFragment extends BaseFragment {
 
             binding.root.addView(group);
         }
+
+        filterLinksFromTextFields(binding.root);
 
         return binding.root;
     }

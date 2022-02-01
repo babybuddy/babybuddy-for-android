@@ -21,6 +21,8 @@
 
     <string name="app_name">Baby Buddy</string>
 
+    <string name="about_text">This Android application is Open Source software licensed under the MIT License (see below).\n\nThe source code of the application is available at &lt;a href=\'https://github.com/MrApplejuice/BabyBuddyAndroid/\'&gt;https://github.com/MrApplejuice/BabyBuddyAndroid/&lt;/a&gt;.\n\nThe application uses third-party media under attribution licenes listed below.</string>
+
     <!-- Strings used for fragments for navigation -->
     <string name="action_settings">Settings</string>
     <string name="first_fragment_label">Login to Baby Buddy</string>
