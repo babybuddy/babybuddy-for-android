@@ -14,7 +14,7 @@ import androidx.annotation.NonNull;
 import androidx.annotation.Nullable;
 import eu.pkgsoftware.babybuddywidgets.databinding.AboutFragmentBinding;
 
-class AboutFragment extends Fragment {
+public class AboutFragment extends Fragment {
     public static class IconData {
         public String[] icons;
         public String title;
@@ -25,11 +25,6 @@ class AboutFragment extends Fragment {
             this.title = title;
             this.icons = icons.split(",");
         }
-    }
-
-    @Override
-    public void onCreate(@Nullable Bundle savedInstanceState) {
-        super.onCreate(savedInstanceState);
     }
 
     @Override
@@ -62,15 +57,5 @@ class AboutFragment extends Fragment {
         }
 
         return binding.getRoot();
-    }
-
-    @Override
-    public void onDestroyView() {
-        super.onDestroyView();
-    }
-
-    @Override
-    public void onResume() {
-        super.onResume();
     }
 }
