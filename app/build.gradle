@@ -5,8 +5,8 @@ plugins {
 }
 
 task generateAboutStrings {
-    String fileContents = new File("ATTRIBUTIONS.md").text
-    String[] sections = fileContents.replaceAll("\n", " ").split("##")
+    String attributionsText = new File("ATTRIBUTIONS.md").text
+    String[] sections = attributionsText.replaceAll("\n", " ").split("##")
 
     def outList = []
 
@@ -31,6 +31,11 @@ task generateAboutStrings {
         outList.add(["icons": tagsList, "title": aHrefTitle, "link": aHrefAddress])
     }
 
+    String licenseText = new File("LICENSE.md").text.trim()
+    String[] splits = licenseText.split("\n", 2)
+    String licenseTitle = splits[0].replace("#", "").trim()
+    licenseText = splits[1].trim().replaceAll("\n\n", "\\\\\\n\\\\\\n").replaceAll("\n", " ")
+
     def xmlout = new StringWriter()
     def xml = new groovy.xml.MarkupBuilder(xmlout)
     xml.resources {
@@ -49,6 +54,8 @@ task generateAboutStrings {
                 xml.item(item["link"])
             }
         }
+        xml.string(name:"autostring_about_license_title", "License under ${licenseTitle}")
+        xml.string(name:"autostring_about_license_text", licenseText)
     }
 
     FileWriter about_strings_file_writer = new FileWriter("app/src/main/res/values/about_strings.xml")
