@@ -27,10 +27,6 @@ public class LoginFragment extends BaseFragment {
                         (loginPasswordEdit.getText().length() > 0));
     }
 
-    private MainActivity getMainActivity() {
-        return (MainActivity) getActivity();
-    }
-
     @Override
     public void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);

@@ -34,10 +34,6 @@ public class LoggedInFragment extends BaseFragment {
     private BabyBuddyClient client = null;
     private CredStore credStore = null;
 
-    private MainActivity getMainActivity() {
-        return (MainActivity) getActivity();
-    }
-
     private BabyPagerAdapter babyAdapter = null;
 
     private boolean timerListRefreshing = false;

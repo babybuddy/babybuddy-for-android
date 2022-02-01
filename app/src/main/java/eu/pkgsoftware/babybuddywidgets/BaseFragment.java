@@ -90,4 +90,8 @@ public class BaseFragment extends Fragment {
         super.onDestroy();
         progressDialog.dismiss();
     }
+
+    protected MainActivity getMainActivity() {
+        return (MainActivity) getActivity();
+    }
 }

@@ -5,6 +5,7 @@ import android.os.Bundle;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
+import android.widget.LinearLayout;
 import android.widget.TextView;
 
 import java.util.ArrayList;
@@ -14,7 +15,7 @@ import androidx.annotation.NonNull;
 import androidx.annotation.Nullable;
 import eu.pkgsoftware.babybuddywidgets.databinding.AboutFragmentBinding;
 
-public class AboutFragment extends Fragment {
+public class AboutFragment extends BaseFragment {
     public static class IconData {
         public String[] icons;
         public String title;
@@ -54,8 +55,18 @@ public class AboutFragment extends Fragment {
         for (IconData iconData : iconDataList) {
             TextView tv = new TextView(getContext());
             tv.setText(iconData.title);
+            tv.setLayoutParams(new LinearLayout.LayoutParams(
+                ViewGroup.LayoutParams.WRAP_CONTENT, ViewGroup.LayoutParams.WRAP_CONTENT
+            ));
+            binding.root.addView(tv);
         }
 
-        return binding.getRoot();
+        return binding.root;
+    }
+
+    @Override
+    public void onResume() {
+        super.onResume();
+        getMainActivity().setTitle(getResources().getString(R.string.about_page_title));
     }
 }
