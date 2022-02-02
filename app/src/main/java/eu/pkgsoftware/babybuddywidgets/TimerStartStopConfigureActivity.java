@@ -10,6 +10,7 @@ import android.view.View;
 import android.widget.EditText;
 
 import eu.pkgsoftware.babybuddywidgets.databinding.TimerStartStopConfigureBinding;
+import eu.pkgsoftware.babybuddywidgets.networking.BabyBuddyClient;
 
 /**
  * The configuration screen for the {@link TimerStartStop TimerStartStop} AppWidget.

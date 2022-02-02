@@ -1,4 +1,4 @@
-package eu.pkgsoftware.babybuddywidgets;
+package eu.pkgsoftware.babybuddywidgets.networking;
 
 import java.io.IOException;
 import java.net.HttpURLConnection;

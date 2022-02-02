@@ -1,4 +1,4 @@
-package eu.pkgsoftware.babybuddywidgets;
+package eu.pkgsoftware.babybuddywidgets.networking;
 
 /*
 Login protocol in a nutshell:

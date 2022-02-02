@@ -13,13 +13,11 @@ import android.widget.AdapterView;
 import android.widget.RelativeLayout;
 
 import java.util.ArrayList;
-import java.util.Locale;
 import java.util.Timer;
 import java.util.TimerTask;
 
 import androidx.annotation.NonNull;
 import androidx.annotation.Nullable;
-import androidx.fragment.app.Fragment;
 import androidx.navigation.Navigation;
 import androidx.recyclerview.widget.GridLayoutManager;
 import androidx.recyclerview.widget.RecyclerView;
@@ -27,6 +25,7 @@ import androidx.viewpager2.widget.ViewPager2;
 import eu.pkgsoftware.babybuddywidgets.databinding.BabyManagerBinding;
 import eu.pkgsoftware.babybuddywidgets.databinding.LoggedInFragmentBinding;
 import eu.pkgsoftware.babybuddywidgets.databinding.QuickTimerEntryBinding;
+import eu.pkgsoftware.babybuddywidgets.networking.BabyBuddyClient;
 
 public class LoggedInFragment extends BaseFragment {
     private LoggedInFragmentBinding binding;

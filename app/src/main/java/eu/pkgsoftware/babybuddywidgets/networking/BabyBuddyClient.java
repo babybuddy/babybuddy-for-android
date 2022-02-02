@@ -1,4 +1,4 @@
-package eu.pkgsoftware.babybuddywidgets;
+package eu.pkgsoftware.babybuddywidgets.networking;
 
 import android.os.Handler;
 import android.os.Looper;
@@ -10,13 +10,11 @@ import org.json.JSONObject;
 import java.io.IOException;
 import java.io.OutputStream;
 import java.io.UnsupportedEncodingException;
-import java.math.BigInteger;
 import java.net.HttpURLConnection;
 import java.net.MalformedURLException;
 import java.net.URL;
 import java.net.URLEncoder;
 import java.nio.charset.StandardCharsets;
-import java.text.DateFormat;
 import java.text.ParseException;
 import java.text.SimpleDateFormat;
 import java.util.ArrayList;
@@ -28,6 +26,7 @@ import java.util.TimeZone;
 import java.util.regex.Pattern;
 
 import androidx.annotation.NonNull;
+import eu.pkgsoftware.babybuddywidgets.CredStore;
 
 public class BabyBuddyClient extends StreamReader {
     private static Date parseNullOrDate(JSONObject o, String field) throws JSONException, ParseException {

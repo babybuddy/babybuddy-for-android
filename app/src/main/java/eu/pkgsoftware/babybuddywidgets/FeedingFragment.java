@@ -1,11 +1,8 @@
 package eu.pkgsoftware.babybuddywidgets;
 
-import android.app.AlertDialog;
 import android.app.ProgressDialog;
-import android.content.DialogInterface;
 import android.os.Bundle;
 import android.os.Handler;
-import android.os.Message;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
@@ -23,11 +20,10 @@ import java.util.Map;
 import java.util.Timer;
 import java.util.TimerTask;
 
-import androidx.annotation.NonNull;
-import androidx.fragment.app.Fragment;
 import androidx.navigation.NavController;
 import androidx.navigation.Navigation;
 import eu.pkgsoftware.babybuddywidgets.databinding.FeedingFragmentBinding;
+import eu.pkgsoftware.babybuddywidgets.networking.BabyBuddyClient;
 
 public class FeedingFragment extends BaseFragment {
     public interface ButtonListCallback {

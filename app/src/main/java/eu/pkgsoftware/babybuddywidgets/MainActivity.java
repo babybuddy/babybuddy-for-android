@@ -1,19 +1,12 @@
 package eu.pkgsoftware.babybuddywidgets;
 
-import android.app.AlertDialog;
-import android.content.DialogInterface;
-import android.content.Intent;
 import android.os.Bundle;
-import android.view.View;
 
-import androidx.annotation.Nullable;
 import androidx.appcompat.app.AppCompatActivity;
 
-import androidx.navigation.NavController;
-import androidx.navigation.Navigation;
 import androidx.navigation.ui.AppBarConfiguration;
-import androidx.navigation.ui.NavigationUI;
 import eu.pkgsoftware.babybuddywidgets.databinding.ActivityMainBinding;
+import eu.pkgsoftware.babybuddywidgets.networking.BabyBuddyClient;
 
 public class MainActivity extends AppCompatActivity {
 
