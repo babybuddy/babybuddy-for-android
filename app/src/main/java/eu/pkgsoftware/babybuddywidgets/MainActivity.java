@@ -4,20 +4,17 @@ import android.os.Bundle;
 
 import androidx.appcompat.app.AppCompatActivity;
 
-import androidx.navigation.ui.AppBarConfiguration;
 import eu.pkgsoftware.babybuddywidgets.databinding.ActivityMainBinding;
 import eu.pkgsoftware.babybuddywidgets.networking.BabyBuddyClient;
 
 public class MainActivity extends AppCompatActivity {
-
-    private AppBarConfiguration appBarConfiguration;
     private ActivityMainBinding binding;
 
     private CredStore credStore = null;
     private BabyBuddyClient client = null;
 
-    public BabyBuddyClient.Timer selectedTimer = null;
     public BabyBuddyClient.Child[] children = new BabyBuddyClient.Child[0];
+    public BabyBuddyClient.Timer selectedTimer = null;
 
     public CredStore getCredStore() {
         if (credStore == null) {

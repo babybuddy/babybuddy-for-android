@@ -13,6 +13,7 @@ import android.widget.AdapterView;
 import android.widget.RelativeLayout;
 
 import java.util.ArrayList;
+import java.util.Objects;
 import java.util.Timer;
 import java.util.TimerTask;
 
@@ -26,6 +27,7 @@ import eu.pkgsoftware.babybuddywidgets.databinding.BabyManagerBinding;
 import eu.pkgsoftware.babybuddywidgets.databinding.LoggedInFragmentBinding;
 import eu.pkgsoftware.babybuddywidgets.databinding.QuickTimerEntryBinding;
 import eu.pkgsoftware.babybuddywidgets.networking.BabyBuddyClient;
+import eu.pkgsoftware.babybuddywidgets.networking.ChildrenStateTracker;
 
 public class LoggedInFragment extends BaseFragment {
     private LoggedInFragmentBinding binding;
@@ -35,290 +37,8 @@ public class LoggedInFragment extends BaseFragment {
 
     private BabyPagerAdapter babyAdapter = null;
 
-    private boolean timerListRefreshing = false;
-    private BabyBuddyClient.Timer[] oldTimerList = null;
-
+    private ChildrenStateTracker stateTracker = null;
     private BabyBuddyClient.Child[] children = null;
-
-    private class BabyLayoutHolder extends RecyclerView.ViewHolder {
-        private class TimerListViewHolder extends RecyclerView.ViewHolder {
-            public QuickTimerEntryBinding binding;
-            public BabyBuddyClient.Timer timer = null;
-
-            public TimerListViewHolder(View itemView, QuickTimerEntryBinding binding) {
-                super(itemView);
-                this.binding = binding;
-
-                binding.appTimerDefaultType.setOnItemSelectedListener(new AdapterView.OnItemSelectedListener() {
-                    @Override
-                    public void onItemSelected(AdapterView<?> adapterView, View view, int i, long l) {
-                        credStore.setTimerDefaultSelection(timer.id, (int) l);
-                    }
-
-                    @Override
-                    public void onNothingSelected(AdapterView<?> adapterView) {
-                    }
-                });
-                binding.appStartTimerButton.setOnClickListener(
-                    view -> client.setTimerActive(timer.id, true, new BabyBuddyClient.RequestCallback<Boolean>() {
-                        @Override
-                        public void error(Exception error) {
-                        }
-
-                        @Override
-                        public void response(Boolean response) {
-                            timer.active = true;
-                            updateActiveState();
-                        }
-                    }
-                ));
-                binding.appStopTimerButton.setOnClickListener(new View.OnClickListener() {
-                    @Override
-                    public void onClick(View view) {
-                        if ((int) binding.appTimerDefaultType.getSelectedItemId() == 0) {
-                            getMainActivity().selectedTimer = timer;
-                            Navigation.findNavController(getView()).navigate(R.id.action_loggedInFragment2_to_feedingFragment);
-                        } else {
-                            client.setTimerActive(timer.id, false, new BabyBuddyClient.RequestCallback<Boolean>() {
-                                @Override
-                                public void error(Exception error) {
-                                }
-
-                                @Override
-                                public void response(Boolean response) {
-                                    timer.active = false;
-                                    updateActiveState();
-                                    storeActivity();
-                                }
-                            });
-                        }
-                    }
-
-                    class StoreActivityCallback implements BabyBuddyClient.RequestCallback<Boolean> {
-                        private final String errorMessage;
-
-                        public StoreActivityCallback(String errorMessage) {
-                            this.errorMessage = errorMessage;
-                        }
-
-                        @Override
-                        public void error(Exception error) {
-                            showError(true, "Could not store activity", errorMessage);
-                        }
-
-                        @Override
-                        public void response(Boolean response) {
-                        }
-                    }
-
-                    private void storeActivity() {
-                        int selectedActivity = (int) binding.appTimerDefaultType.getSelectedItemId();
-                        if (selectedActivity == 1) {
-                            client.createSleepRecordFromTimer(
-                                timer,
-                                new StoreActivityCallback("Storing Sleep Time failed.")
-                            );
-                        } else if (selectedActivity == 2) {
-                            client.createSleepRecordFromTimer(
-                                timer,
-                                new StoreActivityCallback("Storing Tummy Time failed.")
-                            );
-                            client.createTummyTimeRecordFromTimer(timer, new BabyBuddyClient.RequestCallback<Boolean>() {
-                                @Override
-                                public void error(Exception error) {
-                                    showError(true, "Could not store activity", error.getMessage());
-                                }
-
-                                @Override
-                                public void response(Boolean response) {
-                                    // all done :)
-                                }
-                            });
-                        } else {
-                            showError(true, "Could not store activity", "Unsupported activity");
-                        }
-                    }
-                });
-            }
-
-            public void updateActiveState() {
-                binding.appStartTimerButton.setVisibility(timer.active ? View.GONE : View.VISIBLE);
-                binding.appStopTimerButton.setVisibility(!timer.active ? View.GONE : View.VISIBLE);
-                refreshTimerList();
-            }
-
-            private int inferDefaultSelectionFromName(String name) {
-                name = name.toLowerCase();
-                int i = 0;
-                for (CharSequence candidate : getActivity().getResources().getStringArray(R.array.timerTypes)) {
-                    if (name.contains(candidate.toString().toLowerCase())) {
-                        return i;
-                    }
-                    i++;
-                }
-                return 0;
-            }
-
-            public void assignTimer(BabyBuddyClient.Timer timer) {
-                this.timer = timer;
-                binding.timerName.setText(timer.readableName());
-                updateActiveState();
-                Integer defaultSelection = credStore.getTimerDefaultSelections().get(timer.id);
-                if (defaultSelection == null) {
-                    if (timer.name != null) {
-                        defaultSelection = inferDefaultSelectionFromName(timer.name);
-                    } else {
-                        defaultSelection = 0;
-                    }
-                }
-                binding.appTimerDefaultType.setSelection(defaultSelection);
-
-            }
-        }
-
-        private class TimerListProvider extends RecyclerView.Adapter<TimerListViewHolder> {
-            private BabyBuddyClient.Timer[] timers;
-
-            public TimerListProvider(BabyBuddyClient.Timer[] timers) {
-                this.timers = timers;
-            }
-
-            @Override
-            public TimerListViewHolder onCreateViewHolder(ViewGroup parent, int viewType) {
-                QuickTimerEntryBinding entryBinding = QuickTimerEntryBinding.inflate(LayoutInflater.from(parent.getContext()));
-                return new TimerListViewHolder(entryBinding.getRoot(), entryBinding);
-            }
-
-            @Override
-            public void onBindViewHolder(TimerListViewHolder holder, int position) {
-                holder.assignTimer(timers[position]);
-            }
-
-            @Override
-            public int getItemCount() {
-                return timers.length;
-            }
-        }
-
-        public BabyManagerBinding binding;
-
-        private BabyBuddyClient.Child child = null;
-
-        private boolean changeWet = false;
-        private boolean changeSolid = false;
-
-        public BabyLayoutHolder(BabyManagerBinding bmb) {
-            super(bmb.getRoot());
-            binding = bmb;
-
-            GridLayoutManager l = new GridLayoutManager(binding.timersList.getContext(), 1);
-            binding.timersList.setLayoutManager(l);
-
-            View.OnClickListener invertSolid = view -> {
-                changeSolid = !changeSolid;
-                updateDiaperBar();
-            };
-            binding.solidEnabledButton.setOnClickListener(invertSolid);
-            binding.solidDisabledButton.setOnClickListener(invertSolid);
-
-            View.OnClickListener invertWet = view -> {
-                changeWet = !changeWet;
-                updateDiaperBar();
-            };
-            binding.wetEnabledButton.setOnClickListener(invertWet);
-            binding.wetDisabledButton.setOnClickListener(invertWet);
-            binding.sendChangeButton.setOnClickListener(view -> storeDiaperChange());
-            binding.createDefaultTimers.setOnClickListener(view -> createDefaultTimers());
-        }
-
-        private void resetDiaperUi() {
-            changeSolid = false;
-            changeWet = false;
-            updateDiaperBar();
-        }
-
-        private void updateDiaperBar() {
-            binding.sendChangeButton.setVisibility((changeSolid || changeWet) ? View.VISIBLE : View.GONE);
-            binding.solidEnabledButton.setVisibility(changeSolid ? View.VISIBLE : View.GONE);
-            binding.solidDisabledButton.setVisibility(!changeSolid ? View.VISIBLE : View.GONE);
-            binding.wetEnabledButton.setVisibility(changeWet ? View.VISIBLE : View.GONE);
-            binding.wetDisabledButton.setVisibility(!changeWet ? View.VISIBLE : View.GONE);
-        }
-
-        private void storeDiaperChange() {
-            client.createChangeRecord(child, changeWet, changeSolid,
-                new BabyBuddyClient.RequestCallback<Boolean>() {
-                    @Override
-                    public void error(Exception error) {
-                        showError(
-                            true,
-                            "Failed to save",
-                            "Diaper change not saved"
-                        );
-                    }
-
-                    @Override
-                    public void response(Boolean response) {
-                        // Pass
-                    }
-                }
-            );
-
-            resetDiaperUi();
-        }
-
-        private void createDefaultTimers() {
-            int i = 0;
-            for (String timerTypeName : getResources().getStringArray(R.array.timerTypes)) {
-                final int finalI = i;
-                client.createTimer(child, timerTypeName, new BabyBuddyClient.RequestCallback<BabyBuddyClient.Timer>() {
-                    @Override
-                    public void error(Exception error) {
-                    }
-
-                    @Override
-                    public void response(BabyBuddyClient.Timer response) {
-                        credStore.setTimerDefaultSelection(response.id, finalI);
-                        client.setTimerActive(response.id, false, new BabyBuddyClient.RequestCallback<Boolean>() {
-                                @Override
-                                public void error(Exception error) {
-                                }
-
-                                @Override
-                                public void response(Boolean response) {
-                                }
-                            }
-                        );
-
-                        RecyclerView.Adapter a = binding.timersList.getAdapter();
-                        for (int i = 0; i < a.getItemCount(); i++) {
-                            a.notifyItemChanged(i);
-                        }
-                    }
-                });
-                i++;
-            }
-        }
-
-        public void updateChild(BabyBuddyClient.Child c) {
-            this.child = c;
-            resetDiaperUi();
-        }
-
-        public void updateTimerList(BabyBuddyClient.Timer[] timers) {
-            binding.timersList.setAdapter(new BabyLayoutHolder.TimerListProvider(timers));
-            binding.createDefaultTimers.setVisibility(timers.length == 0 ? View.VISIBLE : View.GONE);
-        }
-
-        public void onViewSelected() {
-            resetDiaperUi();
-            binding.createDefaultTimers.setVisibility(View.GONE);
-        }
-
-        public void onViewDeselected() {
-            resetDiaperUi();
-        }
-    }
 
     private class BabyPagerAdapter extends RecyclerView.Adapter<BabyLayoutHolder> {
         private class HolderChildPair {
@@ -342,7 +62,7 @@ public class LoggedInFragment extends BaseFragment {
             v.setLayoutParams(new RelativeLayout.LayoutParams(
                 ViewGroup.LayoutParams.MATCH_PARENT,ViewGroup.LayoutParams.MATCH_PARENT
             ));
-            return new BabyLayoutHolder(babyBinding);
+            return new BabyLayoutHolder(LoggedInFragment.this, babyBinding);
         }
 
         @Override
@@ -401,22 +121,6 @@ public class LoggedInFragment extends BaseFragment {
         if (children == null) {
             children = getMainActivity().children;
         }
-
-        Handler handler = new Handler(getMainActivity().getMainLooper());
-        Runnable runRefreshTask = new Runnable() {
-            @Override
-            public void run() {
-                refreshTimerList();
-            }
-        };
-
-        Timer timer = new Timer(true);
-        timer.scheduleAtFixedRate(new TimerTask() {
-            @Override
-            public void run() {
-                handler.post(runRefreshTask);
-            }
-        }, 0, 1000);
     }
 
     @Override
@@ -426,17 +130,14 @@ public class LoggedInFragment extends BaseFragment {
     ) {
         binding = LoggedInFragmentBinding.inflate(inflater, container, false);
 
-        babyAdapter = new BabyPagerAdapter();
-        binding.babyViewPagerSwitcher.setAdapter(babyAdapter);
         binding.babyViewPagerSwitcher.registerOnPageChangeCallback(
             new ViewPager2.OnPageChangeCallback() {
                 @Override
                 public void onPageSelected(int position) {
                     super.onPageSelected(position);
                     babyAdapter.activeViewChanged(position);
+                    credStore.setSelectedChild(children == null ? null :children[position].slug);
                     updateTitle();
-                    oldTimerList = null;
-                    refreshTimerList();
                 }
             }
         );
@@ -461,22 +162,56 @@ public class LoggedInFragment extends BaseFragment {
         }
         return false;
     }
+
     @Override
     public void onResume() {
         super.onResume();
 
-        updateTitle();
+        stateTracker = new ChildrenStateTracker(client, getMainActivity().getMainLooper());
+        stateTracker.setChildrenListListener(
+            new ChildrenStateTracker.ChildrenListListener() {
+                @Override
+                public void childrenListUpdated(BabyBuddyClient.Child[] children) {
+                    LoggedInFragment.this.children = children;
+                    babyAdapter = new BabyPagerAdapter();
+                    binding.babyViewPagerSwitcher.setAdapter(babyAdapter);
 
-        oldTimerList = null;
-        refreshTimerList();
+                    int childIndex = childIndexBySlug(credStore.getSelectedChild());
+                    binding.babyViewPagerSwitcher.setCurrentItem(Math.max(0, childIndex), false);
+
+                    updateTitle();
+                }
+            }
+        );
     }
 
     @Override
     public void onPause() {
         super.onPause();
+
+        stateTracker.close();
+        stateTracker = null;
+    }
+
+    private int childIndexBySlug(String slug) {
+        if (children == null) {
+            return -1;
+        }
+        int i = 0;
+        for (BabyBuddyClient.Child c : children) {
+            if (Objects.equals(c.slug, slug)) {
+                return i;
+            }
+            i++;
+        }
+        return -1;
     }
 
     private BabyBuddyClient.Child selectedChild() {
+        if (children == null) {
+            return null;
+        }
+
         int childIndex = binding.babyViewPagerSwitcher.getCurrentItem();
         BabyBuddyClient.Child child = null;
         int childCount = children != null ? children.length : 0;
@@ -494,64 +229,4 @@ public class LoggedInFragment extends BaseFragment {
             getMainActivity().setTitle(child.first_name + " " + child.last_name);
         }
     }
-
-    public void refreshTimerList() {
-        if (!isResumed()) {
-            return;
-        }
-        if (timerListRefreshing) {
-            return;
-        }
-        if (selectedChild() == null) {
-            return;
-        }
-
-        timerListRefreshing = true;
-        BabyBuddyClient.Child requestedFor = selectedChild();
-        client.listTimers(requestedFor.id, new BabyBuddyClient.RequestCallback<BabyBuddyClient.Timer[]>() {
-            @Override
-            public void error(Exception error) {
-                timerListRefreshing = false;
-                if (!isVisible()) {
-                    return;
-                }
-
-                showError(
-                    true,
-                    "Login failed",
-                    "Error occurred while obtaining timers: " + error.getMessage()
-                );
-            }
-
-            @Override
-            public void response(BabyBuddyClient.Timer[] response) {
-                timerListRefreshing = false;
-                if (!isVisible()) {
-                    return;
-                }
-
-                boolean changed = oldTimerList == null;
-                if (!changed) {
-                    changed = oldTimerList.length != response.length;
-                }
-                if (!changed) {
-                    for (int i = 0; i < oldTimerList.length; i++) {
-                        changed = (oldTimerList[i].id != response[i].id) ||
-                            (oldTimerList[i].active != response[i].active) ||
-                            (!oldTimerList[i].start.equals(response[i].start));
-                        if (changed) break;
-                    }
-                }
-
-                if (changed) {
-                    oldTimerList = response;
-                    BabyLayoutHolder holder = babyAdapter.getHolderFor(requestedFor);
-                    if (holder != null) {
-                        holder.updateTimerList(response);
-                    }
-                }
-            }
-        });
-    }
-
 }

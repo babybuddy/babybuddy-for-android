@@ -22,6 +22,7 @@ import java.util.Collections;
 import java.util.Comparator;
 import java.util.Date;
 import java.util.List;
+import java.util.Objects;
 import java.util.TimeZone;
 import java.util.regex.Pattern;
 
@@ -46,6 +47,18 @@ public class BabyBuddyClient extends StreamReader {
         public String first_name;
         public String last_name;
         public String birth_date;
+
+        @Override
+        public boolean equals(Object o) {
+            if (this == o) return true;
+            if (o == null || getClass() != o.getClass()) return false;
+            Child child = (Child) o;
+            return id == child.id &&
+                Objects.equals(slug, child.slug) &&
+                Objects.equals(first_name, child.first_name) &&
+                Objects.equals(last_name, child.last_name) &&
+                Objects.equals(birth_date, child.birth_date);
+        }
 
         public static Child fromJSON(String s) throws JSONException {
             return fromJSON(new JSONObject(s));
