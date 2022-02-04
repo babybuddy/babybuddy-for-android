@@ -9,23 +9,18 @@ import android.view.MenuInflater;
 import android.view.MenuItem;
 import android.view.View;
 import android.view.ViewGroup;
-import android.widget.AdapterView;
 import android.widget.RelativeLayout;
 
 import java.util.ArrayList;
 import java.util.Objects;
-import java.util.Timer;
-import java.util.TimerTask;
 
 import androidx.annotation.NonNull;
 import androidx.annotation.Nullable;
 import androidx.navigation.Navigation;
-import androidx.recyclerview.widget.GridLayoutManager;
 import androidx.recyclerview.widget.RecyclerView;
 import androidx.viewpager2.widget.ViewPager2;
 import eu.pkgsoftware.babybuddywidgets.databinding.BabyManagerBinding;
 import eu.pkgsoftware.babybuddywidgets.databinding.LoggedInFragmentBinding;
-import eu.pkgsoftware.babybuddywidgets.databinding.QuickTimerEntryBinding;
 import eu.pkgsoftware.babybuddywidgets.networking.BabyBuddyClient;
 import eu.pkgsoftware.babybuddywidgets.networking.ChildrenStateTracker;
 
@@ -54,7 +49,7 @@ public class LoggedInFragment extends BaseFragment {
         private ArrayList<HolderChildPair> holders = new ArrayList<>();
 
         @Override
-        public BabyLayoutHolder onCreateViewHolder(ViewGroup parent, int viewType) {
+        public @NonNull BabyLayoutHolder onCreateViewHolder(@NonNull ViewGroup parent, int viewType) {
             BabyManagerBinding babyBinding = BabyManagerBinding.inflate(
                 getLayoutInflater(), null, false
             );
@@ -66,7 +61,7 @@ public class LoggedInFragment extends BaseFragment {
         }
 
         @Override
-        public void onBindViewHolder(BabyLayoutHolder holder, int position) {
+        public void onBindViewHolder(@NonNull BabyLayoutHolder holder, int position) {
             while (position >= holders.size()) holders.add(null);
 
             BabyBuddyClient.Child c = children[position];
@@ -125,7 +120,7 @@ public class LoggedInFragment extends BaseFragment {
 
     @Override
     public View onCreateView(
-        LayoutInflater inflater, ViewGroup container,
+        @NonNull  LayoutInflater inflater, ViewGroup container,
         Bundle savedInstanceState
     ) {
         binding = LoggedInFragmentBinding.inflate(inflater, container, false);
@@ -146,16 +141,20 @@ public class LoggedInFragment extends BaseFragment {
     }
 
     @Override
-    public void onCreateOptionsMenu(Menu menu, MenuInflater inflater) {
+    public void onCreateOptionsMenu(@NonNull Menu menu, MenuInflater inflater) {
         inflater.inflate(R.menu.loggedin_menu, menu);
+    }
+
+    private void logout() {
+        credStore.storeAppToken(null);
+        credStore.clearTimerAssociations();
+        Navigation.findNavController(getView()).navigate(R.id.logoutOperation);
     }
 
     @Override
     public boolean onOptionsItemSelected(MenuItem item) {
         if (item.getItemId() == R.id.logoutMenuButton) {
-            credStore.storeAppToken(null);
-            credStore.clearTimerAssociations();
-            Navigation.findNavController(getView()).navigate(R.id.logoutOperation);
+            logout();
         }
         if (item.getItemId() == R.id.aboutPageMenuItem) {
             Navigation.findNavController(getView()).navigate(R.id.action_loggedInFragment2_to_aboutFragment);
@@ -183,11 +182,40 @@ public class LoggedInFragment extends BaseFragment {
                 }
             }
         );
+        stateTracker.setConnectionStateListener(
+            (connected, disconnectedFor) -> {
+                if (connected) {
+                    progressDialog.hide();
+                    hideError();
+                } else if (disconnectedFor >= 10000) {
+                    progressDialog.hide();
+                    showQuestion(
+                        false,
+                        "Connection error",
+                        "Server cannot be reached or login failed.",
+                        "Keep trying",
+                        "Logout",
+                        (b) -> {
+                            if (b) {
+                                showProgress("Connecting to server...");
+                                stateTracker.resetDisconnectTimer();
+                            } else {
+                                logout();
+                            }
+                        }
+                    );
+                } else {
+                    showProgress("Connecting to server...");
+                }
+            }
+        );
     }
 
     @Override
     public void onPause() {
         super.onPause();
+
+        progressDialog.hide();
 
         stateTracker.close();
         stateTracker = null;
@@ -214,7 +242,7 @@ public class LoggedInFragment extends BaseFragment {
 
         int childIndex = binding.babyViewPagerSwitcher.getCurrentItem();
         BabyBuddyClient.Child child = null;
-        int childCount = children != null ? children.length : 0;
+        int childCount = children.length;
         if ((childIndex >= 0) && (childIndex < childCount)) {
             child = children[childIndex];
         }

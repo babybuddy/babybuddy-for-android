@@ -171,10 +171,10 @@ public class BabyLayoutHolder extends RecyclerView.ViewHolder {
         }
     }
 
-    public BabyManagerBinding binding;
-    private BaseFragment baseFragment;
-    private BabyBuddyClient client;
-    private CredStore credStore;
+    private BabyManagerBinding binding;
+    private final BaseFragment baseFragment;
+    private final BabyBuddyClient client;
+    private final CredStore credStore;
 
     private BabyBuddyClient.Child child = null;
 
@@ -268,7 +268,7 @@ public class BabyLayoutHolder extends RecyclerView.ViewHolder {
                         }
                     );
 
-                    RecyclerView.Adapter a = binding.timersList.getAdapter();
+                    RecyclerView.Adapter<?> a = binding.timersList.getAdapter();
                     for (int i = 0; i < a.getItemCount(); i++) {
                         a.notifyItemChanged(i);
                     }

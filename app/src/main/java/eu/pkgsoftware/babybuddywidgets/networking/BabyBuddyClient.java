@@ -211,12 +211,7 @@ public class BabyBuddyClient extends StreamReader {
                     });
                 }
                 catch (Exception e) {
-                    syncMessage.post(new Runnable() {
-                        @Override
-                        public void run() {
-                            callback.error(e);
-                        }
-                    });
+                    syncMessage.post(() -> callback.error(e));
                 }
             }
         };

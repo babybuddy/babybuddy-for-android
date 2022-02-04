@@ -9,6 +9,10 @@ import java.util.function.Consumer;
 public class ChildrenStateTracker {
     public static class CancelledException extends Exception {};
 
+    public interface ConnectionStateListener {
+        void connectionStateChanged(boolean connected, long disconnectedFor);
+    }
+
     public interface ChildrenListListener {
         void childrenListUpdated(BabyBuddyClient.Child[] children);
     }
@@ -36,12 +40,15 @@ public class ChildrenStateTracker {
     private BabyBuddyClient client;
     private Integer selectedChildId = null;
     private boolean closed = false;
+    private boolean connected;
 
     private Handler queueHandler = null;
 
+    private ConnectionStateListener connectionStateListener = null;
     private ChildrenListListener childrenListListener = null;
     private ChildListener childrenListener = null;
 
+    private long disconnectedStartTime = 0;
     private long childrenListUpdateDelay = 10000;
     private long childListsUpdateDelay = 1000;
 
@@ -51,6 +58,10 @@ public class ChildrenStateTracker {
     public ChildrenStateTracker(BabyBuddyClient client, Looper looper) {
         this.client = client;
         this.queueHandler = new Handler(looper);
+
+        connected = true;
+        setDisconnected();
+
         this.queueHandler.post(() -> updateChildLists());
         this.queueHandler.post(() -> updateChildrenList());
     }
@@ -77,6 +88,7 @@ public class ChildrenStateTracker {
                 }
                 requestPending = false;
                 req.doRequest();
+                queueNextRequest();
             }
         }, timeout);
     }
@@ -102,6 +114,7 @@ public class ChildrenStateTracker {
 
                         @Override
                         public void response(R response) {
+                            setConnected();
                             responseCallback.response(response);
                         }
                     };
@@ -155,11 +168,44 @@ public class ChildrenStateTracker {
     private void updateChildLists() {
     }
 
+    private void setConnected() {
+        if (!connected) {
+            connected = true;
+            if (connectionStateListener != null) {
+                connectionStateListener.connectionStateChanged(connected, 0);
+            }
+        }
+    }
+
     private void setDisconnected() {
+        if (connected) {
+            connected = false;
+            disconnectedStartTime = System.currentTimeMillis();
+
+            final Runnable disconnectUpdateFunction = new Runnable() {
+                @Override
+                public void run() {
+                    if (closed || connected) {
+                        return;
+                    }
+                    if (connectionStateListener != null) {
+                        connectionStateListener.connectionStateChanged(
+                            connected, System.currentTimeMillis() - disconnectedStartTime
+                        );
+                    }
+                    queueHandler.postDelayed(this, 1000);
+                }
+            };
+            disconnectUpdateFunction.run();
+        }
+    }
+
+    public boolean isConnected() {
+        return connected;
     }
 
     public void close() {
-        closed = false;
+        closed = true;
         for (DeferredRequest r : requestQueue) {
             r.cancel();
         }
@@ -171,5 +217,13 @@ public class ChildrenStateTracker {
         if (childrenList != null) {
             queueHandler.post(() -> childrenListListener.childrenListUpdated(childrenList));
         }
+    }
+
+    public void setConnectionStateListener(ConnectionStateListener l) {
+        connectionStateListener = l;
+    }
+
+    public void resetDisconnectTimer() {
+        disconnectedStartTime = System.currentTimeMillis();
     }
 }

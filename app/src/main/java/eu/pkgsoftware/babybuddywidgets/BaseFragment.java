@@ -36,6 +36,13 @@ public class BaseFragment extends Fragment {
     protected AlertDialog showError(boolean override, String title, String errorMessage, Callback<Boolean> callback) {
         if (override) {
             hideError();
+        } else {
+            if ((dialog != null) && (dialog.isShowing())) {
+                return dialog;
+            }
+        }
+        if (dialog != null) {
+            dialog.dismiss();
         }
 
         dialog = new AlertDialog.Builder(getContext())
@@ -47,6 +54,34 @@ public class BaseFragment extends Fragment {
                     hideError();
                     callback.call(true);
                 }
+            })
+            .show();
+        return dialog;
+    }
+
+    protected AlertDialog showQuestion(boolean override, String title, String question, String positiveMessage, String negativeMessage, Callback<Boolean> callback) {
+        if (override) {
+            hideError();
+        } else {
+            if ((dialog != null) && (dialog.isShowing())) {
+                return dialog;
+            }
+        }
+        if (dialog != null) {
+            dialog.dismiss();
+        }
+
+        dialog = new AlertDialog.Builder(getContext())
+            .setTitle(title)
+            .setMessage(question)
+            .setCancelable(false)
+            .setPositiveButton(positiveMessage, (dialogInterface, i) -> {
+                hideError();
+                callback.call(true);
+            })
+            .setNegativeButton(negativeMessage, (dialogInterface, i) -> {
+                hideError();
+                callback.call(false);
             })
             .show();
         return dialog;
@@ -84,13 +119,27 @@ public class BaseFragment extends Fragment {
     }
 
     public void showProgress(String message) {
+        progressDialog.setCancelable(false);
         progressDialog.setMessage(message);
+        progressDialog.show();
+    }
+
+    public void showProgress(String message, String cancelButtonText, Callback<Object> cancelButton) {
+        progressDialog.setMessage(message);
+        progressDialog.setCancelable(true);
+        progressDialog.setButton(ProgressDialog.BUTTON_NEGATIVE, cancelButtonText, (dialogInterface, i) -> {
+            cancelButton.call(null);
+        });
+        progressDialog.show();
     }
 
     @Override
     public void onDestroy() {
         super.onDestroy();
         progressDialog.dismiss();
+        if (dialog != null) {
+            dialog.dismiss();
+        }
     }
 
     protected MainActivity getMainActivity() {

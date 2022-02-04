@@ -118,19 +118,8 @@ public class LoginFragment extends BaseFragment {
         getMainActivity().setTitle("Login to Baby Buddy");
 
         if (getMainActivity().getCredStore().getAppToken() != null) {
-            showProgress();
-            testLogin(new Promise<Object, String>() {
-                @Override
-                public void succeeded(Object o) {
-                    progressDialog.hide();
-                    moveToLoggedIn();
-                }
-
-                @Override
-                public void failed(String s) {
-                    progressDialog.hide();
-                }
-            });
+            progressDialog.hide();
+            moveToLoggedIn();
         }
     }
 
