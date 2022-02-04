@@ -3,7 +3,6 @@ package eu.pkgsoftware.babybuddywidgets.networking;
 import android.os.Handler;
 import android.os.Looper;
 
-import java.lang.reflect.Type;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collections;
