@@ -223,7 +223,6 @@ public class ChildrenStateTracker {
         }
 
         final int requestedForChildId = selectedChildId;
-        System.out.println("Update child lists for " + selectedChildId);
 
         new QueueRequest<BabyBuddyClient.Timer[]>().queue(
             new BoundTimerListCall(selectedChildId)::call,
@@ -248,7 +247,6 @@ public class ChildrenStateTracker {
                         return;
                     }
 
-                    System.out.println("AAA " + selectedChildTimerList + "  " +  response);
                     if ((selectedChildTimerList == null) || (!Arrays.equals(selectedChildTimerList, response))) {
                         selectedChildTimerList = response;
 

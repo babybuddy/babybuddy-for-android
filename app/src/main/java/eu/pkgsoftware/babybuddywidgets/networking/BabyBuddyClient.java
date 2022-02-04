@@ -116,6 +116,27 @@ public class BabyBuddyClient extends StreamReader {
             t.user_id = obj.getInt("user");
             return t;
         }
+
+        @Override
+        public String toString() {
+            return "Timer{" +
+                "id=" + id +
+                ", child_id=" + child_id +
+                ", name='" + name + '\'' +
+                ", start=" + start +
+                ", end=" + end +
+                ", active=" + active +
+                ", user_id=" + user_id +
+                '}';
+        }
+
+        @Override
+        public boolean equals(Object o) {
+            if (this == o) return true;
+            if (o == null || getClass() != o.getClass()) return false;
+            Timer timer = (Timer) o;
+            return id == timer.id && active == timer.active && user_id == timer.user_id && Objects.equals(child_id, timer.child_id) && Objects.equals(name, timer.name) && Objects.equals(start, timer.start) && Objects.equals(end, timer.end);
+        }
     }
 
     public static class RequestCodeFailure extends IOException {
