@@ -155,7 +155,7 @@ public class LoggedInFragment extends BaseFragment {
                         childObserver = null;
                     }
                     if (child != null) {
-                        stateTracker.createChildObserver(child.id, CHILD_LISTENER);
+                        stateTracker.new ChildObserver(child.id, CHILD_LISTENER);
                     }
 
                     updateTitle();
@@ -193,21 +193,16 @@ public class LoggedInFragment extends BaseFragment {
         super.onResume();
 
         stateTracker = new ChildrenStateTracker(client, getMainActivity().getMainLooper());
-        stateTracker.setChildrenListListener(
-            new ChildrenStateTracker.ChildrenListListener() {
-                @Override
-                public void childrenListUpdated(BabyBuddyClient.Child[] children) {
-                    LoggedInFragment.this.children = children;
-                    babyAdapter = new BabyPagerAdapter();
-                    binding.babyViewPagerSwitcher.setAdapter(babyAdapter);
+        stateTracker.new ChildListObserver((children) -> {
+            LoggedInFragment.this.children = children;
+            babyAdapter = new BabyPagerAdapter();
+            binding.babyViewPagerSwitcher.setAdapter(babyAdapter);
 
-                    int childIndex = childIndexBySlug(credStore.getSelectedChild());
-                    binding.babyViewPagerSwitcher.setCurrentItem(Math.max(0, childIndex), false);
+            int childIndex = childIndexBySlug(credStore.getSelectedChild());
+            binding.babyViewPagerSwitcher.setCurrentItem(Math.max(0, childIndex), false);
 
-                    updateTitle();
-                }
-            }
-        );
+            updateTitle();
+        });
         stateTracker.setConnectionStateListener(
             (connected, disconnectedFor) -> {
                 if (connected) {

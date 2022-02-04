@@ -6,7 +6,6 @@ import android.os.Looper;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collections;
-import java.util.Objects;
 import java.util.function.Consumer;
 
 public class ChildrenStateTracker {
@@ -14,10 +13,6 @@ public class ChildrenStateTracker {
 
     public interface ConnectionStateListener {
         void connectionStateChanged(boolean connected, long disconnectedFor);
-    }
-
-    public interface ChildrenListListener {
-        void childrenListUpdated(BabyBuddyClient.Child[] children);
     }
 
     private static final int DEFER_BASE_TIMEOUT = 1000;
@@ -56,10 +51,7 @@ public class ChildrenStateTracker {
     private Handler queueHandler = null;
 
     private ConnectionStateListener connectionStateListener = null;
-    private ChildrenListListener childrenListListener = null;
-
     private long disconnectedStartTime = 0;
-    private long childrenListUpdateDelay = 10000;
 
     private ArrayList<DeferredRequest> requestQueue = new ArrayList<>();
 
@@ -93,8 +85,6 @@ public class ChildrenStateTracker {
 
         connected = true;
         setDisconnected();
-
-        this.queueHandler.post(() -> updateChildrenList());
     }
 
     private void queueNextRequest() {
@@ -162,36 +152,8 @@ public class ChildrenStateTracker {
                     request.accept(local);
                 }
             });
+            queueNextRequest();
         }
-    }
-
-    private BabyBuddyClient.Child[] childrenList = null;
-    private void updateChildrenList() {
-        new QueueRequest<BabyBuddyClient.Child[]>().queue(
-            client::listChildren,
-            new BabyBuddyClient.RequestCallback<BabyBuddyClient.Child[]>() {
-                private void requeue() {
-                    queueHandler.postDelayed(() -> updateChildrenList(), childrenListUpdateDelay);
-                }
-
-                @Override
-                public void error(Exception error) {
-                    requeue();
-                }
-
-                @Override
-                public void response(BabyBuddyClient.Child[] response) {
-                    requeue();
-                    if ((childrenList == null) || (!Arrays.equals(response, childrenList))) {
-                        childrenList = response;
-                        if (childrenListListener != null) {
-                            childrenListListener.childrenListUpdated(response);
-                        }
-                    }
-                }
-            }
-        );
-        queueNextRequest();
     }
 
     private void setConnected() {
@@ -238,13 +200,6 @@ public class ChildrenStateTracker {
         requestQueue.clear();
     }
 
-    public void setChildrenListListener(ChildrenListListener l) {
-        childrenListListener = l;
-        if (childrenList != null) {
-            queueHandler.post(() -> childrenListListener.childrenListUpdated(childrenList));
-        }
-    }
-
     public void setConnectionStateListener(ConnectionStateListener l) {
         connectionStateListener = l;
     }
@@ -253,50 +208,113 @@ public class ChildrenStateTracker {
         disconnectedStartTime = System.currentTimeMillis();
     }
 
+    private abstract class StateObserver {
+        private long requestInterval;
+        private boolean closed = false;
+        private boolean requeued = true;
+
+        public StateObserver(long requestInterval) {
+            this.requestInterval = requestInterval;
+            queueHandler.post(() -> update());
+        }
+
+        public void close() {
+            closed = true;
+        }
+
+        public boolean isClosed() {
+            return closed || ChildrenStateTracker.this.closed;
+        }
+
+        private void update() {
+            if (isClosed() || !requeued) {
+                return;
+            }
+            requeued = false;
+            queueHandler.postDelayed(() -> update(), requestInterval);
+            queueRequests();
+        }
+
+        protected void requeue() {
+            requeued = true;
+        }
+
+        protected abstract void queueRequests();
+    }
+
+    /* Child lists */
+    public interface ChildrenListListener {
+        void childrenListUpdated(BabyBuddyClient.Child[] children);
+    }
+
+    public class ChildListObserver extends StateObserver {
+        public static final long INTERVAL = 10000;
+
+        private ChildrenListListener listener;
+        private BabyBuddyClient.Child[] childrenList = null;
+
+        public ChildListObserver(ChildrenListListener listener) {
+            super(INTERVAL);
+
+            this.listener = listener;
+        }
+
+        @Override
+        protected void queueRequests() {
+            new QueueRequest<BabyBuddyClient.Child[]>().queue(
+                client::listChildren,
+                new BabyBuddyClient.RequestCallback<BabyBuddyClient.Child[]>() {
+                    @Override
+                    public void error(Exception error) {
+                        requeue();
+                    }
+
+                    @Override
+                    public void response(BabyBuddyClient.Child[] response) {
+                        requeue();
+                        if ((childrenList == null) || (!Arrays.equals(response, childrenList))) {
+                            childrenList = response;
+                            if (listener != null) {
+                                listener.childrenListUpdated(response);
+                            }
+                        }
+                    }
+                }
+            );
+        }
+    }
+
     /* Child listener */
     public interface ChildListener {
         void childValidUpdated(boolean valid);
         void timersUpdated(BabyBuddyClient.Timer[] timers);
     }
 
-    public class ChildObserver {
-        public static final long CHILD_LISTS_UPDATE_DELAY = 1000;
+    public class ChildObserver extends StateObserver {
+        public static final long INTERVAL = 1000;
 
         private int childId;
         private ChildListener listener;
         private boolean closed = false;
         private BabyBuddyClient.Timer[] currentTimerList = null;
 
-        private ChildObserver(int childId, ChildListener listener) {
+        public ChildObserver(int childId, ChildListener listener) {
+            super(INTERVAL);
+
             this.childId = childId;
             this.listener = listener;
-
-            queueHandler.post(() -> update());
         }
 
         private class BoundTimerListCall {
-            private int childId;
-
-            public BoundTimerListCall(int childId) {
-                this.childId = childId;
-            }
-
             public void call(BabyBuddyClient.RequestCallback<BabyBuddyClient.Timer[]> callback) {
                 client.listTimers(childId, callback);
             }
         }
 
-        private void update() {
+        protected void queueRequests() {
             new QueueRequest<BabyBuddyClient.Timer[]>().queue(
-                new BoundTimerListCall(childId)::call,
+                new BoundTimerListCall()::call,
                 new BabyBuddyClient.RequestCallback<BabyBuddyClient.Timer[]>() {
-                    private void requeue() {
-                        if (isClosed()) {
-                            return;
-                        }
-                        queueHandler.postDelayed(() -> update(), CHILD_LISTS_UPDATE_DELAY);
-                    }
-
                     @Override
                     public void error(Exception error) {
                         requeue();
@@ -312,25 +330,11 @@ public class ChildrenStateTracker {
 
                         if ((currentTimerList == null) || (!Arrays.equals(currentTimerList, response))) {
                             currentTimerList = response;
-
                             listener.timersUpdated(response);
                         }
                     }
                 }
             );
-            queueNextRequest();
         }
-
-        public void close() {
-            closed = true;
-        }
-
-        public boolean isClosed() {
-            return closed || ChildrenStateTracker.this.closed;
-        }
-    }
-
-    public ChildObserver createChildObserver(int childId, ChildListener listener) {
-        return new ChildObserver(childId, listener);
     }
 }
