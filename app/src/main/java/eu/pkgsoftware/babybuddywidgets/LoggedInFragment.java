@@ -1,6 +1,7 @@
 package eu.pkgsoftware.babybuddywidgets;
 
 import android.content.Context;
+import android.content.Intent;
 import android.os.Bundle;
 import android.os.Handler;
 import android.view.LayoutInflater;
@@ -91,7 +92,7 @@ public class LoggedInFragment extends BaseFragment {
 
         public BabyLayoutHolder getHolderFor(BabyBuddyClient.Child c) {
             for (HolderChildPair p : holders) {
-                if ((p.child != null) && (p.child.id == c.id)) {
+                if ((p != null) && (p.child != null) && (p.child.id == c.id)) {
                     return p.holder;
                 }
             }
@@ -131,7 +132,11 @@ public class LoggedInFragment extends BaseFragment {
                 public void onPageSelected(int position) {
                     super.onPageSelected(position);
                     babyAdapter.activeViewChanged(position);
-                    credStore.setSelectedChild(children == null ? null :children[position].slug);
+
+                    BabyBuddyClient.Child child = children == null ? null : children[position];
+                    credStore.setSelectedChild(child == null ? null : child.slug);
+                    stateTracker.selectChild(child == null ? null : child.id);
+
                     updateTitle();
                 }
             }
@@ -209,6 +214,18 @@ public class LoggedInFragment extends BaseFragment {
                 }
             }
         );
+        stateTracker.setChildListener(new ChildrenStateTracker.ChildListener() {
+            @Override
+            public void childValidUpdated(boolean valid) {
+
+            }
+
+            @Override
+            public void timersUpdated(BabyBuddyClient.Timer[] timers) {
+                BabyBuddyClient.Child child = selectedChild();
+                babyAdapter.getHolderFor(child).updateTimerList(timers);
+            }
+        });
     }
 
     @Override

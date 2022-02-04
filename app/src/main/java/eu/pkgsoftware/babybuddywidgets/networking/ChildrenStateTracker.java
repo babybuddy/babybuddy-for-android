@@ -4,6 +4,10 @@ import android.os.Handler;
 import android.os.Looper;
 
 import java.util.ArrayList;
+import java.util.Arrays;
+import java.util.Collections;
+import java.util.Comparator;
+import java.util.Queue;
 import java.util.function.Consumer;
 
 public class ChildrenStateTracker {
@@ -26,9 +30,23 @@ public class ChildrenStateTracker {
     private static final int MAX_DEFERRED_TIMEOUT = 20000;
     private abstract class DeferredRequest {
         public int deferredCount = 0;
+        public long startTime = System.currentTimeMillis();
+
+        public int getTimeout() {
+            int timeout = 0;
+            if (deferredCount > 0) {
+                timeout = (int) (DEFER_BASE_TIMEOUT * Math.pow(2, deferredCount - 1));
+            }
+            return timeout;
+        }
+
+        public long getScheduledTime() {
+            return startTime + getTimeout();
+        }
 
         protected void retry() {
             deferredCount++;
+            startTime = System.currentTimeMillis();
             requestQueue.add(0, this);
             queueNextRequest();
         }
@@ -46,14 +64,37 @@ public class ChildrenStateTracker {
 
     private ConnectionStateListener connectionStateListener = null;
     private ChildrenListListener childrenListListener = null;
-    private ChildListener childrenListener = null;
+    private ChildListener childListener = null;
 
     private long disconnectedStartTime = 0;
     private long childrenListUpdateDelay = 10000;
     private long childListsUpdateDelay = 1000;
 
     private ArrayList<DeferredRequest> requestQueue = new ArrayList<>();
-    private boolean requestPending = false;
+
+    private static abstract class CancellableRequest implements Runnable {
+        public DeferredRequest deferredRequest;
+
+        public CancellableRequest(DeferredRequest req) {
+            deferredRequest = req;
+        }
+
+        private boolean cancelled = false;
+
+        public void cancel() {
+            cancelled = true;
+        }
+
+        public void run() {
+            if (!cancelled) {
+                runIfNotCancelled();
+            }
+        }
+
+        public abstract void runIfNotCancelled();
+    };
+
+    private CancellableRequest pendingRequest = null;
 
     public ChildrenStateTracker(BabyBuddyClient client, Looper looper) {
         this.client = client;
@@ -67,30 +108,40 @@ public class ChildrenStateTracker {
     }
 
     private void queueNextRequest() {
-        if (closed || requestPending || (requestQueue.size() <= 0)) {
+        if (closed || (requestQueue.size() <= 0)) {
             return;
         }
-        final DeferredRequest req = requestQueue.remove(0);
 
-        int timeout = 0;
-        if (req.deferredCount > 0) {
-            timeout = (int) (DEFER_BASE_TIMEOUT * Math.pow(2, req.deferredCount - 1));
+        Collections.sort(requestQueue, (a, b) -> Long.compare(a.getScheduledTime(), b.getScheduledTime()));
+        final DeferredRequest req = requestQueue.get(0);
+
+        if (pendingRequest != null) {
+            if (req.getScheduledTime() < pendingRequest.deferredRequest.getScheduledTime()) {
+                pendingRequest.cancel();
+                requestQueue.add(pendingRequest.deferredRequest);
+            } else {
+                return;
+            }
         }
+        requestQueue.remove(0);
 
-        requestPending = true;
-        queueHandler.postDelayed(new Runnable() {
+        pendingRequest = new CancellableRequest(req) {
             @Override
-            public void run() {
+            public void runIfNotCancelled() {
                 if (closed) {
                     req.cancel();
-                    requestPending = false;
+                    pendingRequest = null;
                     return;
                 }
-                requestPending = false;
+                pendingRequest = null;
                 req.doRequest();
                 queueNextRequest();
             }
-        }, timeout);
+        };
+        queueHandler.postDelayed(
+            pendingRequest,
+            Math.max(0, req.getScheduledTime() - System.currentTimeMillis() + 100)
+        );
     }
 
     private class QueueRequest<R> {
@@ -125,18 +176,6 @@ public class ChildrenStateTracker {
     }
 
     private BabyBuddyClient.Child[] childrenList = null;
-    private boolean compareChildrenLists(BabyBuddyClient.Child[] a, BabyBuddyClient.Child[] b) {
-        if (a.length != b.length) {
-            return false;
-        }
-        for (int i = 0; i < a.length; i++) {
-            if (!a[i].equals(b[i])) {
-                return false;
-            }
-        }
-        return true;
-    }
-
     private void updateChildrenList() {
         new QueueRequest<BabyBuddyClient.Child[]>().queue(
             client::listChildren,
@@ -153,7 +192,7 @@ public class ChildrenStateTracker {
                 @Override
                 public void response(BabyBuddyClient.Child[] response) {
                     requeue();
-                    if ((childrenList == null) || (!compareChildrenLists(response, childrenList))) {
+                    if ((childrenList == null) || (!Arrays.equals(response, childrenList))) {
                         childrenList = response;
                         if (childrenListListener != null) {
                             childrenListListener.childrenListUpdated(response);
@@ -165,7 +204,74 @@ public class ChildrenStateTracker {
         queueNextRequest();
     }
 
+    private class BoundTimerListCall {
+        private int childId;
+
+        public BoundTimerListCall(int childId) {
+            this.childId = childId;
+        }
+
+        public void call(BabyBuddyClient.RequestCallback<BabyBuddyClient.Timer[]> callback) {
+            client.listTimers(childId, callback);
+        }
+    }
+
+    private BabyBuddyClient.Timer[] selectedChildTimerList = null;
     private void updateChildLists() {
+        if (selectedChildId == null) {
+            return;
+        }
+
+        final int requestedForChildId = selectedChildId;
+        System.out.println("Update child lists for " + selectedChildId);
+
+        new QueueRequest<BabyBuddyClient.Timer[]>().queue(
+            new BoundTimerListCall(selectedChildId)::call,
+            new BabyBuddyClient.RequestCallback<BabyBuddyClient.Timer[]>() {
+                private void requeue() {
+                    if (requestedForChildId != selectedChildId) {
+                        return;
+                    }
+                    queueHandler.postDelayed(() -> updateChildLists(), childListsUpdateDelay);
+                }
+
+                @Override
+                public void error(Exception error) {
+                    requeue();
+                }
+
+                @Override
+                public void response(BabyBuddyClient.Timer[] response) {
+                    requeue();
+
+                    if (requestedForChildId != selectedChildId) {
+                        return;
+                    }
+
+                    System.out.println("AAA " + selectedChildTimerList + "  " +  response);
+                    if ((selectedChildTimerList == null) || (!Arrays.equals(selectedChildTimerList, response))) {
+                        selectedChildTimerList = response;
+
+                        if (childListener != null) {
+                            childListener.timersUpdated(response);
+                        }
+                    }
+                }
+            }
+        );
+        queueNextRequest();
+    }
+
+    public void selectChild(Integer childId) {
+        if (selectedChildId != childId) {
+            selectedChildId = childId;
+            selectedChildTimerList = null;
+            updateChildLists();
+        }
+    }
+
+    public Integer getSelectedChildId() {
+        return selectedChildId;
     }
 
     private void setConnected() {
@@ -201,7 +307,7 @@ public class ChildrenStateTracker {
     }
 
     public boolean isConnected() {
-        return connected;
+        return connected && !closed;
     }
 
     public void close() {
@@ -212,11 +318,15 @@ public class ChildrenStateTracker {
         requestQueue.clear();
     }
 
-    public  void setChildrenListListener(ChildrenListListener l) {
+    public void setChildrenListListener(ChildrenListListener l) {
         childrenListListener = l;
         if (childrenList != null) {
             queueHandler.post(() -> childrenListListener.childrenListUpdated(childrenList));
         }
+    }
+
+    public void setChildListener(ChildListener l) {
+        childListener = l;
     }
 
     public void setConnectionStateListener(ConnectionStateListener l) {
