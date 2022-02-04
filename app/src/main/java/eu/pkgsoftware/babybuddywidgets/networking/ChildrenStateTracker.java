@@ -3,10 +3,13 @@ package eu.pkgsoftware.babybuddywidgets.networking;
 import android.os.Handler;
 import android.os.Looper;
 
+import java.lang.reflect.Type;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collections;
 import java.util.function.Consumer;
+
+import androidx.annotation.NonNull;
 
 public class ChildrenStateTracker {
     public static class CancelledException extends Exception {};
@@ -15,28 +18,16 @@ public class ChildrenStateTracker {
         void connectionStateChanged(boolean connected, long disconnectedFor);
     }
 
-    private static final int DEFER_BASE_TIMEOUT = 1000;
-    private static final int MAX_DEFERRED_TIMEOUT = 20000;
     private abstract class DeferredRequest {
-        public int deferredCount = 0;
         public long startTime = System.currentTimeMillis();
 
-        public int getTimeout() {
-            int timeout = 0;
-            if (deferredCount > 0) {
-                timeout = (int) (DEFER_BASE_TIMEOUT * Math.pow(2, deferredCount - 1));
-            }
-            return timeout;
-        }
-
         public long getScheduledTime() {
-            return startTime + getTimeout();
+            return startTime;
         }
 
         protected void retry() {
-            deferredCount++;
             startTime = System.currentTimeMillis();
-            requestQueue.add(0, this);
+            requestQueue.add(this);
             queueNextRequest();
         }
 
@@ -44,16 +35,21 @@ public class ChildrenStateTracker {
         public abstract void doRequest();
     };
 
+    private static final int DEFER_BASE_TIMEOUT = 500;
+    private static final int MAX_DEFERRED_TIMEOUT = 20000;
+
     private BabyBuddyClient client;
     private boolean closed = false;
-    private boolean connected;
 
     private Handler queueHandler = null;
+    private CancellableRequest pendingRequest = null;
 
+    private boolean connected = false;
     private ConnectionStateListener connectionStateListener = null;
     private long disconnectedStartTime = 0;
+    private int disconnectRetryCounter = 0;
 
-    private ArrayList<DeferredRequest> requestQueue = new ArrayList<>();
+    private final ArrayList<DeferredRequest> requestQueue = new ArrayList<>();
 
     private static abstract class CancellableRequest implements Runnable {
         public DeferredRequest deferredRequest;
@@ -76,8 +72,6 @@ public class ChildrenStateTracker {
 
         public abstract void runIfNotCancelled();
     };
-
-    private CancellableRequest pendingRequest = null;
 
     public ChildrenStateTracker(BabyBuddyClient client, Looper looper) {
         this.client = client;
@@ -114,13 +108,24 @@ public class ChildrenStateTracker {
                     return;
                 }
                 pendingRequest = null;
+
+                System.out.println("Sending request at " + System.currentTimeMillis() +  ": " + req);
                 req.doRequest();
                 queueNextRequest();
             }
         };
+
+        long exponentialBackoff = 0;
+        if (disconnectRetryCounter > 0) {
+            exponentialBackoff = Math.min(
+                MAX_DEFERRED_TIMEOUT,
+                (long) Math.pow(1.5, disconnectRetryCounter - 1)* DEFER_BASE_TIMEOUT
+            );
+        }
+
         queueHandler.postDelayed(
             pendingRequest,
-            Math.max(0, req.getScheduledTime() - System.currentTimeMillis() + 100)
+            Math.max(0, req.getScheduledTime() - System.currentTimeMillis() + 50 + exponentialBackoff)
         );
     }
 
@@ -151,6 +156,12 @@ public class ChildrenStateTracker {
                     };
                     request.accept(local);
                 }
+
+                @NonNull
+                @Override
+                public String toString() {
+                    return "DeferredRequest{requesting" + this.getClass().getGenericSuperclass() + "}";
+                }
             });
             queueNextRequest();
         }
@@ -167,6 +178,7 @@ public class ChildrenStateTracker {
 
     private void setDisconnected() {
         if (connected) {
+            disconnectRetryCounter = 0;
             connected = false;
             disconnectedStartTime = System.currentTimeMillis();
 
@@ -185,6 +197,11 @@ public class ChildrenStateTracker {
                 }
             };
             disconnectUpdateFunction.run();
+        } else {
+            disconnectRetryCounter++;
+            if (disconnectRetryCounter > 10000) {
+                disconnectRetryCounter = 10000;
+            }
         }
     }
 
@@ -206,6 +223,8 @@ public class ChildrenStateTracker {
 
     public void resetDisconnectTimer() {
         disconnectedStartTime = System.currentTimeMillis();
+        disconnectRetryCounter = 0;
+        queueNextRequest();
     }
 
     private abstract class StateObserver {
