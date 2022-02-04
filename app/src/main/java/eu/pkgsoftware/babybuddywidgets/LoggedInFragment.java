@@ -119,15 +119,29 @@ public class LoggedInFragment extends BaseFragment {
         }
     }
 
+    private final ChildrenStateTracker.ChildListener CHILD_LISTENER = new ChildrenStateTracker.ChildListener() {
+        @Override
+        public void childValidUpdated(boolean valid) {
+
+        }
+
+        @Override
+        public void timersUpdated(BabyBuddyClient.Timer[] timers) {
+            BabyBuddyClient.Child child = selectedChild();
+            babyAdapter.getHolderFor(child).updateTimerList(timers);
+        }
+    };
+
     @Override
     public View onCreateView(
         @NonNull  LayoutInflater inflater, ViewGroup container,
         Bundle savedInstanceState
     ) {
         binding = LoggedInFragmentBinding.inflate(inflater, container, false);
-
         binding.babyViewPagerSwitcher.registerOnPageChangeCallback(
             new ViewPager2.OnPageChangeCallback() {
+                private ChildrenStateTracker.ChildObserver childObserver = null;
+
                 @Override
                 public void onPageSelected(int position) {
                     super.onPageSelected(position);
@@ -135,7 +149,14 @@ public class LoggedInFragment extends BaseFragment {
 
                     BabyBuddyClient.Child child = children == null ? null : children[position];
                     credStore.setSelectedChild(child == null ? null : child.slug);
-                    stateTracker.selectChild(child == null ? null : child.id);
+
+                    if (childObserver != null) {
+                        childObserver.close();
+                        childObserver = null;
+                    }
+                    if (child != null) {
+                        stateTracker.createChildObserver(child.id, CHILD_LISTENER);
+                    }
 
                     updateTitle();
                 }
@@ -214,18 +235,6 @@ public class LoggedInFragment extends BaseFragment {
                 }
             }
         );
-        stateTracker.setChildListener(new ChildrenStateTracker.ChildListener() {
-            @Override
-            public void childValidUpdated(boolean valid) {
-
-            }
-
-            @Override
-            public void timersUpdated(BabyBuddyClient.Timer[] timers) {
-                BabyBuddyClient.Child child = selectedChild();
-                babyAdapter.getHolderFor(child).updateTimerList(timers);
-            }
-        });
     }
 
     @Override

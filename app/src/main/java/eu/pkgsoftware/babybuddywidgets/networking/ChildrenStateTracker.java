@@ -6,8 +6,7 @@ import android.os.Looper;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collections;
-import java.util.Comparator;
-import java.util.Queue;
+import java.util.Objects;
 import java.util.function.Consumer;
 
 public class ChildrenStateTracker {
@@ -19,11 +18,6 @@ public class ChildrenStateTracker {
 
     public interface ChildrenListListener {
         void childrenListUpdated(BabyBuddyClient.Child[] children);
-    }
-
-    public interface ChildListener {
-        void childValidUpdated(boolean valid);
-        void timersUpdated(BabyBuddyClient.Timer[] timers);
     }
 
     private static final int DEFER_BASE_TIMEOUT = 1000;
@@ -56,7 +50,6 @@ public class ChildrenStateTracker {
     };
 
     private BabyBuddyClient client;
-    private Integer selectedChildId = null;
     private boolean closed = false;
     private boolean connected;
 
@@ -64,11 +57,9 @@ public class ChildrenStateTracker {
 
     private ConnectionStateListener connectionStateListener = null;
     private ChildrenListListener childrenListListener = null;
-    private ChildListener childListener = null;
 
     private long disconnectedStartTime = 0;
     private long childrenListUpdateDelay = 10000;
-    private long childListsUpdateDelay = 1000;
 
     private ArrayList<DeferredRequest> requestQueue = new ArrayList<>();
 
@@ -103,7 +94,6 @@ public class ChildrenStateTracker {
         connected = true;
         setDisconnected();
 
-        this.queueHandler.post(() -> updateChildLists());
         this.queueHandler.post(() -> updateChildrenList());
     }
 
@@ -204,74 +194,6 @@ public class ChildrenStateTracker {
         queueNextRequest();
     }
 
-    private class BoundTimerListCall {
-        private int childId;
-
-        public BoundTimerListCall(int childId) {
-            this.childId = childId;
-        }
-
-        public void call(BabyBuddyClient.RequestCallback<BabyBuddyClient.Timer[]> callback) {
-            client.listTimers(childId, callback);
-        }
-    }
-
-    private BabyBuddyClient.Timer[] selectedChildTimerList = null;
-    private void updateChildLists() {
-        if (selectedChildId == null) {
-            return;
-        }
-
-        final int requestedForChildId = selectedChildId;
-
-        new QueueRequest<BabyBuddyClient.Timer[]>().queue(
-            new BoundTimerListCall(selectedChildId)::call,
-            new BabyBuddyClient.RequestCallback<BabyBuddyClient.Timer[]>() {
-                private void requeue() {
-                    if (requestedForChildId != selectedChildId) {
-                        return;
-                    }
-                    queueHandler.postDelayed(() -> updateChildLists(), childListsUpdateDelay);
-                }
-
-                @Override
-                public void error(Exception error) {
-                    requeue();
-                }
-
-                @Override
-                public void response(BabyBuddyClient.Timer[] response) {
-                    requeue();
-
-                    if (requestedForChildId != selectedChildId) {
-                        return;
-                    }
-
-                    if ((selectedChildTimerList == null) || (!Arrays.equals(selectedChildTimerList, response))) {
-                        selectedChildTimerList = response;
-
-                        if (childListener != null) {
-                            childListener.timersUpdated(response);
-                        }
-                    }
-                }
-            }
-        );
-        queueNextRequest();
-    }
-
-    public void selectChild(Integer childId) {
-        if (selectedChildId != childId) {
-            selectedChildId = childId;
-            selectedChildTimerList = null;
-            updateChildLists();
-        }
-    }
-
-    public Integer getSelectedChildId() {
-        return selectedChildId;
-    }
-
     private void setConnected() {
         if (!connected) {
             connected = true;
@@ -323,15 +245,92 @@ public class ChildrenStateTracker {
         }
     }
 
-    public void setChildListener(ChildListener l) {
-        childListener = l;
-    }
-
     public void setConnectionStateListener(ConnectionStateListener l) {
         connectionStateListener = l;
     }
 
     public void resetDisconnectTimer() {
         disconnectedStartTime = System.currentTimeMillis();
+    }
+
+    /* Child listener */
+    public interface ChildListener {
+        void childValidUpdated(boolean valid);
+        void timersUpdated(BabyBuddyClient.Timer[] timers);
+    }
+
+    public class ChildObserver {
+        public static final long CHILD_LISTS_UPDATE_DELAY = 1000;
+
+        private int childId;
+        private ChildListener listener;
+        private boolean closed = false;
+        private BabyBuddyClient.Timer[] currentTimerList = null;
+
+        private ChildObserver(int childId, ChildListener listener) {
+            this.childId = childId;
+            this.listener = listener;
+
+            queueHandler.post(() -> update());
+        }
+
+        private class BoundTimerListCall {
+            private int childId;
+
+            public BoundTimerListCall(int childId) {
+                this.childId = childId;
+            }
+
+            public void call(BabyBuddyClient.RequestCallback<BabyBuddyClient.Timer[]> callback) {
+                client.listTimers(childId, callback);
+            }
+        }
+
+        private void update() {
+            new QueueRequest<BabyBuddyClient.Timer[]>().queue(
+                new BoundTimerListCall(childId)::call,
+                new BabyBuddyClient.RequestCallback<BabyBuddyClient.Timer[]>() {
+                    private void requeue() {
+                        if (isClosed()) {
+                            return;
+                        }
+                        queueHandler.postDelayed(() -> update(), CHILD_LISTS_UPDATE_DELAY);
+                    }
+
+                    @Override
+                    public void error(Exception error) {
+                        requeue();
+                    }
+
+                    @Override
+                    public void response(BabyBuddyClient.Timer[] response) {
+                        requeue();
+
+                        if (isClosed()) {
+                            return;
+                        }
+
+                        if ((currentTimerList == null) || (!Arrays.equals(currentTimerList, response))) {
+                            currentTimerList = response;
+
+                            listener.timersUpdated(response);
+                        }
+                    }
+                }
+            );
+            queueNextRequest();
+        }
+
+        public void close() {
+            closed = true;
+        }
+
+        public boolean isClosed() {
+            return closed || ChildrenStateTracker.this.closed;
+        }
+    }
+
+    public ChildObserver createChildObserver(int childId, ChildListener listener) {
+        return new ChildObserver(childId, listener);
     }
 }
