@@ -34,10 +34,12 @@ public class BabyBuddyClient extends StreamReader {
         if (o.isNull(field)) {
             return null;
         }
-        SimpleDateFormat sdf = new SimpleDateFormat("yyyy-MM-dd'T'HH:mm:ss");
+        SimpleDateFormat sdf = new SimpleDateFormat("yyyy-MM-dd'T'HH:mm:ssX");
+
+        // Remove milliseconds
         String strDate = o.getString(field);
-        strDate = strDate.split(Pattern.quote("+"))[0];
-        strDate = strDate.split(Pattern.quote("."))[0];
+        strDate = strDate.replaceAll("\\.[0-9]+([+Z])", "$1");
+        strDate = strDate.replaceAll("Z$", "+00:00");
         return sdf.parse(strDate);
     }
 
@@ -457,5 +459,9 @@ public class BabyBuddyClient extends StreamReader {
                 }
             }
         );
+    }
+
+    public long getServerDateOffsetMillis() {
+        return serverDateOffset;
     }
 }
