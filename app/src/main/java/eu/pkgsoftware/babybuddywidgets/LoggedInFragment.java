@@ -181,7 +181,7 @@ public class LoggedInFragment extends BaseFragment {
             logout();
         }
         if (item.getItemId() == R.id.aboutPageMenuItem) {
-            Navigation.findNavController(getView()).navigate(R.id.action_loggedInFragment2_to_aboutFragment);
+            Navigation.findNavController(getView()).navigate(R.id.global_aboutFragment);
         }
         return false;
     }
