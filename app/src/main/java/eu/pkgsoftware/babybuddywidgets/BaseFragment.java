@@ -17,13 +17,13 @@ import androidx.annotation.Nullable;
 import androidx.fragment.app.Fragment;
 
 public class BaseFragment extends Fragment {
-    public static interface Callback<T> {
-        public void call(T t);
+    public interface DialogCallback {
+        void call(boolean b);
     }
 
-    public static interface Promise<S, F> {
-        public void succeeded(S s);
-        public void failed(F f);
+    public interface Promise<S, F> {
+        void succeeded(S s);
+        void failed(F f);
     }
 
     private AlertDialog dialog = null;
@@ -33,7 +33,7 @@ public class BaseFragment extends Fragment {
         return showError(override, title, errorMessage, aBoolean -> {});
     }
 
-    protected AlertDialog showError(boolean override, String title, String errorMessage, Callback<Boolean> callback) {
+    protected AlertDialog showError(boolean override, String title, String errorMessage, DialogCallback callback) {
         if (override) {
             hideError();
         } else {
@@ -59,7 +59,7 @@ public class BaseFragment extends Fragment {
         return dialog;
     }
 
-    protected AlertDialog showQuestion(boolean override, String title, String question, String positiveMessage, String negativeMessage, Callback<Boolean> callback) {
+    protected AlertDialog showQuestion(boolean override, String title, String question, String positiveMessage, String negativeMessage, DialogCallback callback) {
         if (override) {
             hideError();
         } else {
@@ -124,11 +124,11 @@ public class BaseFragment extends Fragment {
         progressDialog.show();
     }
 
-    public void showProgress(String message, String cancelButtonText, Callback<Object> cancelButton) {
+    public void showProgress(String message, String cancelButtonText, DialogCallback cancelButton) {
         progressDialog.setMessage(message);
         progressDialog.setCancelable(true);
         progressDialog.setButton(ProgressDialog.BUTTON_NEGATIVE, cancelButtonText, (dialogInterface, i) -> {
-            cancelButton.call(null);
+            cancelButton.call(false);
         });
         progressDialog.show();
     }

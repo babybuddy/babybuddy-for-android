@@ -10,6 +10,7 @@ import androidx.navigation.Navigation;
 import androidx.recyclerview.widget.RecyclerView;
 import eu.pkgsoftware.babybuddywidgets.databinding.QuickTimerEntryBinding;
 import eu.pkgsoftware.babybuddywidgets.networking.BabyBuddyClient;
+import eu.pkgsoftware.babybuddywidgets.widgets.SwitchButtonLogic;
 
 public class TimerListViewHolder extends RecyclerView.ViewHolder {
     private final QuickTimerEntryBinding binding;
@@ -18,6 +19,8 @@ public class TimerListViewHolder extends RecyclerView.ViewHolder {
     private final CredStore credStore;
     private final BabyBuddyClient client;
     private final Handler timerHandler;
+
+    private SwitchButtonLogic startStopLogic = null;
 
     private BabyBuddyClient.Timer timer = null;
     private long timerStartTime = -1;
@@ -80,93 +83,82 @@ public class TimerListViewHolder extends RecyclerView.ViewHolder {
             public void onNothingSelected(AdapterView<?> adapterView) {
             }
         });
-        binding.appStartTimerButton.setOnClickListener(
-            view -> client.setTimerActive(timer.id, true, new BabyBuddyClient.RequestCallback<Boolean>() {
-                @Override
-                public void error(Exception error) {
+
+        startStopLogic = new SwitchButtonLogic(
+            binding.appStartTimerButton,
+            binding.appStopTimerButton,
+            false
+        );
+        startStopLogic.addStateListener(
+            (active, userClicked) -> {
+                if (timer == null) {
+                    return;
+                }
+                if (!userClicked) {
+                    return;
                 }
 
-                @Override
-                public void response(Boolean response) {
-                    timer.active = true;
-                    timer.start = new Date(System.currentTimeMillis());
-                    updateActiveState();
-                }
-            }
-        ));
-        binding.appStopTimerButton.setOnClickListener(new View.OnClickListener() {
-            class StoreActivityCallback implements BabyBuddyClient.RequestCallback<Boolean> {
-                private final String errorMessage;
-
-                public StoreActivityCallback(String errorMessage) {
-                    this.errorMessage = errorMessage;
-                }
-
-                @Override
-                public void error(Exception error) {
-                    baseFragment.showError(true, "Could not store activity", errorMessage);
-                }
-
-                @Override
-                public void response(Boolean response) {
-                }
-            }
-
-            @Override
-            public void onClick(View view) {
-                if ((int) binding.appTimerDefaultType.getSelectedItemId() == 0) {
-                    baseFragment.getMainActivity().selectedTimer = timer;
-                    Navigation.findNavController(baseFragment.getView()).navigate(R.id.action_loggedInFragment2_to_feedingFragment);
-                } else {
-                    client.setTimerActive(timer.id, false, new BabyBuddyClient.RequestCallback<Boolean>() {
+                if (active) {
+                    client.setTimerActive(timer.id, true, new BabyBuddyClient.RequestCallback<Boolean>() {
                         @Override
                         public void error(Exception error) {
                         }
 
                         @Override
                         public void response(Boolean response) {
-                            timer.active = false;
+                            timer.active = true;
+                            timer.start = new Date(System.currentTimeMillis());
                             updateActiveState();
-                            storeActivity();
-                        }
-                    });
-                }
-            }
-
-            private void storeActivity() {
-                int selectedActivity = (int) binding.appTimerDefaultType.getSelectedItemId();
-                if (selectedActivity == 1) {
-                    client.createSleepRecordFromTimer(
-                        timer,
-                        new StoreActivityCallback("Storing Sleep Time failed.")
-                    );
-                } else if (selectedActivity == 2) {
-                    client.createSleepRecordFromTimer(
-                        timer,
-                        new StoreActivityCallback("Storing Tummy Time failed.")
-                    );
-                    client.createTummyTimeRecordFromTimer(timer, new BabyBuddyClient.RequestCallback<Boolean>() {
-                        @Override
-                        public void error(Exception error) {
-                            baseFragment.showError(true, "Could not store activity", error.getMessage());
-                        }
-
-                        @Override
-                        public void response(Boolean response) {
-                            // all done :)
                         }
                     });
                 } else {
-                    baseFragment.showError(true, "Could not store activity", "Unsupported activity");
+                    storeActivity();
                 }
             }
-        });
+        );
+    }
+
+    class StoreActivityCallback implements BabyBuddyClient.RequestCallback<Boolean> {
+        private final String errorMessage;
+
+        public StoreActivityCallback(String errorMessage) {
+            this.errorMessage = errorMessage;
+        }
+
+        @Override
+        public void error(Exception error) {
+            baseFragment.showError(true, "Could not store activity", errorMessage);
+        }
+
+        @Override
+        public void response(Boolean response) {
+            timer.active = false;
+            updateActiveState();
+        }
+    }
+
+    private void storeActivity() {
+        int selectedActivity = (int) binding.appTimerDefaultType.getSelectedItemId();
+        if ((int) binding.appTimerDefaultType.getSelectedItemId() == 0) {
+            baseFragment.getMainActivity().selectedTimer = timer;
+            Navigation.findNavController(baseFragment.getView()).navigate(R.id.action_loggedInFragment2_to_feedingFragment);
+        } else if (selectedActivity == 1) {
+            client.createSleepRecordFromTimer(
+                timer,
+                new StoreActivityCallback("Storing Sleep Time failed.")
+            );
+        } else if (selectedActivity == 2) {
+            client.createTummyTimeRecordFromTimer(
+                timer,
+                new StoreActivityCallback("Storing Tummy Time failed.")
+            );
+        } else {
+            baseFragment.showError(true, "Could not store activity", "Unsupported activity");
+        }
     }
 
     public void updateActiveState() {
-        binding.appStartTimerButton.setVisibility(timer.active ? View.GONE : View.VISIBLE);
-        binding.appStopTimerButton.setVisibility(!timer.active ? View.GONE : View.VISIBLE);
-
+        startStopLogic.setState(timer.active);
         if ((timer == null) || (!timer.active)) {
             timerStartTime = -1;
         } else {
@@ -190,7 +182,6 @@ public class TimerListViewHolder extends RecyclerView.ViewHolder {
     public void assignTimer(BabyBuddyClient.Timer timer) {
         this.timer = timer;
         binding.timerName.setText(timer.readableName());
-        updateActiveState();
         Integer defaultSelection = credStore.getTimerDefaultSelections().get(timer.id);
         if (defaultSelection == null) {
             if (timer.name != null) {
@@ -200,5 +191,6 @@ public class TimerListViewHolder extends RecyclerView.ViewHolder {
             }
         }
         binding.appTimerDefaultType.setSelection(defaultSelection);
+        updateActiveState();
     }
 }
