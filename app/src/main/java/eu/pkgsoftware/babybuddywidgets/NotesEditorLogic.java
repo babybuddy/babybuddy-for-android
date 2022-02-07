@@ -72,7 +72,11 @@ public class NotesEditorLogic {
     }
 
     public String getText() {
-        return "" + binding.noteEditor.getText();
+        if (visible) {
+            return "" + binding.noteEditor.getText();
+        } else {
+            return "";
+        }
     }
 
     public void clearText() {

@@ -150,6 +150,9 @@ public class TimerListViewHolder extends RecyclerView.ViewHolder {
         public void response(Boolean response) {
             timer.active = false;
             updateActiveState();
+
+            notesEditor.clearText();
+            notesEditorSwitch.setState(false);
         }
     }
 
@@ -161,11 +164,13 @@ public class TimerListViewHolder extends RecyclerView.ViewHolder {
         } else if (selectedActivity == 1) {
             client.createSleepRecordFromTimer(
                 timer,
+                notesEditor.getText(),
                 new StoreActivityCallback("Storing Sleep Time failed.")
             );
         } else if (selectedActivity == 2) {
             client.createTummyTimeRecordFromTimer(
                 timer,
+                notesEditor.getText(),
                 new StoreActivityCallback("Storing Tummy Time failed.")
             );
         } else {

@@ -355,11 +355,13 @@ public class BabyBuddyClient extends StreamReader {
         });
     }
 
-    public void createSleepRecordFromTimer(Timer timer, RequestCallback<Boolean> callback) {
+    public void createSleepRecordFromTimer(Timer timer, String notes, RequestCallback<Boolean> callback) {
         dispatchQuery(
                 "POST",
                 "api/sleep/",
-                "{\"timer\": XXX}".replaceAll("XXX", "" + timer.id),
+                "{\"timer\": XXTimer, \"notes\": \"XXNotes\"}"
+                    .replaceAll("XXTimer", "" + timer.id)
+                    .replaceAll("XXNotes", notes),
                 new RequestCallback<String>() {
             @Override
             public void error(Exception e) {
@@ -373,11 +375,13 @@ public class BabyBuddyClient extends StreamReader {
         });
     }
 
-    public void createTummyTimeRecordFromTimer(Timer timer, RequestCallback<Boolean> callback) {
+    public void createTummyTimeRecordFromTimer(Timer timer, String notes, RequestCallback<Boolean> callback) {
         dispatchQuery(
                 "POST",
                 "api/tummy-times/",
-                "{\"timer\": XXX}".replaceAll("XXX", "" + timer.id),
+                "{\"timer\": XXTimer, \"notes\": \"XXNotes\"}"
+                    .replaceAll("XXTimer", "" + timer.id)
+                    .replaceAll("XXNotes", notes),
                 new RequestCallback<String>() {
             @Override
             public void error(Exception e) {
