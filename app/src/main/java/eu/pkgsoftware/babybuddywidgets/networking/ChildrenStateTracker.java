@@ -108,7 +108,6 @@ public class ChildrenStateTracker {
                 }
                 pendingRequest = null;
 
-                System.out.println("Sending request at " + System.currentTimeMillis() +  ": " + req);
                 req.doRequest();
                 queueNextRequest();
             }

@@ -19,7 +19,8 @@
 
     <LinearLayout
         android:layout_width="match_parent"
-        android:layout_height="wrap_content">
+        android:layout_height="wrap_content"
+        android:gravity="center">
 
         <LinearLayout
             android:layout_width="wrap_content"
@@ -36,7 +37,7 @@
                 android:textAppearance="@style/TextAppearance.AppCompat.Large" />
 
             <LinearLayout
-                android:layout_width="wrap_content"
+                android:layout_width="match_parent"
                 android:layout_height="wrap_content">
 
                 <Spinner
@@ -45,17 +46,46 @@
                     android:layout_height="wrap_content"
                     android:layout_marginBottom="4dp"
                     android:dropDownWidth="match_parent"
+                    android:layout_weight="0"
                     android:entries="@array/timerTypes" />
+
+                <Space
+                    android:layout_width="wrap_content"
+                    android:layout_height="match_parent"
+                    android:layout_weight="1" />
 
                 <TextView
                     android:id="@+id/currentTimerTime"
                     android:layout_width="wrap_content"
                     android:layout_height="wrap_content"
-                    android:layout_marginLeft="32dp"
+                    android:layout_weight="0"
                     android:text="1:10:00"
                     android:textAppearance="@style/TextAppearance.AppCompat.Body1" />
+
+                <Space
+                    android:layout_width="wrap_content"
+                    android:layout_height="match_parent"
+                    android:layout_weight="1" />
             </LinearLayout>
         </LinearLayout>
+
+        <ImageButton
+            android:id="@+id/addNoteButton"
+            android:layout_width="48dp"
+            android:layout_height="48dp"
+            android:layout_margin="4dp"
+            android:layout_weight="0"
+            android:src="@drawable/pkg_notes"
+            android:visibility="visible" />
+
+        <ImageButton
+            android:id="@+id/removeNoteButton"
+            android:layout_width="48dp"
+            android:layout_height="48dp"
+            android:layout_margin="4dp"
+            android:layout_weight="0"
+            android:src="@drawable/pkg_no_notes"
+            android:visibility="gone" />
 
         <ImageButton
             android:id="@+id/appStartTimerButton"

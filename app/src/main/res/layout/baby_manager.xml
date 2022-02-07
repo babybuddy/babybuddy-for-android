@@ -24,16 +24,16 @@
 
         <ImageButton
             android:id="@+id/wetDisabledButton"
-            android:layout_width="72dp"
-            android:layout_height="72dp"
+            android:layout_width="64dp"
+            android:layout_height="64dp"
             android:scaleType="fitCenter"
             android:src="@drawable/pkg_not_wet"
             android:layout_weight="0"/>
 
         <ImageButton
             android:id="@+id/wetEnabledButton"
-            android:layout_width="72dp"
-            android:layout_height="72dp"
+            android:layout_width="64dp"
+            android:layout_height="64dp"
             android:layout_weight="0"
             android:backgroundTint="#80FF80"
             android:scaleType="fitCenter"
@@ -43,15 +43,15 @@
         <ImageButton
             android:id="@+id/solidDisabledButton"
             android:layout_weight="0"
-            android:layout_width="72dp"
-            android:layout_height="72dp"
+            android:layout_width="64dp"
+            android:layout_height="64dp"
             android:scaleType="fitCenter"
             android:src="@drawable/pkg_no_poop"/>
 
         <ImageButton
             android:id="@+id/solidEnabledButton"
-            android:layout_width="72dp"
-            android:layout_height="72dp"
+            android:layout_width="64dp"
+            android:layout_height="64dp"
             android:layout_weight="0"
             android:backgroundTint="#80FF80"
             android:scaleType="fitCenter"
@@ -65,10 +65,29 @@
             android:orientation="horizontal"></LinearLayout>
 
         <ImageButton
+            android:id="@+id/removeNoteButton"
+            android:layout_width="48dp"
+            android:layout_height="48dp"
+            android:layout_margin="4dp"
+            android:layout_weight="0"
+            android:backgroundTint="#80FF80"
+            android:src="@drawable/pkg_notes"
+            android:visibility="gone" />
+
+        <ImageButton
+            android:id="@+id/addNoteButton"
+            android:layout_width="48dp"
+            android:layout_height="48dp"
+            android:layout_margin="4dp"
+            android:layout_weight="0"
+            android:src="@drawable/pkg_no_notes"
+            android:visibility="visible" />
+
+        <ImageButton
             android:id="@+id/sendChangeButton"
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
-            android:layout_marginEnd="16dp"
+            android:layout_margin="4dp"
             android:layout_weight="0"
             android:visibility="visible"
             app:layout_constraintBottom_toBottomOf="parent"
@@ -77,12 +96,20 @@
             app:srcCompat="@android:drawable/ic_menu_save"/>
     </LinearLayout>
 
+    <LinearLayout
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:orientation="horizontal"
+        android:id="@+id/diaperNotesSlot"
+        android:layout_below="@id/changeButtons"
+        />
+
     <Button
         android:id="@+id/createDefaultTimers"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
         android:layout_centerHorizontal="true"
-        android:layout_below="@id/changeButtons"
+        android:layout_below="@id/diaperNotesSlot"
         android:layout_marginTop="8dp"
         android:visibility="gone"
         android:text="Create default timers" />

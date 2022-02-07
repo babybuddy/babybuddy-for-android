@@ -238,6 +238,8 @@ public class LoggedInFragment extends BaseFragment {
 
         stateTracker.close();
         stateTracker = null;
+
+        credStore.storePrefs();
     }
 
     private int childIndexBySlug(String slug) {

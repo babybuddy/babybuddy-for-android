@@ -1,6 +1,8 @@
 package eu.pkgsoftware.babybuddywidgets;
 
+import android.content.res.Resources;
 import android.graphics.Color;
+import android.graphics.drawable.Drawable;
 import android.graphics.drawable.Icon;
 import android.media.Image;
 import android.os.Bundle;
@@ -163,7 +165,16 @@ public class AboutFragment extends BaseFragment {
             for (String icon : iconData.icons) {
                 ImageView iView = new ImageView(getContext());
                 int id = getResources().getIdentifier(icon, "drawable", getActivity().getPackageName());
-                iView.setImageDrawable(ContextCompat.getDrawable(getActivity(), id));
+
+                Drawable d;
+                try {
+                    d = ContextCompat.getDrawable(getActivity(), id);
+                }
+                catch (Resources.NotFoundException e) {
+                    continue;
+                }
+                iView.setImageDrawable(d);
+
                 iView.setMinimumWidth(dpToPx(48));
                 iView.setMinimumHeight(dpToPx(48));
                 iconsList.addView(iView);

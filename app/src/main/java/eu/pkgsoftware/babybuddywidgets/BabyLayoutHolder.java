@@ -5,19 +5,27 @@ import android.view.View;
 import android.view.ViewGroup;
 import android.widget.AdapterView;
 
+import java.util.Arrays;
+import java.util.HashMap;
+
 import androidx.navigation.Navigation;
 import androidx.recyclerview.widget.GridLayoutManager;
 import androidx.recyclerview.widget.RecyclerView;
 import eu.pkgsoftware.babybuddywidgets.databinding.BabyManagerBinding;
+import eu.pkgsoftware.babybuddywidgets.databinding.NotesEditorBinding;
 import eu.pkgsoftware.babybuddywidgets.databinding.QuickTimerEntryBinding;
 import eu.pkgsoftware.babybuddywidgets.networking.BabyBuddyClient;
+import eu.pkgsoftware.babybuddywidgets.widgets.SwitchButtonLogic;
 
 public class BabyLayoutHolder extends RecyclerView.ViewHolder {
     private class TimerListProvider extends RecyclerView.Adapter<TimerListViewHolder> {
-        private BabyBuddyClient.Timer[] timers;
+        private BabyBuddyClient.Timer[] timers = new BabyBuddyClient.Timer[0];
 
-        public TimerListProvider(BabyBuddyClient.Timer[] timers) {
+        public void updateTimers(BabyBuddyClient.Timer[] timers) {
+            timers = timers.clone();
+            Arrays.sort(timers, (a, b) -> Integer.compare(a.id, b.id));
             this.timers = timers;
+            notifyDataSetChanged();
         }
 
         @Override
@@ -41,11 +49,15 @@ public class BabyLayoutHolder extends RecyclerView.ViewHolder {
     private final BaseFragment baseFragment;
     private final BabyBuddyClient client;
     private final CredStore credStore;
+    private BabyLayoutHolder.TimerListProvider timerListProvider;
+    private NotesEditorLogic notesEditor;
 
     private BabyBuddyClient.Child child = null;
 
     private boolean changeWet = false;
     private boolean changeSolid = false;
+
+    private SwitchButtonLogic notesSwitch;
 
     public BabyLayoutHolder(BaseFragment fragment, BabyManagerBinding bmb) {
         super(bmb.getRoot());
@@ -73,6 +85,27 @@ public class BabyLayoutHolder extends RecyclerView.ViewHolder {
         binding.wetDisabledButton.setOnClickListener(invertWet);
         binding.sendChangeButton.setOnClickListener(view -> storeDiaperChange());
         binding.createDefaultTimers.setOnClickListener(view -> createDefaultTimers());
+
+        notesSwitch = new SwitchButtonLogic(
+            binding.addNoteButton,
+            binding.removeNoteButton,
+            false
+        );
+
+        timerListProvider = new BabyLayoutHolder.TimerListProvider();
+        binding.timersList.setAdapter(timerListProvider);
+
+        NotesEditorBinding notesEditorBinding = NotesEditorBinding.inflate(
+            fragment.getMainActivity().getLayoutInflater()
+        );
+        binding.diaperNotesSlot.addView(notesEditorBinding.getRoot());
+
+        notesEditor = new NotesEditorLogic(
+            fragment.getMainActivity(),
+            notesEditorBinding,
+            false
+        );
+        notesSwitch.addStateListener((b, userInduced) -> notesEditor.setVisible(b));
     }
 
     private void resetDiaperUi() {
@@ -82,7 +115,7 @@ public class BabyLayoutHolder extends RecyclerView.ViewHolder {
     }
 
     private void updateDiaperBar() {
-        binding.sendChangeButton.setVisibility((changeSolid || changeWet) ? View.VISIBLE : View.GONE);
+        binding.sendChangeButton.setVisibility((changeSolid || changeWet) ? View.VISIBLE : View.INVISIBLE);
         binding.solidEnabledButton.setVisibility(changeSolid ? View.VISIBLE : View.GONE);
         binding.solidDisabledButton.setVisibility(!changeSolid ? View.VISIBLE : View.GONE);
         binding.wetEnabledButton.setVisibility(changeWet ? View.VISIBLE : View.GONE);
@@ -90,7 +123,7 @@ public class BabyLayoutHolder extends RecyclerView.ViewHolder {
     }
 
     private void storeDiaperChange() {
-        client.createChangeRecord(child, changeWet, changeSolid,
+        client.createChangeRecord(child, changeWet, changeSolid, notesEditor.getText(),
             new BabyBuddyClient.RequestCallback<Boolean>() {
                 @Override
                 public void error(Exception error) {
@@ -103,7 +136,8 @@ public class BabyLayoutHolder extends RecyclerView.ViewHolder {
 
                 @Override
                 public void response(Boolean response) {
-                    // Pass
+                    notesEditor.clearText();
+                    notesSwitch.setState(false);
                 }
             }
         );
@@ -150,7 +184,7 @@ public class BabyLayoutHolder extends RecyclerView.ViewHolder {
     }
 
     public void updateTimerList(BabyBuddyClient.Timer[] timers) {
-        binding.timersList.setAdapter(new BabyLayoutHolder.TimerListProvider(timers));
+        timerListProvider.updateTimers(timers);
         binding.createDefaultTimers.setVisibility(timers.length == 0 ? View.VISIBLE : View.GONE);
     }
 

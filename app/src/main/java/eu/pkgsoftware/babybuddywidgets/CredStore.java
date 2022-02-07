@@ -13,9 +13,12 @@ import java.security.InvalidKeyException;
 import java.security.MessageDigest;
 import java.security.NoSuchAlgorithmException;
 import java.security.SecureRandom;
+import java.util.Enumeration;
 import java.util.HashMap;
 import java.util.Map;
+import java.util.Objects;
 import java.util.Properties;
+import java.util.regex.Pattern;
 
 import javax.crypto.BadPaddingException;
 import javax.crypto.Cipher;
@@ -34,6 +37,7 @@ public class CredStore {
     private String SALT_STRING;
     private String encryptedToken;
     private Map<Integer, Integer> timerAssignments = new HashMap<Integer, Integer>();
+    private Map<String, String> notesAssignments = new HashMap<String, String>();
 
     private String currentChild = null;
     // private Map<String, String> children = new HashMap<>();
@@ -66,6 +70,15 @@ public class CredStore {
 
         // children = props.getProperty("children_cache", "");
         currentChild = props.getProperty("selected_child", null);
+
+        Enumeration<?> nameEnum = props.propertyNames();
+        for (Object o = nameEnum.nextElement(); nameEnum.hasMoreElements(); o = nameEnum.nextElement()) {
+            final String name = Objects.toString(o);
+            if (name.startsWith("notes_")) {
+                final String noteName = name.replaceFirst(Pattern.quote("notes_"), "");
+                notesAssignments.put(noteName, props.getProperty(name));
+            }
+        }
     }
 
     private String stringMapToString(Map<String, String> m) {
@@ -106,7 +119,7 @@ public class CredStore {
         return result;
     }
 
-    private void storePrefs() {
+    public void storePrefs() {
         Properties props = new Properties();
         if (serverUrl != null) {
             props.setProperty("server", serverUrl);
@@ -128,6 +141,13 @@ public class CredStore {
         // props.setProperty("children_cache", stringMapToString(children));
         if (currentChild != null) {
             props.setProperty("selected_child", currentChild);
+        }
+
+        for (Map.Entry<String, String> e : notesAssignments.entrySet()) {
+            if (e.getValue() == null) {
+                continue;
+            }
+            props.setProperty("notes_" + e.getKey(), e.getValue());
         }
 
         try (FileOutputStream fos = new FileOutputStream(settingsFilePath.toString())) {
@@ -217,5 +237,13 @@ public class CredStore {
     public void clearTimerAssociations() {
         timerAssignments.clear();
         storePrefs();
+    }
+
+    public void setObjectNotes(String id, String notes) {
+        notesAssignments.put(id, notes);
+    }
+
+    public String getObjectNotes(String id) {
+        return notesAssignments.get(id);
     }
 }

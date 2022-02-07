@@ -413,15 +413,16 @@ public class BabyBuddyClient extends StreamReader {
             });
     }
 
-    public void createChangeRecord(Child child, boolean wet, boolean solid, RequestCallback<Boolean> callback) {
+    public void createChangeRecord(Child child, boolean wet, boolean solid, String notes, RequestCallback<Boolean> callback) {
         dispatchQuery(
             "POST",
             "api/changes/",
-            "{\"child\": XXChild, \"time\": \"XXTime\", \"wet\": XXWet, \"solid\": XXSolid, \"color\": \"\", \"amount\": null, \"notes\": \"\"}"
+            "{\"child\": XXChild, \"time\": \"XXTime\", \"wet\": XXWet, \"solid\": XXSolid, \"color\": \"\", \"amount\": null, \"notes\": \"XXNotes\"}"
                 .replaceAll("XXChild", "" + child.id)
                 .replaceAll("XXTime", now())
                 .replaceAll("XXWet", wet ? "true" : "false")
-                .replaceAll("XXSolid", solid ? "true" : "false"),
+                .replaceAll("XXSolid", solid ? "true" : "false")
+                .replaceAll("XXNotes", notes),
             new RequestCallback<String>() {
                 @Override
                 public void error(Exception e) {
