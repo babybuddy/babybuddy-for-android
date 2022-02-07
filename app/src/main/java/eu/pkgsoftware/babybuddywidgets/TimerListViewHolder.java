@@ -8,6 +8,7 @@ import java.util.Date;
 
 import androidx.navigation.Navigation;
 import androidx.recyclerview.widget.RecyclerView;
+import eu.pkgsoftware.babybuddywidgets.databinding.NotesEditorBinding;
 import eu.pkgsoftware.babybuddywidgets.databinding.QuickTimerEntryBinding;
 import eu.pkgsoftware.babybuddywidgets.networking.BabyBuddyClient;
 import eu.pkgsoftware.babybuddywidgets.widgets.SwitchButtonLogic;
@@ -19,6 +20,9 @@ public class TimerListViewHolder extends RecyclerView.ViewHolder {
     private final CredStore credStore;
     private final BabyBuddyClient client;
     private final Handler timerHandler;
+
+    private final SwitchButtonLogic notesEditorSwitch;
+    private final NotesEditorLogic notesEditor;
 
     private SwitchButtonLogic startStopLogic = null;
 
@@ -116,6 +120,18 @@ public class TimerListViewHolder extends RecyclerView.ViewHolder {
                 }
             }
         );
+
+        notesEditorSwitch = new SwitchButtonLogic(
+            binding.addNoteButton, binding.removeNoteButton, false
+        );
+        NotesEditorBinding notesBinding = NotesEditorBinding.inflate(
+            baseFragment.getMainActivity().getLayoutInflater()
+        );
+        binding.verticalRoot.addView(notesBinding.getRoot());
+        notesEditor = new NotesEditorLogic(
+            baseFragment.getMainActivity(), notesBinding, false
+        );
+        notesEditorSwitch.addStateListener((v, userTriggered) -> notesEditor.setVisible(v));
     }
 
     class StoreActivityCallback implements BabyBuddyClient.RequestCallback<Boolean> {
@@ -192,5 +208,8 @@ public class TimerListViewHolder extends RecyclerView.ViewHolder {
         }
         binding.appTimerDefaultType.setSelection(defaultSelection);
         updateActiveState();
+
+        notesEditor.setIdentifier("timer_" + timer.id);
+        notesEditorSwitch.setState(notesEditor.getText().length() > 0);
     }
 }

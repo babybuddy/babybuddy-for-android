@@ -3,9 +3,7 @@ package eu.pkgsoftware.babybuddywidgets;
 import android.animation.LayoutTransition;
 import android.text.Editable;
 import android.text.TextWatcher;
-import android.view.View;
 import android.view.ViewGroup;
-import android.widget.LinearLayout;
 
 import eu.pkgsoftware.babybuddywidgets.databinding.NotesEditorBinding;
 
@@ -56,18 +54,21 @@ public class NotesEditorLogic {
     }
 
     public void setVisible(boolean b) {
-        if (b && (id != null)) {
+        visible = b;
+        updateTextFromCredStore();
+        updateVisibility();
+    }
+
+    private void updateTextFromCredStore() {
+        if (id != null) {
             String notes = activity.getCredStore().getObjectNotes(id);
             binding.noteEditor.setText(notes == null ? "" : notes);
         }
-
-        visible = b;
-        updateVisibility();
     }
 
     public void setIdentifier(String id) {
         this.id = id;
-        setVisible(visible);
+        updateTextFromCredStore();
     }
 
     public String getText() {

@@ -50,13 +50,13 @@ public class BabyLayoutHolder extends RecyclerView.ViewHolder {
     private final BabyBuddyClient client;
     private final CredStore credStore;
     private BabyLayoutHolder.TimerListProvider timerListProvider;
-    private NotesEditorLogic notesEditor;
 
     private BabyBuddyClient.Child child = null;
 
     private boolean changeWet = false;
     private boolean changeSolid = false;
 
+    private NotesEditorLogic notesEditor;
     private SwitchButtonLogic notesSwitch;
 
     public BabyLayoutHolder(BaseFragment fragment, BabyManagerBinding bmb) {
@@ -180,6 +180,10 @@ public class BabyLayoutHolder extends RecyclerView.ViewHolder {
 
     public void updateChild(BabyBuddyClient.Child c) {
         this.child = c;
+
+        notesEditor.setIdentifier("diaper_" + c.slug);
+        notesSwitch.setState(notesEditor.getText().length() > 0);
+
         resetDiaperUi();
     }
 

@@ -20,91 +20,99 @@
     <LinearLayout
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
-        android:gravity="center">
-
+        android:orientation="vertical"
+        android:gravity="center"
+        android:id="@+id/verticalRoot">
         <LinearLayout
-            android:layout_width="wrap_content"
+            android:layout_width="match_parent"
             android:layout_height="wrap_content"
-            android:layout_weight="1"
-            android:orientation="vertical">
-
-            <TextView
-                android:id="@+id/timerName"
-                android:layout_width="wrap_content"
-                android:layout_height="wrap_content"
-                android:layout_marginTop="4dp"
-                android:text="TimerName"
-                android:textAppearance="@style/TextAppearance.AppCompat.Large" />
+            android:orientation="horizontal"
+            android:gravity="center">
 
             <LinearLayout
-                android:layout_width="match_parent"
-                android:layout_height="wrap_content">
-
-                <Spinner
-                    android:id="@+id/appTimerDefaultType"
-                    android:layout_width="wrap_content"
-                    android:layout_height="wrap_content"
-                    android:layout_marginBottom="4dp"
-                    android:dropDownWidth="match_parent"
-                    android:layout_weight="0"
-                    android:entries="@array/timerTypes" />
-
-                <Space
-                    android:layout_width="wrap_content"
-                    android:layout_height="match_parent"
-                    android:layout_weight="1" />
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:layout_weight="1"
+                android:orientation="vertical">
 
                 <TextView
-                    android:id="@+id/currentTimerTime"
+                    android:id="@+id/timerName"
                     android:layout_width="wrap_content"
                     android:layout_height="wrap_content"
-                    android:layout_weight="0"
-                    android:text="1:10:00"
-                    android:textAppearance="@style/TextAppearance.AppCompat.Body1" />
+                    android:layout_marginTop="4dp"
+                    android:text="TimerName"
+                    android:textAppearance="@style/TextAppearance.AppCompat.Large" />
 
-                <Space
-                    android:layout_width="wrap_content"
-                    android:layout_height="match_parent"
-                    android:layout_weight="1" />
+                <LinearLayout
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content">
+
+                    <Spinner
+                        android:id="@+id/appTimerDefaultType"
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        android:layout_marginBottom="4dp"
+                        android:dropDownWidth="match_parent"
+                        android:layout_weight="0"
+                        android:entries="@array/timerTypes" />
+
+                    <Space
+                        android:layout_width="wrap_content"
+                        android:layout_height="match_parent"
+                        android:layout_weight="1" />
+
+                    <TextView
+                        android:id="@+id/currentTimerTime"
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        android:layout_weight="0"
+                        android:text="1:10:00"
+                        android:textAppearance="@style/TextAppearance.AppCompat.Body1" />
+
+                    <Space
+                        android:layout_width="wrap_content"
+                        android:layout_height="match_parent"
+                        android:layout_weight="1" />
+                </LinearLayout>
             </LinearLayout>
+
+            <ImageButton
+                android:id="@+id/addNoteButton"
+                android:layout_width="48dp"
+                android:layout_height="48dp"
+                android:layout_margin="4dp"
+                android:layout_weight="0"
+                android:src="@drawable/pkg_no_notes"
+                android:visibility="visible" />
+
+            <ImageButton
+                android:id="@+id/removeNoteButton"
+                android:layout_width="48dp"
+                android:layout_height="48dp"
+                android:layout_margin="4dp"
+                android:layout_weight="0"
+                android:backgroundTint="#80FF80"
+                android:src="@drawable/pkg_notes"
+                android:visibility="gone" />
+
+            <ImageButton
+                android:id="@+id/appStartTimerButton"
+                android:layout_width="56dp"
+                android:layout_height="56dp"
+                android:layout_margin="4dp"
+                android:layout_weight="0"
+                android:src="@android:drawable/ic_media_play"
+                android:visibility="visible" />
+
+            <ImageButton
+                android:id="@+id/appStopTimerButton"
+                android:layout_width="56dp"
+                android:layout_height="56dp"
+                android:layout_margin="4dp"
+                android:layout_weight="0"
+                android:src="@android:drawable/ic_menu_save"
+                android:visibility="gone" />
+
         </LinearLayout>
-
-        <ImageButton
-            android:id="@+id/addNoteButton"
-            android:layout_width="48dp"
-            android:layout_height="48dp"
-            android:layout_margin="4dp"
-            android:layout_weight="0"
-            android:src="@drawable/pkg_notes"
-            android:visibility="visible" />
-
-        <ImageButton
-            android:id="@+id/removeNoteButton"
-            android:layout_width="48dp"
-            android:layout_height="48dp"
-            android:layout_margin="4dp"
-            android:layout_weight="0"
-            android:src="@drawable/pkg_no_notes"
-            android:visibility="gone" />
-
-        <ImageButton
-            android:id="@+id/appStartTimerButton"
-            android:layout_width="56dp"
-            android:layout_height="56dp"
-            android:layout_margin="4dp"
-            android:layout_weight="0"
-            android:src="@android:drawable/ic_media_play"
-            android:visibility="visible" />
-
-        <ImageButton
-            android:id="@+id/appStopTimerButton"
-            android:layout_width="56dp"
-            android:layout_height="56dp"
-            android:layout_margin="4dp"
-            android:layout_weight="0"
-            android:src="@android:drawable/ic_menu_save"
-            android:visibility="gone" />
-
     </LinearLayout>
-
 </LinearLayout>
