@@ -28,7 +28,19 @@ import javax.crypto.SecretKey;
 import javax.crypto.spec.IvParameterSpec;
 import javax.crypto.spec.SecretKeySpec;
 
+import androidx.annotation.NonNull;
+
 public class CredStore {
+    public static class Notes {
+        public String note;
+        public boolean visible;
+
+        public Notes(String note, boolean visible) {
+            this.note = note;
+            this.visible = visible;
+        }
+    }
+
     public static final String ENCRYPTION_STRING = "gK,8kwXJZRmL6/yz&Dp;tr5&Muk,A;h,VGeb$qN-Gid3xLW&a/Xi0YOomVpQVAiFn:hP$8dbIX;L*v*cie&Tnkf+obFEN;a+DTmrILQO6CkY.oOV25dBjpXbep%qAu1bnbeS3A-zn%m";
 
     private String settingsFilePath;
@@ -37,7 +49,7 @@ public class CredStore {
     private String SALT_STRING;
     private String encryptedToken;
     private Map<Integer, Integer> timerAssignments = new HashMap<Integer, Integer>();
-    private Map<String, String> notesAssignments = new HashMap<String, String>();
+    private Map<String, Notes> notesAssignments = new HashMap<String, Notes>();
 
     private String currentChild = null;
     // private Map<String, String> children = new HashMap<>();
@@ -76,7 +88,12 @@ public class CredStore {
             final String name = Objects.toString(o);
             if (name.startsWith("notes_")) {
                 final String noteName = name.replaceFirst(Pattern.quote("notes_"), "");
-                notesAssignments.put(noteName, props.getProperty(name));
+                String n = props.getProperty(name);
+                if (!n.contains(":")) {
+                    continue;
+                }
+                String[] splits = n.split(":", 2);
+                notesAssignments.put(noteName, new Notes(splits[1], "T".equals(splits[0])));
             }
         }
     }
@@ -143,11 +160,11 @@ public class CredStore {
             props.setProperty("selected_child", currentChild);
         }
 
-        for (Map.Entry<String, String> e : notesAssignments.entrySet()) {
+        for (Map.Entry<String, Notes> e : notesAssignments.entrySet()) {
             if (e.getValue() == null) {
                 continue;
             }
-            props.setProperty("notes_" + e.getKey(), e.getValue());
+            props.setProperty("notes_" + e.getKey(), (e.getValue().visible ? "T" : "F") + ":" + e.getValue().note);
         }
 
         try (FileOutputStream fos = new FileOutputStream(settingsFilePath.toString())) {
@@ -239,11 +256,17 @@ public class CredStore {
         storePrefs();
     }
 
-    public void setObjectNotes(String id, String notes) {
-        notesAssignments.put(id, notes);
+    public void setObjectNotes(String id, boolean visible, String notes) {
+        notesAssignments.put(id, new Notes(notes, visible));
     }
 
-    public String getObjectNotes(String id) {
-        return notesAssignments.get(id);
+    private static Notes EMPTY_NOTES = new Notes("", false);
+    public @NonNull Notes getObjectNotes(String id) {
+        return notesAssignments.getOrDefault(id, EMPTY_NOTES);
+    }
+
+    public void clearNotes() {
+        notesAssignments.clear();
+        storePrefs();
     }
 }

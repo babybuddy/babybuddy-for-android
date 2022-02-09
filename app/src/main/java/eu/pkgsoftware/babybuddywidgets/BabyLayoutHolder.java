@@ -182,7 +182,7 @@ public class BabyLayoutHolder extends RecyclerView.ViewHolder {
         this.child = c;
 
         notesEditor.setIdentifier("diaper_" + c.slug);
-        notesSwitch.setState(notesEditor.getText().length() > 0);
+        notesSwitch.setState(notesEditor.isVisible());
 
         resetDiaperUi();
     }

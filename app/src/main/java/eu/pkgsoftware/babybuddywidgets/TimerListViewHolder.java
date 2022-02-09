@@ -215,6 +215,6 @@ public class TimerListViewHolder extends RecyclerView.ViewHolder {
         updateActiveState();
 
         notesEditor.setIdentifier("timer_" + timer.id);
-        notesEditorSwitch.setState(notesEditor.getText().length() > 0);
+        notesEditorSwitch.setState(notesEditor.isVisible());
     }
 }

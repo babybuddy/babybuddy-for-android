@@ -356,12 +356,20 @@ public class BabyBuddyClient extends StreamReader {
     }
 
     public void createSleepRecordFromTimer(Timer timer, String notes, RequestCallback<Boolean> callback) {
+        String data;
+        try {
+            data = (new JSONObject())
+                .put("timer", timer.id)
+                .put("notes", notes)
+                .toString();
+        } catch (JSONException e) {
+            throw new RuntimeException("JSON Structure not built correctly");
+        }
+
         dispatchQuery(
                 "POST",
                 "api/sleep/",
-                "{\"timer\": XXTimer, \"notes\": \"XXNotes\"}"
-                    .replaceAll("XXTimer", "" + timer.id)
-                    .replaceAll("XXNotes", notes),
+                data,
                 new RequestCallback<String>() {
             @Override
             public void error(Exception e) {
@@ -375,13 +383,21 @@ public class BabyBuddyClient extends StreamReader {
         });
     }
 
-    public void createTummyTimeRecordFromTimer(Timer timer, String notes, RequestCallback<Boolean> callback) {
+    public void createTummyTimeRecordFromTimer(Timer timer, String milestone, RequestCallback<Boolean> callback) {
+        String data;
+        try {
+            data = (new JSONObject())
+                .put("timer", timer.id)
+                .put("milestone", milestone)
+                .toString();
+        } catch (JSONException e) {
+            throw new RuntimeException("JSON Structure not built correctly");
+        }
+
         dispatchQuery(
                 "POST",
                 "api/tummy-times/",
-                "{\"timer\": XXTimer, \"notes\": \"XXNotes\"}"
-                    .replaceAll("XXTimer", "" + timer.id)
-                    .replaceAll("XXNotes", notes),
+                data,
                 new RequestCallback<String>() {
             @Override
             public void error(Exception e) {
@@ -396,14 +412,23 @@ public class BabyBuddyClient extends StreamReader {
     }
 
     public void createFeedingRecordFromTimer(Timer timer, String type, String method, float amount, RequestCallback<Boolean> callback) {
+        String data;
+        try {
+            data = (new JSONObject())
+                .put("timer", timer.id)
+                .put("type", type)
+                .put("method", method)
+                .put("amount", amount)
+                .put("notes", "")
+                .toString();
+        } catch (JSONException e) {
+            throw new RuntimeException("JSON Structure not built correctly");
+        }
+
         dispatchQuery(
             "POST",
             "api/feedings/",
-            "{\"timer\": XXTimer, \"type\": \"XXType\", \"method\": \"XXMethod\", \"amount\": XXAmount, \"notes\": \"\"}"
-                .replaceAll("XXTimer", "" + timer.id)
-                .replaceAll("XXType", type)
-                .replaceAll("XXMethod", method)
-                .replaceAll("XXAmount", "" + amount),
+            data,
             new RequestCallback<String>() {
                 @Override
                 public void error(Exception e) {
@@ -418,15 +443,25 @@ public class BabyBuddyClient extends StreamReader {
     }
 
     public void createChangeRecord(Child child, boolean wet, boolean solid, String notes, RequestCallback<Boolean> callback) {
+        String data;
+        try {
+            data = (new JSONObject())
+                .put("child", child.id)
+                .put("time", now())
+                .put("wet", wet)
+                .put("solid", solid)
+                .put("color", "")
+                .put("amount", null)
+                .put("notes", notes)
+                .toString();
+        } catch (JSONException e) {
+            throw new RuntimeException("JSON Structure not built correctly");
+        }
+
         dispatchQuery(
             "POST",
             "api/changes/",
-            "{\"child\": XXChild, \"time\": \"XXTime\", \"wet\": XXWet, \"solid\": XXSolid, \"color\": \"\", \"amount\": null, \"notes\": \"XXNotes\"}"
-                .replaceAll("XXChild", "" + child.id)
-                .replaceAll("XXTime", now())
-                .replaceAll("XXWet", wet ? "true" : "false")
-                .replaceAll("XXSolid", solid ? "true" : "false")
-                .replaceAll("XXNotes", notes),
+            data,
             new RequestCallback<String>() {
                 @Override
                 public void error(Exception e) {
@@ -441,13 +476,21 @@ public class BabyBuddyClient extends StreamReader {
     }
 
     public void createTimer(Child child, String name, RequestCallback<Timer> callback) {
+        String data;
+        try {
+            data = (new JSONObject())
+                .put("child", child.id)
+                .put("name", name)
+                .put("start", now())
+                .toString();
+        } catch (JSONException e) {
+            throw new RuntimeException("JSON Structure not built correctly");
+        }
+
         dispatchQuery(
             "POST",
             "api/timers/",
-            "{\"child\": XXChild, \"name\": \"XXName\", \"start\": \"XXStart\"}"
-                .replaceAll("XXChild", "" + child.id)
-                .replaceAll("XXStart", now())
-                .replaceAll("XXName", name),
+            data,
             new RequestCallback<String>() {
                 @Override
                 public void error(Exception e) {

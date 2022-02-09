@@ -47,27 +47,36 @@ public class NotesEditorLogic {
 
             @Override
             public void afterTextChanged(Editable s) {
-                credStore.setObjectNotes(id, binding.noteEditor.getText().toString());
+                credStore.setObjectNotes(id, true, binding.noteEditor.getText().toString());
             }
         });
         binding.noteEditor.setOnFocusChangeListener((v, hasFocus) -> credStore.storePrefs());
+    }
+
+    public boolean isVisible() {
+        return visible;
     }
 
     public void setVisible(boolean b) {
         visible = b;
         updateTextFromCredStore();
         updateVisibility();
+        if (id != null) {
+            credStore.setObjectNotes(id, visible, binding.noteEditor.getText().toString());
+            credStore.storePrefs();
+        }
     }
 
     private void updateTextFromCredStore() {
         if (id != null) {
-            String notes = activity.getCredStore().getObjectNotes(id);
-            binding.noteEditor.setText(notes == null ? "" : notes);
+            CredStore.Notes notes = activity.getCredStore().getObjectNotes(id);
+            binding.noteEditor.setText(notes.note);
         }
     }
 
     public void setIdentifier(String id) {
         this.id = id;
+        setVisible(credStore.getObjectNotes(id).visible);
         updateTextFromCredStore();
     }
 
@@ -81,7 +90,7 @@ public class NotesEditorLogic {
 
     public void clearText() {
         if (id != null) {
-            credStore.setObjectNotes(id, null);
+            credStore.setObjectNotes(id, visible, null);
             credStore.storePrefs();
         }
         binding.noteEditor.setText("");

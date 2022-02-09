@@ -11,8 +11,8 @@
         android:gravity="top|left"
         android:hint="Notes"
         android:inputType="textLongMessage|textMultiLine|text"
-        android:maxLines="10"
-        android:minLines="3"
+        android:maxLines="2"
+        android:minLines="2"
         android:selectAllOnFocus="false"
         android:singleLine="false" />
 </LinearLayout>
