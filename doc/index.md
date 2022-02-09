@@ -11,3 +11,4 @@ install service that can be run through Heroku](https://elements.heroku.com/butt
 - [Manage timers](./timers.md)
 - [Logging Diaper Changes](./diaper.md)
 - [Logging times](./logging.md)
+- [Using notes](./notes.md)
