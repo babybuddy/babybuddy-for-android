@@ -13,6 +13,7 @@ import java.security.InvalidKeyException;
 import java.security.MessageDigest;
 import java.security.NoSuchAlgorithmException;
 import java.security.SecureRandom;
+import java.util.Collections;
 import java.util.Enumeration;
 import java.util.HashMap;
 import java.util.Map;
@@ -88,7 +89,7 @@ public class CredStore {
         currentChild = props.getProperty("selected_child", null);
 
         Enumeration<?> nameEnum = props.propertyNames();
-        for (Object o = nameEnum.nextElement(); nameEnum.hasMoreElements(); o = nameEnum.nextElement()) {
+        for (Object o : Collections.list(nameEnum)) {
             final String name = Objects.toString(o);
             if (name.startsWith("notes_")) {
                 final String noteName = name.replaceFirst(Pattern.quote("notes_"), "");
