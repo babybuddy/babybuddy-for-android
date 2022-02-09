@@ -39,6 +39,10 @@ public class CredStore {
             this.note = note;
             this.visible = visible;
         }
+
+        public Notes clone() {
+            return new Notes(note, visible);
+        }
     }
 
     public static final String ENCRYPTION_STRING = "gK,8kwXJZRmL6/yz&Dp;tr5&Muk,A;h,VGeb$qN-Gid3xLW&a/Xi0YOomVpQVAiFn:hP$8dbIX;L*v*cie&Tnkf+obFEN;a+DTmrILQO6CkY.oOV25dBjpXbep%qAu1bnbeS3A-zn%m";
@@ -262,7 +266,7 @@ public class CredStore {
 
     private static Notes EMPTY_NOTES = new Notes("", false);
     public @NonNull Notes getObjectNotes(String id) {
-        return notesAssignments.getOrDefault(id, EMPTY_NOTES);
+        return notesAssignments.getOrDefault(id, EMPTY_NOTES).clone();
     }
 
     public void clearNotes() {

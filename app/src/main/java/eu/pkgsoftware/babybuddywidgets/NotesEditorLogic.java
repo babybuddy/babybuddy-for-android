@@ -34,7 +34,7 @@ public class NotesEditorLogic {
         lt.enableTransitionType(LayoutTransition.CHANGING);
         lt.enableTransitionType(LayoutTransition.CHANGE_DISAPPEARING);
         lt.enableTransitionType(LayoutTransition.DISAPPEARING);
-        binding.getRoot().setLayoutTransition(lt);
+        //binding.getRoot().setLayoutTransition(lt); - Causes the Notes-dialog to NOT appear. Disabled for now.
 
         binding.noteEditor.addTextChangedListener(new TextWatcher() {
             @Override

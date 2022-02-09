@@ -411,7 +411,7 @@ public class BabyBuddyClient extends StreamReader {
         });
     }
 
-    public void createFeedingRecordFromTimer(Timer timer, String type, String method, float amount, RequestCallback<Boolean> callback) {
+    public void createFeedingRecordFromTimer(Timer timer, String type, String method, float amount, String notes, RequestCallback<Boolean> callback) {
         String data;
         try {
             data = (new JSONObject())
@@ -419,7 +419,7 @@ public class BabyBuddyClient extends StreamReader {
                 .put("type", type)
                 .put("method", method)
                 .put("amount", amount)
-                .put("notes", "")
+                .put("notes", notes)
                 .toString();
         } catch (JSONException e) {
             throw new RuntimeException("JSON Structure not built correctly");

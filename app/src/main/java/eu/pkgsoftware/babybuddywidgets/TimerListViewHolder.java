@@ -111,7 +111,7 @@ public class TimerListViewHolder extends RecyclerView.ViewHolder {
                         @Override
                         public void response(Boolean response) {
                             timer.active = true;
-                            timer.start = new Date(System.currentTimeMillis());
+                            timer.start = new Date(System.currentTimeMillis() + client.getServerDateOffsetMillis());
                             updateActiveState();
                         }
                     });
@@ -183,7 +183,7 @@ public class TimerListViewHolder extends RecyclerView.ViewHolder {
         if ((timer == null) || (!timer.active)) {
             timerStartTime = -1;
         } else {
-            timerStartTime = Math.max(0, timer.start.getTime());
+            timerStartTime = Math.max(0, timer.start.getTime() - client.getServerDateOffsetMillis());
         }
         updateTimerTime();
     }

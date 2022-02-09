@@ -23,11 +23,12 @@ import java.util.TimerTask;
 import androidx.navigation.NavController;
 import androidx.navigation.Navigation;
 import eu.pkgsoftware.babybuddywidgets.databinding.FeedingFragmentBinding;
+import eu.pkgsoftware.babybuddywidgets.databinding.NotesEditorBinding;
 import eu.pkgsoftware.babybuddywidgets.networking.BabyBuddyClient;
 
 public class FeedingFragment extends BaseFragment {
     public interface ButtonListCallback {
-        public void onSelectionChanged(int i);
+        void onSelectionChanged(int i);
     };
 
     private enum FeedingTypeEnum {
@@ -74,12 +75,109 @@ public class FeedingFragment extends BaseFragment {
 
     private FeedingFragmentBinding binding = null;
     private double amount = 30.0;
+    private NotesEditorBinding notesEditor = null;
+
+    @Override
+    public View onCreateView(LayoutInflater inflater, ViewGroup container, Bundle savedInstanceState) {
+        binding = FeedingFragmentBinding.inflate(inflater, container, false);
+        View view = binding.getRoot();
+
+        binding.submitButton.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View view) {
+                submitFeeding();
+            }
+        });
+        binding.feedingTypeSpinner.setOnItemSelectedListener(
+            new AdapterView.OnItemSelectedListener() {
+                @Override
+                public void onItemSelected(AdapterView<?> adapterView, View view, int i, long l) {
+                    setupFeedingMethodButtons(FeedingTypeEnumValues.get((int) l));
+                }
+
+                @Override
+                public void onNothingSelected(AdapterView<?> adapterView) {
+                }
+            }
+        );
+
+        binding.seekBar.setOnSeekBarChangeListener(
+            new SeekBar.OnSeekBarChangeListener() {
+                Timer timer = null;
+                Handler handler = new Handler(getActivity().getMainLooper());
+
+                @Override
+                public void onProgressChanged(SeekBar seekBar, int i, boolean b) {
+                }
+
+                @Override
+                public void onStartTrackingTouch(SeekBar seekBar) {
+                    timer = new Timer();
+                    timer.scheduleAtFixedRate(new TimerTask() {
+                        @Override
+                        public void run() {
+                            handler.post(
+                                new Runnable() {
+                                    @Override
+                                    public void run() {
+                                        liveUpdateAmount(binding.seekBar.getProgress() - binding.seekBar.getMax() / 2);
+                                    }
+                                }
+                            );
+                        }
+                    }, 0, 200);
+                }
+
+                @Override
+                public void onStopTrackingTouch(SeekBar seekBar) {
+                    timer.cancel();
+                    timer.purge();
+                    timer = null;
+                    binding.seekBar.setProgress(binding.seekBar.getMax() / 2);
+                }
+            }
+        );
+
+        notesEditor = NotesEditorBinding.inflate(mainActivity().getLayoutInflater());
+        binding.notes.addView(notesEditor.getRoot());
+
+        resetVisibilityState();
+
+        return view;
+    }
 
     @Override
     public void onStart() {
         super.onStart();
         amount = 30.0;
+
         resetVisibilityState();
+    }
+
+    @Override
+    public void onResume() {
+        super.onResume();
+
+        CredStore.Notes notes = mainActivity().getCredStore().getObjectNotes(
+            "timer_" + mainActivity().selectedTimer.id
+        );
+        notesEditor.noteEditor.setText(notes.visible ? notes.note : "");
+    }
+
+    @Override
+    public void onPause() {
+        super.onPause();
+
+        CredStore.Notes notes = mainActivity().getCredStore().getObjectNotes(
+            "timer_" + mainActivity().selectedTimer.id
+        );
+        notes.note = notesEditor.noteEditor.getText().toString();
+        mainActivity().getCredStore().setObjectNotes(
+            "timer_" + mainActivity().selectedTimer.id,
+            notes.visible,
+            notes.note
+        );
+        mainActivity().getCredStore().storePrefs();
     }
 
     private void resetVisibilityState() {
@@ -87,12 +185,7 @@ public class FeedingFragment extends BaseFragment {
             getResources().getTextArray(R.array.feedingTypes),
             binding.feedingTypeButtons,
             binding.feedingTypeSpinner,
-            new ButtonListCallback() {
-                @Override
-                public void onSelectionChanged(int i) {
-                    setupFeedingMethodButtons(FeedingTypeEnumValues.get(i));
-                }
-            }
+            i -> setupFeedingMethodButtons(FeedingTypeEnumValues.get(i))
         );
         binding.feedingMethodSpinner.setVisibility(View.GONE);
         binding.feedingMethodButtons.setVisibility(View.GONE);
@@ -141,72 +234,6 @@ public class FeedingFragment extends BaseFragment {
                     1));
             buttons.addView(button);
         }
-    }
-
-    @Override
-    public View onCreateView(LayoutInflater inflater, ViewGroup container, Bundle savedInstanceState) {
-        binding = FeedingFragmentBinding.inflate(inflater, container, false);
-        View view = binding.getRoot();
-
-        binding.submitButton.setOnClickListener(new View.OnClickListener() {
-            @Override
-            public void onClick(View view) {
-                submitFeeding();
-            }
-        });
-        binding.feedingTypeSpinner.setOnItemSelectedListener(
-            new AdapterView.OnItemSelectedListener() {
-                @Override
-                public void onItemSelected(AdapterView<?> adapterView, View view, int i, long l) {
-                    setupFeedingMethodButtons(FeedingTypeEnumValues.get((int) l));
-                }
-
-                @Override
-                public void onNothingSelected(AdapterView<?> adapterView) {
-                }
-            }
-        );
-
-        binding.seekBar.setOnSeekBarChangeListener(
-            new SeekBar.OnSeekBarChangeListener() {
-                Timer timer = null;
-                Handler handler = new Handler(getActivity().getMainLooper());
-
-                @Override
-                public void onProgressChanged(SeekBar seekBar, int i, boolean b) {
-                }
-
-                @Override
-                public void onStartTrackingTouch(SeekBar seekBar) {
-                    timer = new Timer();
-                    timer.scheduleAtFixedRate(new TimerTask() {
-                        @Override
-                        public void run() {
-                            handler.post(
-                                new Runnable() {
-                                     @Override
-                                     public void run() {
-                                         liveUpdateAmount(binding.seekBar.getProgress() - binding.seekBar.getMax() / 2);
-                                     }
-                                 }
-                            );
-                        }
-                    }, 0, 200);
-                }
-
-                @Override
-                public void onStopTrackingTouch(SeekBar seekBar) {
-                    timer.cancel();
-                    timer.purge();
-                    timer = null;
-                    binding.seekBar.setProgress(binding.seekBar.getMax() / 2);
-                }
-            }
-        );
-
-        resetVisibilityState();
-
-        return view;
     }
 
     private void liveUpdateAmount(int offset) {
@@ -265,17 +292,12 @@ public class FeedingFragment extends BaseFragment {
         );
 
         populateButtonList(
-            textItems.toArray(new CharSequence[0]),
-            binding.feedingMethodButtons,
-            binding.feedingMethodSpinner,
-            new ButtonListCallback() {
-                @Override
-                public void onSelectionChanged(int i) {
-                    binding.submitButton.setVisibility(View.VISIBLE);
-                }
-            }
+            textItems.toArray(
+                new CharSequence[0]),
+                binding.feedingMethodButtons,
+                binding.feedingMethodSpinner,
+            i -> binding.submitButton.setVisibility(View.VISIBLE)
         );
-
     }
 
     private MainActivity mainActivity() {
@@ -297,6 +319,7 @@ public class FeedingFragment extends BaseFragment {
             feedingType.post_name,
             feedingMethod.post_name,
             (float) amount,
+            notesEditor.noteEditor.getText().toString().trim(),
             new BabyBuddyClient.RequestCallback<Boolean>() {
                 @Override
                 public void error(Exception error) {
@@ -313,6 +336,12 @@ public class FeedingFragment extends BaseFragment {
                 @Override
                 public void response(Boolean response) {
                     progressDialog.cancel();
+                    mainActivity().getCredStore().setObjectNotes(
+                        "timer_" + mainActivity().selectedTimer.id,
+                        false,
+                        ""
+                    );
+                    mainActivity().getCredStore().storePrefs();
                     navUp();
                 }
             }
@@ -323,5 +352,4 @@ public class FeedingFragment extends BaseFragment {
         NavController nav = Navigation.findNavController(getView());
         nav.navigateUp();
     }
-
 }
