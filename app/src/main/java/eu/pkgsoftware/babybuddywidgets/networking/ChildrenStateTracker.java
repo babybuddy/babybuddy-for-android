@@ -354,4 +354,112 @@ public class ChildrenStateTracker {
             );
         }
     }
+
+    /* Timeline listener */
+    public interface TimelineListener {
+        void sleepRecordsObtained(BabyBuddyClient.TimeEntry[] entries);
+        void tummyTimeRecordsObtained(BabyBuddyClient.TimeEntry[] entries);
+        void feedingRecordsObtained(BabyBuddyClient.TimeEntry[] entries);
+    }
+
+    public class TimelineObserver extends StateObserver {
+        public static final long INTERVAL = 5000;
+        public static final int COUNT = 20;
+
+        private int childId;
+        private TimelineListener listener;
+        private boolean closed = false;
+        private int requeueGate = 0;
+
+        public TimelineObserver(int childId, TimelineListener listener) {
+            super(INTERVAL);
+            this.childId = childId;
+            this.listener = listener;
+        }
+
+        private class BoundSleepRecordsCallback {
+            public void call(BabyBuddyClient.RequestCallback<BabyBuddyClient.TimeEntry[]> callback) {
+                client.listSleepEntries(childId, 0, COUNT, callback);
+            }
+        }
+
+        private class BoundFeedingRecordsCallback {
+            public void call(BabyBuddyClient.RequestCallback<BabyBuddyClient.TimeEntry[]> callback) {
+                client.listFeedingsEntries(childId, 0, COUNT, callback);
+            }
+        }
+
+        private class BoundTummyTimeRecordsCallback {
+            public void call(BabyBuddyClient.RequestCallback<BabyBuddyClient.TimeEntry[]> callback) {
+                client.listTummyTimeEntries(childId, 0, COUNT, callback);
+            }
+        }
+
+        @Override
+        protected void requeue() {
+            requeueGate--;
+            if (requeueGate <= 0) {
+                super.requeue();
+            }
+        }
+
+        protected void queueRequests() {
+            requeueGate = 3;
+            new QueueRequest<BabyBuddyClient.TimeEntry[]>().queue(
+                new BoundSleepRecordsCallback()::call,
+                new BabyBuddyClient.RequestCallback<BabyBuddyClient.TimeEntry[]>() {
+                    @Override
+                    public void error(Exception error) {
+                        requeue();
+                    }
+
+                    @Override
+                    public void response(BabyBuddyClient.TimeEntry[] response) {
+                        requeue();
+                        if (isClosed()) {
+                            return;
+                        }
+                        listener.sleepRecordsObtained(response);
+                    }
+                }
+            );
+            new QueueRequest<BabyBuddyClient.TimeEntry[]>().queue(
+                new BoundFeedingRecordsCallback()::call,
+                new BabyBuddyClient.RequestCallback<BabyBuddyClient.TimeEntry[]>() {
+                    @Override
+                    public void error(Exception error) {
+                        requeue();
+                    }
+
+                    @Override
+                    public void response(BabyBuddyClient.TimeEntry[] response) {
+                        requeue();
+                        if (isClosed()) {
+                            return;
+                        }
+                        listener.feedingRecordsObtained(response);
+                    }
+                }
+            );
+            new QueueRequest<BabyBuddyClient.TimeEntry[]>().queue(
+                new BoundTummyTimeRecordsCallback()::call,
+                new BabyBuddyClient.RequestCallback<BabyBuddyClient.TimeEntry[]>() {
+                    @Override
+                    public void error(Exception error) {
+                        requeue();
+                    }
+
+                    @Override
+                    public void response(BabyBuddyClient.TimeEntry[] response) {
+                        requeue();
+                        if (isClosed()) {
+                            return;
+                        }
+                        listener.tummyTimeRecordsObtained(response);
+                    }
+                }
+            );
+        }
+    }
+
 }

@@ -24,6 +24,7 @@ import java.util.Date;
 import java.util.List;
 import java.util.Objects;
 import java.util.TimeZone;
+import java.util.Timer;
 import java.util.regex.Pattern;
 
 import androidx.annotation.NonNull;
@@ -150,6 +151,43 @@ public class BabyBuddyClient extends StreamReader {
             result.active = active;
             result.user_id = user_id;
             return result;
+        }
+    }
+
+    public static class TimeEntry {
+        public String type;
+        public Date start;
+        public Date end;
+        public String notes;
+
+        public TimeEntry(String type, Date start, Date end, String notes) {
+            this.type = type;
+            this.start = start;
+            this.end = end;
+            this.notes = notes;
+        }
+
+        @Override
+        public String toString() {
+            return "TimeEntry{" +
+                "type='" + type + '\'' +
+                ", start=" + start +
+                ", end=" + end +
+                ", notes='" + notes + '\'' +
+                '}';
+        }
+
+        @Override
+        public boolean equals(Object o) {
+            if (this == o) return true;
+            if (o == null || getClass() != o.getClass()) return false;
+            TimeEntry timeEntry = (TimeEntry) o;
+            return Objects.equals(type, timeEntry.type) && Objects.equals(start, timeEntry.start) && Objects.equals(end, timeEntry.end) && Objects.equals(notes, timeEntry.notes);
+        }
+
+        @Override
+        public int hashCode() {
+            return Objects.hash(type, start, end, notes);
         }
     }
 
@@ -343,6 +381,10 @@ public class BabyBuddyClient extends StreamReader {
         });
     }
 
+    public long getServerDateOffsetMillis() {
+        return serverDateOffset;
+    }
+
     public void getTimer(int timer_id, RequestCallback<Timer> callback) {
         dispatchQuery(
                 "GET",
@@ -511,17 +553,136 @@ public class BabyBuddyClient extends StreamReader {
 
                 @Override
                 public void response(String response) {
+                    Timer result;
                     try {
-                        callback.response( Timer.fromJSON(new JSONObject(response)));
+                        result = Timer.fromJSON(new JSONObject(response));
                     } catch (JSONException | ParseException e) {
                         error(e);
+                        return;
                     }
+                    callback.response(result);
                 }
             }
         );
     }
 
-    public long getServerDateOffsetMillis() {
-        return serverDateOffset;
+    public void listSleepEntries(int child_id, int offset, int count, RequestCallback<TimeEntry[]> callback) {
+        dispatchQuery(
+            "GET",
+            "api/sleep/?child=XXChild&offset=XXOffset&limit=XXCount"
+                .replaceAll("XXChild", "" + child_id)
+                .replaceAll("XXOffset", "" + offset)
+                .replaceAll("XXCount", "" + count),
+            null,
+            new RequestCallback<String>() {
+                @Override
+                public void error(Exception error) {
+                    callback.error(error);
+                }
+
+                @Override
+                public void response(String response) {
+                    List<TimeEntry> result = new ArrayList<>();
+                    try {
+                        JSONObject listResponse = new JSONObject(response);
+                        JSONArray objects = listResponse.getJSONArray("results");
+                        for (int i = 0; i < objects.length(); i++) {
+                            JSONObject o = objects.getJSONObject(i);
+                            String notes = o.getString("notes");
+                            result.add(new TimeEntry(
+                                "sleep",
+                                parseNullOrDate(o, "start"),
+                                parseNullOrDate(o, "end"),
+                                notes == null ? "" : notes
+                            ));
+                        }
+                    } catch (JSONException | ParseException e) {
+                        error(e);
+                        return;
+                    }
+                    callback.response(result.toArray(new TimeEntry[0]));
+                }
+            }
+        );
+    }
+
+    public void listFeedingsEntries(int child_id, int offset, int count, RequestCallback<TimeEntry[]> callback) {
+        dispatchQuery(
+            "GET",
+            "api/feedings/?child=XXChild&offset=XXOffset&limit=XXCount"
+                .replaceAll("XXChild", "" + child_id)
+                .replaceAll("XXOffset", "" + offset)
+                .replaceAll("XXCount", "" + count),
+            null,
+            new RequestCallback<String>() {
+                @Override
+                public void error(Exception error) {
+                    callback.error(error);
+                }
+
+                @Override
+                public void response(String response) {
+                    List<TimeEntry> result = new ArrayList<>();
+                    try {
+                        JSONObject listResponse = new JSONObject(response);
+                        JSONArray objects = listResponse.getJSONArray("results");
+                        for (int i = 0; i < objects.length(); i++) {
+                            JSONObject o = objects.getJSONObject(i);
+                            String notes = o.getString("notes");
+                            result.add(new TimeEntry(
+                                "feeding",
+                                parseNullOrDate(o, "start"),
+                                parseNullOrDate(o, "end"),
+                                notes == null ? "" : notes
+                            ));
+                        }
+                    } catch (JSONException | ParseException e) {
+                        error(e);
+                        return;
+                    }
+                    callback.response(result.toArray(new TimeEntry[0]));
+                }
+            }
+        );
+    }
+
+    public void listTummyTimeEntries(int child_id, int offset, int count, RequestCallback<TimeEntry[]> callback) {
+        dispatchQuery(
+            "GET",
+            "api/tummy-times/?child=XXChild&offset=XXOffset&limit=XXCount"
+                .replaceAll("XXChild", "" + child_id)
+                .replaceAll("XXOffset", "" + offset)
+                .replaceAll("XXCount", "" + count),
+            null,
+            new RequestCallback<String>() {
+                @Override
+                public void error(Exception error) {
+                    callback.error(error);
+                }
+
+                @Override
+                public void response(String response) {
+                    List<TimeEntry> result = new ArrayList<>();
+                    try {
+                        JSONObject listResponse = new JSONObject(response);
+                        JSONArray objects = listResponse.getJSONArray("results");
+                        for (int i = 0; i < objects.length(); i++) {
+                            JSONObject o = objects.getJSONObject(i);
+                            String notes = o.getString("milestone");
+                            result.add(new TimeEntry(
+                                "tummy time",
+                                parseNullOrDate(o, "start"),
+                                parseNullOrDate(o, "end"),
+                                notes == null ? "" : notes
+                            ));
+                        }
+                    } catch (JSONException | ParseException e) {
+                        error(e);
+                        return;
+                    }
+                    callback.response(result.toArray(new TimeEntry[0]));
+                }
+            }
+        );
     }
 }

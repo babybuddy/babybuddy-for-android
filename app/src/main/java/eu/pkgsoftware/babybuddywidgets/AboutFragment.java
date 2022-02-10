@@ -70,10 +70,6 @@ public class AboutFragment extends BaseFragment {
 
     private AboutFragmentBinding binding = null;
 
-    private int dpToPx(float dp) {
-        return (int) (getContext().getResources().getDisplayMetrics().density * dp + 0.5f);
-    }
-
     private class Range {
         public int start, end;
         public Range(int start, int end) {

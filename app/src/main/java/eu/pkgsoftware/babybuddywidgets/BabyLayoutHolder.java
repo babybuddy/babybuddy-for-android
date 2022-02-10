@@ -15,6 +15,7 @@ import eu.pkgsoftware.babybuddywidgets.databinding.BabyManagerBinding;
 import eu.pkgsoftware.babybuddywidgets.databinding.NotesEditorBinding;
 import eu.pkgsoftware.babybuddywidgets.databinding.QuickTimerEntryBinding;
 import eu.pkgsoftware.babybuddywidgets.networking.BabyBuddyClient;
+import eu.pkgsoftware.babybuddywidgets.networking.ChildrenStateTracker;
 import eu.pkgsoftware.babybuddywidgets.widgets.SwitchButtonLogic;
 
 public class BabyLayoutHolder extends RecyclerView.ViewHolder {
@@ -118,6 +119,7 @@ public class BabyLayoutHolder extends RecyclerView.ViewHolder {
 
     private NotesEditorLogic notesEditor;
     private SwitchButtonLogic notesSwitch;
+    private ChildEventHistoryLoader childHistoryLoader = null;
 
     public BabyLayoutHolder(BaseFragment fragment, BabyManagerBinding bmb) {
         super(bmb.getRoot());
@@ -252,13 +254,21 @@ public class BabyLayoutHolder extends RecyclerView.ViewHolder {
         binding.createDefaultTimers.setVisibility(timers.length == 0 ? View.VISIBLE : View.GONE);
     }
 
-    public void onViewSelected() {
+    public void onViewSelected(ChildrenStateTracker tracker) {
         resetDiaperUi();
         binding.createDefaultTimers.setVisibility(View.GONE);
+
+        if (childHistoryLoader != null) {
+            childHistoryLoader.close();
+        }
+        childHistoryLoader = new ChildEventHistoryLoader(baseFragment, binding.timeline, child.id);
+        childHistoryLoader.createTimelineObserver(tracker);
     }
 
     public void onViewDeselected() {
         resetDiaperUi();
+        childHistoryLoader.close();
+        childHistoryLoader = null;
     }
 }
 

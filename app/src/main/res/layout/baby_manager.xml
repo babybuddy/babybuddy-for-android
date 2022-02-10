@@ -121,7 +121,15 @@
         android:layout_below="@+id/createDefaultTimers"
         android:layout_centerHorizontal="true"
         android:layout_marginTop="8dp" >
-
     </androidx.recyclerview.widget.RecyclerView>
 
+    <LinearLayout
+        android:id="@+id/timeline"
+        android:orientation="vertical"
+        android:layout_centerHorizontal="true"
+        android:layout_marginTop="16dp"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:layout_below="@+id/timersList">
+    </LinearLayout>
 </RelativeLayout>

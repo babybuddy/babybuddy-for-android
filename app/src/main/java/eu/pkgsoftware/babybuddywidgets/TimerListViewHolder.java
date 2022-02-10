@@ -178,7 +178,7 @@ public class TimerListViewHolder extends RecyclerView.ViewHolder {
         }
     }
 
-    public void updateActiveState() {
+    private void updateActiveState() {
         startStopLogic.setState(timer.active);
         if ((timer == null) || (!timer.active)) {
             timerStartTime = -1;
