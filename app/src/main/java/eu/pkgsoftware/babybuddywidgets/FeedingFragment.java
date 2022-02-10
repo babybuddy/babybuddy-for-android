@@ -336,6 +336,7 @@ public class FeedingFragment extends BaseFragment {
                 @Override
                 public void response(Boolean response) {
                     progressDialog.cancel();
+                    notesEditor.noteEditor.setText("");
                     mainActivity().getCredStore().setObjectNotes(
                         "timer_" + mainActivity().selectedTimer.id,
                         false,
