@@ -26,13 +26,6 @@ public class ChildEventHistoryLoader {
         public TimelineEntry(Context context, BabyBuddyClient.TimeEntry entry) {
             text = new TextView(context);
             text.setTextAppearance(android.R.style.TextAppearance_DeviceDefault);
-            text.setLayoutParams(new ViewGroup.MarginLayoutParams(
-                0, BaseFragment.dpToPx(context, 4)
-            ));
-            text.setLayoutParams(new LinearLayout.LayoutParams(
-                ViewGroup.LayoutParams.MATCH_PARENT, ViewGroup.LayoutParams.WRAP_CONTENT
-            ));
-
             setTimeEntry(entry);
         }
 
@@ -98,6 +91,11 @@ public class ChildEventHistoryLoader {
             public void feedingRecordsObtained(BabyBuddyClient.TimeEntry[] entries) {
                 addTimelineItems("feeding", entries);
             }
+
+            @Override
+            public void changeRecordsObtained(BabyBuddyClient.TimeEntry[] entries) {
+                addTimelineItems("change", entries);
+            }
         });
     }
 
@@ -144,8 +142,16 @@ public class ChildEventHistoryLoader {
         visualTimelineEntries.sort((a, b) -> b.getDate().compareTo(a.getDate()));
 
         container.removeAllViews();
+
+        LinearLayout.LayoutParams params = new LinearLayout.LayoutParams(
+            ViewGroup.LayoutParams.MATCH_PARENT, ViewGroup.LayoutParams.WRAP_CONTENT
+        );
+        params.setMargins(0, fragment.dpToPx(4), 0, fragment.dpToPx(4));
+
         for (TimelineEntry e : visualTimelineEntries) {
-            container.addView(e.getView());
+            View v = e.getView();
+            container.addView(v, params);
+
         }
     }
 

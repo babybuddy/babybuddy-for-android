@@ -114,22 +114,32 @@
         android:visibility="gone"
         android:text="Create default timers" />
 
-    <androidx.recyclerview.widget.RecyclerView
-        android:id="@+id/timersList"
+    <ScrollView
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
         android:layout_below="@+id/createDefaultTimers"
         android:layout_centerHorizontal="true"
-        android:layout_marginTop="8dp" >
-    </androidx.recyclerview.widget.RecyclerView>
+        android:layout_marginTop="8dp"
+        android:id="@+id/mainScrollView">
 
-    <LinearLayout
-        android:id="@+id/timeline"
-        android:orientation="vertical"
-        android:layout_centerHorizontal="true"
-        android:layout_marginTop="16dp"
-        android:layout_width="match_parent"
-        android:layout_height="wrap_content"
-        android:layout_below="@+id/timersList">
-    </LinearLayout>
+        <LinearLayout
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:orientation="vertical">
+
+            <androidx.recyclerview.widget.RecyclerView
+                android:id="@+id/timersList"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content">
+            </androidx.recyclerview.widget.RecyclerView>
+
+            <LinearLayout
+                android:id="@+id/timeline"
+                android:orientation="vertical"
+                android:layout_marginTop="16dp"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content">
+            </LinearLayout>
+        </LinearLayout>
+    </ScrollView>
 </RelativeLayout>

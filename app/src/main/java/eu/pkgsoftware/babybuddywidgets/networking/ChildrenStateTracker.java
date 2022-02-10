@@ -360,6 +360,7 @@ public class ChildrenStateTracker {
         void sleepRecordsObtained(BabyBuddyClient.TimeEntry[] entries);
         void tummyTimeRecordsObtained(BabyBuddyClient.TimeEntry[] entries);
         void feedingRecordsObtained(BabyBuddyClient.TimeEntry[] entries);
+        void changeRecordsObtained(BabyBuddyClient.TimeEntry[] entries);
     }
 
     public class TimelineObserver extends StateObserver {
@@ -395,6 +396,12 @@ public class ChildrenStateTracker {
             }
         }
 
+        private class BoundChangeRecordsCallback {
+            public void call(BabyBuddyClient.RequestCallback<BabyBuddyClient.TimeEntry[]> callback) {
+                client.listChangeEntries(childId, 0, COUNT, callback);
+            }
+        }
+
         @Override
         protected void requeue() {
             requeueGate--;
@@ -404,7 +411,7 @@ public class ChildrenStateTracker {
         }
 
         protected void queueRequests() {
-            requeueGate = 3;
+            requeueGate = 4;
             new QueueRequest<BabyBuddyClient.TimeEntry[]>().queue(
                 new BoundSleepRecordsCallback()::call,
                 new BabyBuddyClient.RequestCallback<BabyBuddyClient.TimeEntry[]>() {
@@ -456,6 +463,24 @@ public class ChildrenStateTracker {
                             return;
                         }
                         listener.tummyTimeRecordsObtained(response);
+                    }
+                }
+            );
+            new QueueRequest<BabyBuddyClient.TimeEntry[]>().queue(
+                new BoundChangeRecordsCallback()::call,
+                new BabyBuddyClient.RequestCallback<BabyBuddyClient.TimeEntry[]>() {
+                    @Override
+                    public void error(Exception error) {
+                        requeue();
+                    }
+
+                    @Override
+                    public void response(BabyBuddyClient.TimeEntry[] response) {
+                        requeue();
+                        if (isClosed()) {
+                            return;
+                        }
+                        listener.changeRecordsObtained(response);
                     }
                 }
             );

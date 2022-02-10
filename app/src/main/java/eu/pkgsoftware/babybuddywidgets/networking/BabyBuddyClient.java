@@ -685,4 +685,44 @@ public class BabyBuddyClient extends StreamReader {
             }
         );
     }
+
+    public void listChangeEntries(int child_id, int offset, int count, RequestCallback<TimeEntry[]> callback) {
+        dispatchQuery(
+            "GET",
+            "api/changes/?child=XXChild&offset=XXOffset&limit=XXCount"
+                .replaceAll("XXChild", "" + child_id)
+                .replaceAll("XXOffset", "" + offset)
+                .replaceAll("XXCount", "" + count),
+            null,
+            new RequestCallback<String>() {
+                @Override
+                public void error(Exception error) {
+                    callback.error(error);
+                }
+
+                @Override
+                public void response(String response) {
+                    List<TimeEntry> result = new ArrayList<>();
+                    try {
+                        JSONObject listResponse = new JSONObject(response);
+                        JSONArray objects = listResponse.getJSONArray("results");
+                        for (int i = 0; i < objects.length(); i++) {
+                            JSONObject o = objects.getJSONObject(i);
+                            String notes = o.getString("notes");
+                            result.add(new TimeEntry(
+                                "change",
+                                parseNullOrDate(o, "time"),
+                                parseNullOrDate(o, "time"),
+                                notes == null ? "" : notes
+                            ));
+                        }
+                    } catch (JSONException | ParseException e) {
+                        error(e);
+                        return;
+                    }
+                    callback.response(result.toArray(new TimeEntry[0]));
+                }
+            }
+        );
+    }
 }
