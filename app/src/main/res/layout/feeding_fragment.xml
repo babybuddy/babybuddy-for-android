@@ -79,7 +79,7 @@
             android:layout_marginTop="16dp"
             android:gravity="center"
             android:orientation="vertical"
-            android:visibility="gone"></LinearLayout>
+            android:visibility="gone" />
 
         <Spinner
             android:id="@+id/feedingMethodSpinner"

@@ -217,4 +217,8 @@ public class TimerListViewHolder extends RecyclerView.ViewHolder {
         notesEditor.setIdentifier("timer_" + timer.id);
         notesEditorSwitch.setState(notesEditor.isVisible());
     }
+
+    public BabyBuddyClient.Timer getTimer() {
+        return timer.clone();
+    }
 }

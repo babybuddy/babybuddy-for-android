@@ -139,6 +139,18 @@ public class BabyBuddyClient extends StreamReader {
             Timer timer = (Timer) o;
             return id == timer.id && active == timer.active && user_id == timer.user_id && Objects.equals(child_id, timer.child_id) && Objects.equals(name, timer.name) && Objects.equals(start, timer.start) && Objects.equals(end, timer.end);
         }
+
+        public Timer clone() {
+            Timer result = new Timer();
+            result.id = id;
+            result.child_id = child_id;
+            result.name = name;
+            result.start = start;
+            result.end = end;
+            result.active = active;
+            result.user_id = user_id;
+            return result;
+        }
     }
 
     public static class RequestCodeFailure extends IOException {
