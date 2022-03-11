@@ -17,6 +17,7 @@ import java.util.Collections;
 import java.util.Enumeration;
 import java.util.HashMap;
 import java.util.Map;
+import java.util.NoSuchElementException;
 import java.util.Objects;
 import java.util.Properties;
 import java.util.regex.Pattern;
@@ -61,45 +62,51 @@ public class CredStore {
 
     public CredStore(Context context) {
         settingsFilePath = context.getFilesDir().getAbsolutePath().toString() + "/settings.conf";
-        Properties props = new Properties();
-        try (FileInputStream fis = new FileInputStream(settingsFilePath.toString())) {
-            props.load(fis);
-        } catch (IOException e) {
-            // pass
-        }
-        serverUrl = props.getProperty("server");
-        SALT_STRING = props.getProperty("salt");
-        if (SALT_STRING == null) {
-            generateNewSalt();
-        }
 
-        String timerAssignmentsString = props.getProperty("timer_default_types");
-        if (timerAssignmentsString != null) {
-            for (String ass : timerAssignmentsString.split(";")) {
-                if (ass.length() <= 0) continue;
-                String[] assParts = ass.split("=");
-                if (assParts.length != 2) continue;
-                timerAssignments.put(Integer.parseInt(assParts[0]), Integer.parseInt(assParts[1]));
+        try {
+            Properties props = new Properties();
+            try (FileInputStream fis = new FileInputStream(settingsFilePath.toString())) {
+                props.load(fis);
+            } catch (IOException e) {
+                // pass
             }
-        }
+            serverUrl = props.getProperty("server");
+            SALT_STRING = props.getProperty("salt");
+            if (SALT_STRING == null) {
+                generateNewSalt();
+            }
 
-        encryptedToken = props.getProperty("token");
-
-        // children = props.getProperty("children_cache", "");
-        currentChild = props.getProperty("selected_child", null);
-
-        Enumeration<?> nameEnum = props.propertyNames();
-        for (Object o : Collections.list(nameEnum)) {
-            final String name = Objects.toString(o);
-            if (name.startsWith("notes_")) {
-                final String noteName = name.replaceFirst(Pattern.quote("notes_"), "");
-                String n = props.getProperty(name);
-                if (!n.contains(":")) {
-                    continue;
+            String timerAssignmentsString = props.getProperty("timer_default_types");
+            if (timerAssignmentsString != null) {
+                for (String ass : timerAssignmentsString.split(";")) {
+                    if (ass.length() <= 0) continue;
+                    String[] assParts = ass.split("=");
+                    if (assParts.length != 2) continue;
+                    timerAssignments.put(Integer.parseInt(assParts[0]), Integer.parseInt(assParts[1]));
                 }
-                String[] splits = n.split(":", 2);
-                notesAssignments.put(noteName, new Notes(splits[1], "T".equals(splits[0])));
             }
+
+            encryptedToken = props.getProperty("token");
+
+            // children = props.getProperty("children_cache", "");
+            currentChild = props.getProperty("selected_child", null);
+
+            Enumeration<?> nameEnum = props.propertyNames();
+            for (Object o : Collections.list(nameEnum)) {
+                final String name = Objects.toString(o);
+                if (name.startsWith("notes_")) {
+                    final String noteName = name.replaceFirst(Pattern.quote("notes_"), "");
+                    String n = props.getProperty(name);
+                    if (!n.contains(":")) {
+                        continue;
+                    }
+                    String[] splits = n.split(":", 2);
+                    notesAssignments.put(noteName, new Notes(splits[1], "T".equals(splits[0])));
+                }
+            }
+        }
+        catch (NoSuchElementException e) {
+            e.printStackTrace();
         }
     }
 
