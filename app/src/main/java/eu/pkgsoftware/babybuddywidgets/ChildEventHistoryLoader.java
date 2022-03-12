@@ -15,6 +15,7 @@ import java.util.Date;
 import java.util.HashSet;
 import java.util.List;
 
+import eu.pkgsoftware.babybuddywidgets.databinding.TimelineItemBinding;
 import eu.pkgsoftware.babybuddywidgets.networking.BabyBuddyClient;
 import eu.pkgsoftware.babybuddywidgets.networking.ChildrenStateTracker;
 
@@ -23,14 +24,18 @@ public class ChildEventHistoryLoader {
         private BabyBuddyClient.TimeEntry entry;
         private TextView text;
 
-        public TimelineEntry(Context context, BabyBuddyClient.TimeEntry entry) {
-            text = new TextView(context);
-            text.setTextAppearance(android.R.style.TextAppearance_DeviceDefault);
-            setTimeEntry(entry);
+        private TimelineItemBinding binding;
+
+        private void hideAllSubviews() {
+            for (int i = 0; i < binding.getRoot().getChildCount(); i++) {
+                View c = binding.getRoot().getChildAt(i);
+                c.setVisibility(View.GONE);
+            }
         }
 
-        public void setTimeEntry(BabyBuddyClient.TimeEntry entry) {
-            this.entry = entry;
+        private void configureDefaultView() {
+            //hideAllSubviews();
+            binding.getRoot().getChildAt(0).setVisibility(View.VISIBLE);
 
             String message = Phrase.from("{type}\n{start_date}  {start_time} - {end_time}")
                 .put("type", entry.type)
@@ -40,7 +45,21 @@ public class ChildEventHistoryLoader {
                 .putOptional("end_time", TIME_FORMAT.format(entry.end))
                 .format().toString();
 
-            text.setText(message);
+            binding.defaultContent.setText(message);
+        }
+        
+        public TimelineEntry(BaseFragment fragment, BabyBuddyClient.TimeEntry entry) {
+            binding = TimelineItemBinding.inflate(fragment.getMainActivity().getLayoutInflater());
+
+            text = new TextView(fragment.getContext());
+            text.setTextAppearance(android.R.style.TextAppearance_DeviceDefault);
+            setTimeEntry(entry);
+        }
+
+        public void setTimeEntry(BabyBuddyClient.TimeEntry entry) {
+            this.entry = entry;
+
+            configureDefaultView();
         }
 
         public BabyBuddyClient.TimeEntry getTimeEntry() {
@@ -48,7 +67,7 @@ public class ChildEventHistoryLoader {
         }
 
         public View getView() {
-            return text;
+            return binding.getRoot();
         }
 
         public Date getDate() {
@@ -134,7 +153,7 @@ public class ChildEventHistoryLoader {
         }
         while (visualTimelineEntries.size() < timeEntries.size()) {
             TimelineEntry e = new TimelineEntry(
-                fragment.getContext(),
+                fragment,
                 timeEntries.get(visualTimelineEntries.size())
             );
             visualTimelineEntries.add(e);
