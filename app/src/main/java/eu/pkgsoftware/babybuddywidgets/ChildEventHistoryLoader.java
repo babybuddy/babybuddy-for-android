@@ -22,7 +22,6 @@ import eu.pkgsoftware.babybuddywidgets.networking.ChildrenStateTracker;
 public class ChildEventHistoryLoader {
     private static class TimelineEntry {
         private BabyBuddyClient.TimeEntry entry;
-        private TextView text;
 
         private TimelineItemBinding binding;
 
@@ -33,33 +32,64 @@ public class ChildEventHistoryLoader {
             }
         }
 
-        private void configureDefaultView() {
-            //hideAllSubviews();
-            binding.getRoot().getChildAt(0).setVisibility(View.VISIBLE);
-
-            String message = Phrase.from("{type}\n{start_date}  {start_time} - {end_time}")
-                .put("type", entry.type)
+        private Phrase defaultPhraseFields(Phrase phrase) {
+            return phrase
+                .putOptional("type", entry.type)
                 .putOptional("start_date", DATE_FORMAT.format(entry.start))
                 .putOptional("start_time", TIME_FORMAT.format(entry.start))
                 .putOptional("end_date", DATE_FORMAT.format(entry.end))
                 .putOptional("end_time", TIME_FORMAT.format(entry.end))
-                .format().toString();
+                .putOptional("notes", entry.notes.trim());
+        }
+
+        private void configureDefaultView() {
+            hideAllSubviews();
+            binding.getRoot().getChildAt(0).setVisibility(View.VISIBLE);
+
+            String message = defaultPhraseFields(
+                Phrase.from("{type}\n{start_date}  {start_time} - {end_time}")
+            ).format().toString();
 
             binding.defaultContent.setText(message);
         }
-        
+
+        private void configureTummyTime() {
+            hideAllSubviews();
+            binding.getRoot().getChildAt(1).setVisibility(View.VISIBLE);
+
+            String message = defaultPhraseFields(
+                Phrase.from("{start_date}  {start_time} - {end_time}\n{notes}")
+            ).format().toString().trim();
+
+            binding.tummytimeMilestoneText.setText(message);
+        }
+
+        private void configureChange() {
+            hideAllSubviews();
+            binding.getRoot().getChildAt(2).setVisibility(View.VISIBLE);
+
+            String message = defaultPhraseFields(
+                Phrase.from("{start_date}  {start_time}\n{notes}")
+            ).format().toString().trim();
+
+            binding.diaperText.setText(message.trim());
+        }
+
         public TimelineEntry(BaseFragment fragment, BabyBuddyClient.TimeEntry entry) {
             binding = TimelineItemBinding.inflate(fragment.getMainActivity().getLayoutInflater());
-
-            text = new TextView(fragment.getContext());
-            text.setTextAppearance(android.R.style.TextAppearance_DeviceDefault);
             setTimeEntry(entry);
         }
 
         public void setTimeEntry(BabyBuddyClient.TimeEntry entry) {
             this.entry = entry;
 
-            configureDefaultView();
+            if ("tummy time".equals(entry.type)) {
+                configureTummyTime();
+            } else if ("change".equals(entry.type)) {
+                configureChange();
+            } else {
+                configureDefaultView();
+            }
         }
 
         public BabyBuddyClient.TimeEntry getTimeEntry() {

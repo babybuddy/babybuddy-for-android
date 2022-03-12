@@ -21,3 +21,15 @@ of the sections below.
 
 <a href="https://www.flaticon.com/free-icons/note" title="note icons">Note icons created by Freepik - Flaticon</a>
 
+
+## Crawling icon (pkg_crawl)
+
+![Crawl icon](resource/crawl.png)
+
+<a href="https://www.flaticon.com/free-icons/crawl" title="crawl icons">Crawl icons created by Freepik - Flaticon</a>
+
+## Diaper icon (pkg_diaper)
+
+![Diaper icon](resource/diaper.png)
+
+<a href="https://www.flaticon.com/free-icons/diaper" title="diaper icons">Diaper icons created by Good Ware - Flaticon</a>
