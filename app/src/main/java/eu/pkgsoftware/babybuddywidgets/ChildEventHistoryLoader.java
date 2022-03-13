@@ -28,8 +28,8 @@ public class ChildEventHistoryLoader {
         private BabyBuddyClient.TimeEntry entry = null;
 
         private void hideAllSubviews() {
-            for (int i = 0; i < binding.getRoot().getChildCount(); i++) {
-                View c = binding.getRoot().getChildAt(i);
+            for (int i = 0; i < binding.viewGroup.getChildCount(); i++) {
+                View c = binding.viewGroup.getChildAt(i);
                 c.setVisibility(View.GONE);
             }
         }
@@ -46,7 +46,7 @@ public class ChildEventHistoryLoader {
 
         private void configureDefaultView() {
             hideAllSubviews();
-            binding.getRoot().getChildAt(0).setVisibility(View.VISIBLE);
+            binding.viewGroup.getChildAt(0).setVisibility(View.VISIBLE);
 
             String message = defaultPhraseFields(
                 Phrase.from("{type}\n{start_date}  {start_time} - {end_time}")
@@ -86,7 +86,7 @@ public class ChildEventHistoryLoader {
             binding.sleepView.setVisibility(View.VISIBLE);
 
             String message = defaultPhraseFields(
-                Phrase.from("{start_date}  {start_time}\n{notes}")
+                Phrase.from("{start_date}  {start_time} - {end_time}\n{notes}")
             ).format().toString().trim();
 
             binding.sleepText.setText(message.trim());
@@ -118,7 +118,7 @@ public class ChildEventHistoryLoader {
             }
 
             String message = defaultPhraseFields(
-                Phrase.from("{start_date}  {start_time}\n{notes}")
+                Phrase.from("{start_date}  {start_time} - {end_time}\n{notes}")
             ).format().toString().trim();
 
             binding.feedingText.setText(message.trim());
