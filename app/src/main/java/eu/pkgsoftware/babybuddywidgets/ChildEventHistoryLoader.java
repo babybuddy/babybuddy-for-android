@@ -138,6 +138,23 @@ public class ChildEventHistoryLoader {
             return false;
         }
 
+        private void removeClick() {
+            if (entry == null) {
+                return;
+            }
+
+            /*BabyBuddyClient client = fragment.getMainActivity().getClient();
+            client.removeTimelineEntry(entry, new BabyBuddyClient.RequestCallback<Boolean>() {
+                @Override
+                public void error(Exception error) {
+                }
+
+                @Override
+                public void response(Boolean response) {
+                }
+            });*/
+        }
+
         public TimelineEntry(BaseFragment fragment, BabyBuddyClient.TimeEntry entry) {
             this.fragment = fragment;
 
@@ -145,6 +162,7 @@ public class ChildEventHistoryLoader {
             setTimeEntry(entry);
 
             binding.getRoot().setOnLongClickListener((v) -> longClick());
+            binding.removeButton.setOnClickListener((v) -> removeClick());
         }
 
         public void setTimeEntry(BabyBuddyClient.TimeEntry entry) {

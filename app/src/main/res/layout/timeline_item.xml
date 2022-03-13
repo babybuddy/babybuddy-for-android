@@ -189,7 +189,8 @@
         android:layout_marginStart="8dp"
         android:layout_weight="0"
         android:background="#FF5555"
-        android:src="@android:drawable/ic_menu_save"
+        android:baselineAlignBottom="false"
+        android:src="@android:drawable/ic_menu_delete"
         app:srcCompat="@android:drawable/ic_menu_delete" />
 
 </LinearLayout>

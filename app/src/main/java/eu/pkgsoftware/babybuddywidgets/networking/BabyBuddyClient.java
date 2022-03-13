@@ -202,7 +202,22 @@ public class BabyBuddyClient extends StreamReader {
                     return "/tummy-time/" + this.typeId + "/";
                 case "sleep":
                     return "/sleep/" + this.typeId + "/";
-                        
+
+            }
+            return null;
+        }
+
+        public String getApiPath() {
+            switch (this.type) {
+                case "feeding":
+                    return "/api/feedings/" + this.typeId + "/";
+                case "change":
+                    return "/api/changes/" + this.typeId + "/";
+                case "tummy time":
+                    return "/api/tummy-times/" + this.typeId + "/";
+                case "sleep":
+                    return "/api/sleep/" + this.typeId + "/";
+
             }
             return null;
         }
@@ -845,6 +860,25 @@ public class BabyBuddyClient extends StreamReader {
                         return;
                     }
                     callback.response(result.toArray(new ChangeEntry[0]));
+                }
+            }
+        );
+    }
+
+    public void removeTimelineEntry(TimeEntry entry, RequestCallback<Boolean> callback) {
+        dispatchQuery(
+            "DELETE",
+            entry.getApiPath(),
+            null,
+            new RequestCallback<String>() {
+                @Override
+                public void error(Exception error) {
+                    callback.error(error);
+                }
+
+                @Override
+                public void response(String response) {
+                    callback.response(true);
                 }
             }
         );
