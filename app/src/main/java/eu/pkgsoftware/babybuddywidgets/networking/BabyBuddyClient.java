@@ -24,8 +24,6 @@ import java.util.Date;
 import java.util.List;
 import java.util.Objects;
 import java.util.TimeZone;
-import java.util.Timer;
-import java.util.regex.Pattern;
 
 import androidx.annotation.NonNull;
 import eu.pkgsoftware.babybuddywidgets.Constants;
@@ -157,12 +155,14 @@ public class BabyBuddyClient extends StreamReader {
 
     public static class TimeEntry {
         public String type;
+        public int typeId;
         public Date start;
         public Date end;
         public String notes;
 
-        public TimeEntry(String type, Date start, Date end, String notes) {
+        public TimeEntry(String type, int typeId, Date start, Date end, String notes) {
             this.type = type;
+            this.typeId = typeId;
             this.start = start;
             this.end = end;
             this.notes = notes;
@@ -172,6 +172,7 @@ public class BabyBuddyClient extends StreamReader {
         public String toString() {
             return "TimeEntry{" +
                 "type='" + type + '\'' +
+                ", typeId=" + typeId +
                 ", start=" + start +
                 ", end=" + end +
                 ", notes='" + notes + '\'' +
@@ -183,12 +184,27 @@ public class BabyBuddyClient extends StreamReader {
             if (this == o) return true;
             if (o == null || getClass() != o.getClass()) return false;
             TimeEntry timeEntry = (TimeEntry) o;
-            return Objects.equals(type, timeEntry.type) && Objects.equals(start, timeEntry.start) && Objects.equals(end, timeEntry.end) && Objects.equals(notes, timeEntry.notes);
+            return typeId == timeEntry.typeId && Objects.equals(type, timeEntry.type) && Objects.equals(start, timeEntry.start) && Objects.equals(end, timeEntry.end) && Objects.equals(notes, timeEntry.notes);
         }
 
         @Override
         public int hashCode() {
-            return Objects.hash(type, start, end, notes);
+            return Objects.hash(type, typeId, start, end, notes);
+        }
+
+        public String getUserPath() {
+            switch (this.type) {
+                case "feeding":
+                    return "/feedings/" + this.typeId + "/";
+                case "change":
+                    return "/changes/" + this.typeId + "/";
+                case "tummy time":
+                    return "/tummy-time/" + this.typeId + "/";
+                case "sleep":
+                    return "/sleep/" + this.typeId + "/";
+                        
+            }
+            return null;
         }
     }
 
@@ -196,8 +212,8 @@ public class BabyBuddyClient extends StreamReader {
         public boolean wet;
         public boolean solid;
 
-        public ChangeEntry(String type, Date start, Date end, String notes, boolean wet, boolean solid) {
-            super(type, start, end, notes);
+        public ChangeEntry(String type, int typeId, Date start, Date end, String notes, boolean wet, boolean solid) {
+            super(type, typeId, start, end, notes);
             this.wet = wet;
             this.solid = solid;
         }
@@ -235,12 +251,13 @@ public class BabyBuddyClient extends StreamReader {
 
         public FeedingEntry(
                 String type,
+                int typeId,
                 Date start,
                 Date end,
                 String notes,
                 Constants.FeedingMethodEnum feedingMethod,
                 Constants.FeedingTypeEnum feedingType) {
-            super(type, start, end, notes);
+            super(type, typeId, start, end, notes);
             this.feedingMethod = feedingMethod;
             this.feedingType = feedingType;
         }
@@ -303,13 +320,16 @@ public class BabyBuddyClient extends StreamReader {
         }
     }
 
-    private URL subPath(String path) throws MalformedURLException {
+    public URL pathToUrl(String path) throws MalformedURLException {
         String prefix = credStore.getServerUrl().replaceAll("/*$", "");
+        while (path.startsWith("/")) {
+            path = path.substring(1);
+        }
         return new URL(prefix + "/" + path);
     }
 
     private HttpURLConnection doQuery(String path) throws IOException {
-        HttpURLConnection con = (HttpURLConnection) subPath(path).openConnection();
+        HttpURLConnection con = (HttpURLConnection) pathToUrl(path).openConnection();
         String token = credStore.getAppToken();
         con.setRequestProperty("Authorization", "Token " + token);
         con.setDoInput(true);
@@ -672,6 +692,7 @@ public class BabyBuddyClient extends StreamReader {
                             String notes = o.getString("notes");
                             result.add(new TimeEntry(
                                 "sleep",
+                                o.getInt("id"),
                                 parseNullOrDate(o, "start"),
                                 parseNullOrDate(o, "end"),
                                 notes == null ? "" : notes
@@ -727,6 +748,7 @@ public class BabyBuddyClient extends StreamReader {
 
                             result.add(new FeedingEntry(
                                 "feeding",
+                                o.getInt("id"),
                                 parseNullOrDate(o, "start"),
                                 parseNullOrDate(o, "end"),
                                 notes == null ? "" : notes,
@@ -769,6 +791,7 @@ public class BabyBuddyClient extends StreamReader {
                             String notes = o.getString("milestone");
                             result.add(new TimeEntry(
                                 "tummy time",
+                                o.getInt("id"),
                                 parseNullOrDate(o, "start"),
                                 parseNullOrDate(o, "end"),
                                 notes == null ? "" : notes
@@ -809,6 +832,7 @@ public class BabyBuddyClient extends StreamReader {
                             String notes = o.getString("notes");
                             result.add(new ChangeEntry(
                                 "change",
+                                o.getInt("id"),
                                 parseNullOrDate(o, "time"),
                                 parseNullOrDate(o, "time"),
                                 notes == null ? "" : notes,

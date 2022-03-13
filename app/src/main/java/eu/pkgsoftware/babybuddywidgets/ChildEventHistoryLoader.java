@@ -8,6 +8,7 @@ import android.widget.TextView;
 
 import com.squareup.phrase.Phrase;
 
+import java.net.MalformedURLException;
 import java.text.DateFormat;
 import java.util.ArrayList;
 import java.util.Arrays;
@@ -21,9 +22,10 @@ import eu.pkgsoftware.babybuddywidgets.networking.ChildrenStateTracker;
 
 public class ChildEventHistoryLoader {
     private static class TimelineEntry {
-        private BabyBuddyClient.TimeEntry entry;
-
+        private BaseFragment fragment;
         private TimelineItemBinding binding;
+
+        private BabyBuddyClient.TimeEntry entry = null;
 
         private void hideAllSubviews() {
             for (int i = 0; i < binding.getRoot().getChildCount(); i++) {
@@ -122,9 +124,27 @@ public class ChildEventHistoryLoader {
             binding.feedingText.setText(message.trim());
         }
 
+        private boolean longClick() {
+            if (entry != null) {
+                BabyBuddyClient client = fragment.getMainActivity().getClient();
+                try {
+                    fragment.showUrlInBrowser(client.pathToUrl(entry.getUserPath()).toString());
+                    return true;
+                } catch (MalformedURLException e) {
+                    e.printStackTrace();
+                    return false;
+                }
+            }
+            return false;
+        }
+
         public TimelineEntry(BaseFragment fragment, BabyBuddyClient.TimeEntry entry) {
+            this.fragment = fragment;
+
             binding = TimelineItemBinding.inflate(fragment.getMainActivity().getLayoutInflater());
             setTimeEntry(entry);
+
+            binding.getRoot().setOnLongClickListener((v) -> longClick());
         }
 
         public void setTimeEntry(BabyBuddyClient.TimeEntry entry) {

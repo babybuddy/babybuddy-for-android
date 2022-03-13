@@ -151,7 +151,7 @@ public class BaseFragment extends Fragment {
         return (MainActivity) getActivity();
     }
 
-    protected void showUrlInBrowser(String url) {
+    public void showUrlInBrowser(String url) {
         startActivity(new Intent(Intent.ACTION_VIEW, Uri.parse(url)));
     }
 
