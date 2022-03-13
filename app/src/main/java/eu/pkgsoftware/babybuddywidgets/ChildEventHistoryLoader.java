@@ -55,7 +55,7 @@ public class ChildEventHistoryLoader {
 
         private void configureTummyTime() {
             hideAllSubviews();
-            binding.getRoot().getChildAt(1).setVisibility(View.VISIBLE);
+            binding.tummyTimeView.setVisibility(View.VISIBLE);
 
             String message = defaultPhraseFields(
                 Phrase.from("{start_date}  {start_time} - {end_time}\n{notes}")
@@ -66,13 +66,60 @@ public class ChildEventHistoryLoader {
 
         private void configureChange() {
             hideAllSubviews();
-            binding.getRoot().getChildAt(2).setVisibility(View.VISIBLE);
+            binding.diaperView.setVisibility(View.VISIBLE);
+
+            BabyBuddyClient.ChangeEntry change = (BabyBuddyClient.ChangeEntry) entry;
+            binding.diaperWetImage.setVisibility(change.wet ? View.VISIBLE : View.GONE);
+            binding.diaperSolidImage.setVisibility(change.solid ? View.VISIBLE : View.GONE);
 
             String message = defaultPhraseFields(
                 Phrase.from("{start_date}  {start_time}\n{notes}")
             ).format().toString().trim();
 
             binding.diaperText.setText(message.trim());
+        }
+
+        private void configureSleep() {
+            hideAllSubviews();
+            binding.sleepView.setVisibility(View.VISIBLE);
+
+            String message = defaultPhraseFields(
+                Phrase.from("{start_date}  {start_time}\n{notes}")
+            ).format().toString().trim();
+
+            binding.sleepText.setText(message.trim());
+        }
+
+        private void configureFeeding() {
+            hideAllSubviews();
+            binding.feedingView.setVisibility(View.VISIBLE);
+
+            BabyBuddyClient.FeedingEntry feeding = (BabyBuddyClient.FeedingEntry) entry;
+
+            binding.feedingBreastImage.setVisibility(View.GONE);
+            binding.feedingBottleImage.setVisibility(View.GONE);
+            binding.solidFoodImage.setVisibility(View.GONE);
+
+            switch (feeding.feedingType) {
+                case BREAST_MILK:
+                    binding.feedingBreastImage.setVisibility(View.VISIBLE);
+                    break;
+                case FORTIFIED_BREAST_MILK:
+                case FORMULA:
+                    binding.feedingBottleImage.setVisibility(View.VISIBLE);
+                    break;
+                case SOLID_FOOD:
+                    binding.solidFoodImage.setVisibility(View.VISIBLE);
+                    break;
+                default:
+                    binding.solidFoodImage.setVisibility(View.VISIBLE);
+            }
+
+            String message = defaultPhraseFields(
+                Phrase.from("{start_date}  {start_time}\n{notes}")
+            ).format().toString().trim();
+
+            binding.feedingText.setText(message.trim());
         }
 
         public TimelineEntry(BaseFragment fragment, BabyBuddyClient.TimeEntry entry) {
@@ -87,6 +134,10 @@ public class ChildEventHistoryLoader {
                 configureTummyTime();
             } else if ("change".equals(entry.type)) {
                 configureChange();
+            } else if ("sleep".equals(entry.type)) {
+                configureSleep();
+            } else if ("feeding".equals(entry.type)) {
+                configureFeeding();
             } else {
                 configureDefaultView();
             }

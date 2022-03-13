@@ -28,6 +28,7 @@ import java.util.Timer;
 import java.util.regex.Pattern;
 
 import androidx.annotation.NonNull;
+import eu.pkgsoftware.babybuddywidgets.Constants;
 import eu.pkgsoftware.babybuddywidgets.CredStore;
 
 public class BabyBuddyClient extends StreamReader {
@@ -188,6 +189,86 @@ public class BabyBuddyClient extends StreamReader {
         @Override
         public int hashCode() {
             return Objects.hash(type, start, end, notes);
+        }
+    }
+
+    public static class ChangeEntry extends TimeEntry {
+        public boolean wet;
+        public boolean solid;
+
+        public ChangeEntry(String type, Date start, Date end, String notes, boolean wet, boolean solid) {
+            super(type, start, end, notes);
+            this.wet = wet;
+            this.solid = solid;
+        }
+
+        @Override
+        public String toString() {
+            return "ChangeEntry{" +
+                "type='" + type + '\'' +
+                ", start=" + start +
+                ", end=" + end +
+                ", notes='" + notes + '\'' +
+                ", wet=" + wet +
+                ", solid=" + solid +
+                '}';
+        }
+
+        @Override
+        public boolean equals(Object o) {
+            if (this == o) return true;
+            if (o == null || getClass() != o.getClass()) return false;
+            if (!super.equals(o)) return false;
+            ChangeEntry that = (ChangeEntry) o;
+            return wet == that.wet && solid == that.solid;
+        }
+
+        @Override
+        public int hashCode() {
+            return Objects.hash(super.hashCode(), wet, solid);
+        }
+    }
+
+    public static class FeedingEntry extends TimeEntry {
+        public Constants.FeedingMethodEnum feedingMethod;
+        public Constants.FeedingTypeEnum feedingType;
+
+        public FeedingEntry(
+                String type,
+                Date start,
+                Date end,
+                String notes,
+                Constants.FeedingMethodEnum feedingMethod,
+                Constants.FeedingTypeEnum feedingType) {
+            super(type, start, end, notes);
+            this.feedingMethod = feedingMethod;
+            this.feedingType = feedingType;
+        }
+
+        @Override
+        public String toString() {
+            return "FeedingEntry{" +
+                "type='" + type + '\'' +
+                ", start=" + start +
+                ", end=" + end +
+                ", notes='" + notes + '\'' +
+                ", feedingMethod=" + feedingMethod +
+                ", feedingType=" + feedingType +
+                '}';
+        }
+
+        @Override
+        public boolean equals(Object o) {
+            if (this == o) return true;
+            if (o == null || getClass() != o.getClass()) return false;
+            if (!super.equals(o)) return false;
+            FeedingEntry that = (FeedingEntry) o;
+            return feedingMethod == that.feedingMethod && feedingType == that.feedingType;
+        }
+
+        @Override
+        public int hashCode() {
+            return Objects.hash(super.hashCode(), feedingMethod, feedingType);
         }
     }
 
@@ -606,7 +687,7 @@ public class BabyBuddyClient extends StreamReader {
         );
     }
 
-    public void listFeedingsEntries(int child_id, int offset, int count, RequestCallback<TimeEntry[]> callback) {
+    public void listFeedingsEntries(int child_id, int offset, int count, RequestCallback<FeedingEntry[]> callback) {
         dispatchQuery(
             "GET",
             "api/feedings/?child=XXChild&offset=XXOffset&limit=XXCount"
@@ -622,25 +703,42 @@ public class BabyBuddyClient extends StreamReader {
 
                 @Override
                 public void response(String response) {
-                    List<TimeEntry> result = new ArrayList<>();
+                    List<FeedingEntry> result = new ArrayList<>();
                     try {
                         JSONObject listResponse = new JSONObject(response);
                         JSONArray objects = listResponse.getJSONArray("results");
                         for (int i = 0; i < objects.length(); i++) {
                             JSONObject o = objects.getJSONObject(i);
                             String notes = o.getString("notes");
-                            result.add(new TimeEntry(
+
+                            Constants.FeedingMethodEnum feedingMethod = null;
+                            Constants.FeedingTypeEnum feedingType = null;
+
+                            for (Constants.FeedingMethodEnum m : Constants.FeedingMethodEnum.values()) {
+                                if (m.post_name.equals(o.getString("method"))) {
+                                    feedingMethod = m;
+                                }
+                            }
+                            for (Constants.FeedingTypeEnum t : Constants.FeedingTypeEnum.values()) {
+                                if (t.post_name.equals(o.getString("type"))) {
+                                    feedingType = t;
+                                }
+                            }
+
+                            result.add(new FeedingEntry(
                                 "feeding",
                                 parseNullOrDate(o, "start"),
                                 parseNullOrDate(o, "end"),
-                                notes == null ? "" : notes
+                                notes == null ? "" : notes,
+                                feedingMethod,
+                                feedingType
                             ));
                         }
                     } catch (JSONException | ParseException e) {
                         error(e);
                         return;
                     }
-                    callback.response(result.toArray(new TimeEntry[0]));
+                    callback.response(result.toArray(new FeedingEntry[0]));
                 }
             }
         );
@@ -686,7 +784,7 @@ public class BabyBuddyClient extends StreamReader {
         );
     }
 
-    public void listChangeEntries(int child_id, int offset, int count, RequestCallback<TimeEntry[]> callback) {
+    public void listChangeEntries(int child_id, int offset, int count, RequestCallback<ChangeEntry[]> callback) {
         dispatchQuery(
             "GET",
             "api/changes/?child=XXChild&offset=XXOffset&limit=XXCount"
@@ -702,25 +800,27 @@ public class BabyBuddyClient extends StreamReader {
 
                 @Override
                 public void response(String response) {
-                    List<TimeEntry> result = new ArrayList<>();
+                    List<ChangeEntry> result = new ArrayList<>();
                     try {
                         JSONObject listResponse = new JSONObject(response);
                         JSONArray objects = listResponse.getJSONArray("results");
                         for (int i = 0; i < objects.length(); i++) {
                             JSONObject o = objects.getJSONObject(i);
                             String notes = o.getString("notes");
-                            result.add(new TimeEntry(
+                            result.add(new ChangeEntry(
                                 "change",
                                 parseNullOrDate(o, "time"),
                                 parseNullOrDate(o, "time"),
-                                notes == null ? "" : notes
+                                notes == null ? "" : notes,
+                                o.getBoolean("wet"),
+                                o.getBoolean("solid")
                             ));
                         }
                     } catch (JSONException | ParseException e) {
                         error(e);
                         return;
                     }
-                    callback.response(result.toArray(new TimeEntry[0]));
+                    callback.response(result.toArray(new ChangeEntry[0]));
                 }
             }
         );

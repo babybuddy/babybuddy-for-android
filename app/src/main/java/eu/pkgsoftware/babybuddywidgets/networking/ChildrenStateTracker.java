@@ -385,7 +385,7 @@ public class ChildrenStateTracker {
         }
 
         private class BoundFeedingRecordsCallback {
-            public void call(BabyBuddyClient.RequestCallback<BabyBuddyClient.TimeEntry[]> callback) {
+            public void call(BabyBuddyClient.RequestCallback<BabyBuddyClient.FeedingEntry[]> callback) {
                 client.listFeedingsEntries(childId, 0, COUNT, callback);
             }
         }
@@ -397,7 +397,7 @@ public class ChildrenStateTracker {
         }
 
         private class BoundChangeRecordsCallback {
-            public void call(BabyBuddyClient.RequestCallback<BabyBuddyClient.TimeEntry[]> callback) {
+            public void call(BabyBuddyClient.RequestCallback<BabyBuddyClient.ChangeEntry[]> callback) {
                 client.listChangeEntries(childId, 0, COUNT, callback);
             }
         }
@@ -430,16 +430,16 @@ public class ChildrenStateTracker {
                     }
                 }
             );
-            new QueueRequest<BabyBuddyClient.TimeEntry[]>().queue(
+            new QueueRequest<BabyBuddyClient.FeedingEntry[]>().queue(
                 new BoundFeedingRecordsCallback()::call,
-                new BabyBuddyClient.RequestCallback<BabyBuddyClient.TimeEntry[]>() {
+                new BabyBuddyClient.RequestCallback<BabyBuddyClient.FeedingEntry[]>() {
                     @Override
                     public void error(Exception error) {
                         requeue();
                     }
 
                     @Override
-                    public void response(BabyBuddyClient.TimeEntry[] response) {
+                    public void response(BabyBuddyClient.FeedingEntry[] response) {
                         requeue();
                         if (isClosed()) {
                             return;
@@ -466,16 +466,16 @@ public class ChildrenStateTracker {
                     }
                 }
             );
-            new QueueRequest<BabyBuddyClient.TimeEntry[]>().queue(
+            new QueueRequest<BabyBuddyClient.ChangeEntry[]>().queue(
                 new BoundChangeRecordsCallback()::call,
-                new BabyBuddyClient.RequestCallback<BabyBuddyClient.TimeEntry[]>() {
+                new BabyBuddyClient.RequestCallback<BabyBuddyClient.ChangeEntry[]>() {
                     @Override
                     public void error(Exception error) {
                         requeue();
                     }
 
                     @Override
-                    public void response(BabyBuddyClient.TimeEntry[] response) {
+                    public void response(BabyBuddyClient.ChangeEntry[] response) {
                         requeue();
                         if (isClosed()) {
                             return;

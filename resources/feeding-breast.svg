@@ -1,0 +1,74 @@
+<?xml version="1.0" encoding="UTF-8" standalone="no"?>
+<!-- Created with Inkscape (http://www.inkscape.org/) -->
+
+<svg
+   width="512"
+   height="512"
+   viewBox="0 0 135.46666 135.46666"
+   version="1.1"
+   id="svg5"
+   inkscape:version="1.1.2 (0a00cf5339, 2022-02-04)"
+   sodipodi:docname="feeding-breast.svg"
+   inkscape:export-filename="/home/paul/code/android/BabyBuddyWidgets/resources/feeding-breast.png"
+   inkscape:export-xdpi="96.000008"
+   inkscape:export-ydpi="96.000008"
+   xmlns:inkscape="http://www.inkscape.org/namespaces/inkscape"
+   xmlns:sodipodi="http://sodipodi.sourceforge.net/DTD/sodipodi-0.dtd"
+   xmlns="http://www.w3.org/2000/svg"
+   xmlns:svg="http://www.w3.org/2000/svg">
+  <sodipodi:namedview
+     id="namedview7"
+     pagecolor="#ffffff"
+     bordercolor="#666666"
+     borderopacity="1.0"
+     inkscape:pageshadow="2"
+     inkscape:pageopacity="0.0"
+     inkscape:pagecheckerboard="0"
+     inkscape:document-units="mm"
+     showgrid="false"
+     units="px"
+     width="512px"
+     inkscape:zoom="0.66368547"
+     inkscape:cx="104.71828"
+     inkscape:cy="294.56724"
+     inkscape:window-width="1399"
+     inkscape:window-height="972"
+     inkscape:window-x="380"
+     inkscape:window-y="58"
+     inkscape:window-maximized="0"
+     inkscape:current-layer="layer1"
+     inkscape:snap-global="false" />
+  <defs
+     id="defs2" />
+  <g
+     inkscape:label="Ebene 1"
+     inkscape:groupmode="layer"
+     id="layer1">
+    <path
+       style="fill:none;stroke:#000000;stroke-width:5;stroke-linejoin:round;stroke-miterlimit:4;stroke-dasharray:none"
+       id="path1269"
+       sodipodi:type="arc"
+       sodipodi:cx="69.017296"
+       sodipodi:cy="59.16185"
+       sodipodi:rx="52.841518"
+       sodipodi:ry="50.517803"
+       sodipodi:start="5.5286254"
+       sodipodi:end="3.9004048"
+       sodipodi:arc-type="arc"
+       d="M 107.5162,24.558767 A 52.841518,50.517803 0 0 1 105.9423,95.298706 52.841518,50.517803 0 0 1 31.931897,95.148271 52.841518,50.517803 0 0 1 30.672645,24.402572"
+       sodipodi:open="true" />
+    <path
+       style="fill:none;stroke:#000000;stroke-width:5;stroke-linejoin:round;stroke-miterlimit:4;stroke-dasharray:none"
+       id="path1622"
+       sodipodi:type="arc"
+       sodipodi:cx="68.63871"
+       sodipodi:cy="95.88063"
+       sodipodi:rx="8.9001598"
+       sodipodi:ry="8.2010489"
+       sodipodi:start="5.5286271"
+       sodipodi:end="3.9004095"
+       sodipodi:open="true"
+       sodipodi:arc-type="arc"
+       d="M 75.123137,90.263184 A 8.9001598,8.2010489 0 0 1 74.858015,101.7471 8.9001598,8.2010489 0 0 1 62.392349,101.72264 8.9001598,8.2010489 0 0 1 62.180304,90.237789" />
+  </g>
+</svg>

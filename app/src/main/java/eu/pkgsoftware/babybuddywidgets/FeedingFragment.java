@@ -31,48 +31,6 @@ public class FeedingFragment extends BaseFragment {
         void onSelectionChanged(int i);
     };
 
-    private enum FeedingTypeEnum {
-        BREAST_MILK(0, "breast milk"),
-        FORMULA(1, "formula"),
-        FORTIFIED_BREAST_MILK(2, "fortified breast milk"),
-        SOLID_FOOD(3, "solid food");
-
-        public int value;
-        public String post_name;
-        FeedingTypeEnum(int v, String post_name) {
-            value = v;
-            this.post_name = post_name;
-        }
-    };
-    public static Map<Integer, FeedingTypeEnum> FeedingTypeEnumValues = new HashMap<>();
-    static {
-        for (FeedingTypeEnum e : FeedingTypeEnum.values()) {
-            FeedingTypeEnumValues.put(e.value, e);
-        }
-    }
-
-    private enum FeedingMethodEnum {
-        BOTTLE(0, "bottle"),
-        LEFT_BREAST(1, "left breast"),
-        RIGHT_BREAST(2, "right breast"),
-        BOTH_BREASTS(3, "both breasts"),
-        PARENT_FED(4, "parent fed"),
-        SELF_FED(5, "self fed");
-
-        public int value;
-        public String post_name;
-        FeedingMethodEnum(int v, String post_name) {
-            value = v;
-            this.post_name = post_name;
-        }
-    };
-    public static Map<Integer, FeedingMethodEnum> FeedingMethodEnumValues = new HashMap<>();
-    static {
-        for (FeedingMethodEnum e : FeedingMethodEnum.values()) {
-            FeedingMethodEnumValues.put(e.value, e);
-        }
-    }
-
     private FeedingFragmentBinding binding = null;
     private double amount = 30.0;
     private NotesEditorBinding notesEditor = null;
@@ -92,7 +50,7 @@ public class FeedingFragment extends BaseFragment {
             new AdapterView.OnItemSelectedListener() {
                 @Override
                 public void onItemSelected(AdapterView<?> adapterView, View view, int i, long l) {
-                    setupFeedingMethodButtons(FeedingTypeEnumValues.get((int) l));
+                    setupFeedingMethodButtons(Constants.FeedingTypeEnumValues.get((int) l));
                 }
 
                 @Override
@@ -185,7 +143,7 @@ public class FeedingFragment extends BaseFragment {
             getResources().getTextArray(R.array.feedingTypes),
             binding.feedingTypeButtons,
             binding.feedingTypeSpinner,
-            i -> setupFeedingMethodButtons(FeedingTypeEnumValues.get(i))
+            i -> setupFeedingMethodButtons(Constants.FeedingTypeEnumValues.get(i))
         );
         binding.feedingMethodSpinner.setVisibility(View.GONE);
         binding.feedingMethodButtons.setVisibility(View.GONE);
@@ -261,24 +219,24 @@ public class FeedingFragment extends BaseFragment {
         updateAmount();
     }
 
-    private List<FeedingMethodEnum> assignedMethodButtons = null;
-    private void setupFeedingMethodButtons(FeedingTypeEnum type) {
+    private List<Constants.FeedingMethodEnum> assignedMethodButtons = null;
+    private void setupFeedingMethodButtons(Constants.FeedingTypeEnum type) {
         binding.submitButton.setVisibility(View.GONE);
         assignedMethodButtons = new ArrayList<>(10);
 
         switch (type) {
             case BREAST_MILK:
-                assignedMethodButtons.add(FeedingMethodEnum.LEFT_BREAST);
-                assignedMethodButtons.add(FeedingMethodEnum.RIGHT_BREAST);
-                assignedMethodButtons.add(FeedingMethodEnum.BOTH_BREASTS);
-                assignedMethodButtons.add(FeedingMethodEnum.BOTTLE);
-                assignedMethodButtons.add(FeedingMethodEnum.PARENT_FED);
-                assignedMethodButtons.add(FeedingMethodEnum.SELF_FED);
+                assignedMethodButtons.add(Constants.FeedingMethodEnum.LEFT_BREAST);
+                assignedMethodButtons.add(Constants.FeedingMethodEnum.RIGHT_BREAST);
+                assignedMethodButtons.add(Constants.FeedingMethodEnum.BOTH_BREASTS);
+                assignedMethodButtons.add(Constants.FeedingMethodEnum.BOTTLE);
+                assignedMethodButtons.add(Constants.FeedingMethodEnum.PARENT_FED);
+                assignedMethodButtons.add(Constants.FeedingMethodEnum.SELF_FED);
                 break;
             default:
-                assignedMethodButtons.add(FeedingMethodEnum.BOTTLE);
-                assignedMethodButtons.add(FeedingMethodEnum.PARENT_FED);
-                assignedMethodButtons.add(FeedingMethodEnum.SELF_FED);
+                assignedMethodButtons.add(Constants.FeedingMethodEnum.BOTTLE);
+                assignedMethodButtons.add(Constants.FeedingMethodEnum.PARENT_FED);
+                assignedMethodButtons.add(Constants.FeedingMethodEnum.SELF_FED);
         }
 
         CharSequence[] orgItems = getResources().getTextArray(R.array.feedingMethods);
@@ -310,9 +268,9 @@ public class FeedingFragment extends BaseFragment {
         progressDialog.setMessage(getString(R.string.LoggingInMessage));
 
         long feedingTypeId = binding.feedingTypeSpinner.getSelectedItemId();
-        FeedingTypeEnum feedingType = FeedingTypeEnumValues.get((int) feedingTypeId);
+        Constants.FeedingTypeEnum feedingType = Constants.FeedingTypeEnumValues.get((int) feedingTypeId);
         long feedingMethodId = binding.feedingMethodSpinner.getSelectedItemId();
-        FeedingMethodEnum feedingMethod = assignedMethodButtons.get((int) feedingMethodId);
+        Constants.FeedingMethodEnum feedingMethod = assignedMethodButtons.get((int) feedingMethodId);
 
         mainActivity().getClient().createFeedingRecordFromTimer(
             mainActivity().selectedTimer,
