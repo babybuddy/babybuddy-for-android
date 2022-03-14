@@ -166,6 +166,7 @@ public class ChildEventHistoryLoader {
 
                         @Override
                         public void response(Boolean response) {
+                            setTimeEntry(null);
                         }
                     });
                 }
@@ -185,16 +186,22 @@ public class ChildEventHistoryLoader {
         public void setTimeEntry(BabyBuddyClient.TimeEntry entry) {
             this.entry = entry;
 
-            if ("tummy-time".equals(entry.type)) {
-                configureTummyTime();
-            } else if ("change".equals(entry.type)) {
-                configureChange();
-            } else if ("sleep".equals(entry.type)) {
-                configureSleep();
-            } else if ("feeding".equals(entry.type)) {
-                configureFeeding();
+            if (entry == null) {
+                binding.getRoot().setVisibility(View.GONE);
             } else {
-                configureDefaultView();
+                binding.getRoot().setVisibility(View.VISIBLE);
+
+                if ("tummy-time".equals(entry.type)) {
+                    configureTummyTime();
+                } else if ("change".equals(entry.type)) {
+                    configureChange();
+                } else if ("sleep".equals(entry.type)) {
+                    configureSleep();
+                } else if ("feeding".equals(entry.type)) {
+                    configureFeeding();
+                } else {
+                    configureDefaultView();
+                }
             }
         }
 
