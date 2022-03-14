@@ -198,7 +198,7 @@ public class BabyBuddyClient extends StreamReader {
                     return "/feedings/" + this.typeId + "/";
                 case "change":
                     return "/changes/" + this.typeId + "/";
-                case "tummy time":
+                case "tummy-time":
                     return "/tummy-time/" + this.typeId + "/";
                 case "sleep":
                     return "/sleep/" + this.typeId + "/";
@@ -213,7 +213,7 @@ public class BabyBuddyClient extends StreamReader {
                     return "/api/feedings/" + this.typeId + "/";
                 case "change":
                     return "/api/changes/" + this.typeId + "/";
-                case "tummy time":
+                case "tummy-time":
                     return "/api/tummy-times/" + this.typeId + "/";
                 case "sleep":
                     return "/api/sleep/" + this.typeId + "/";
@@ -805,7 +805,7 @@ public class BabyBuddyClient extends StreamReader {
                             JSONObject o = objects.getJSONObject(i);
                             String notes = o.getString("milestone");
                             result.add(new TimeEntry(
-                                "tummy time",
+                                "tummy-time",
                                 o.getInt("id"),
                                 parseNullOrDate(o, "start"),
                                 parseNullOrDate(o, "end"),

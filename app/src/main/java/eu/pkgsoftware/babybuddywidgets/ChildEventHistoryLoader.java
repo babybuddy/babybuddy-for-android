@@ -143,16 +143,33 @@ public class ChildEventHistoryLoader {
                 return;
             }
 
-            /*BabyBuddyClient client = fragment.getMainActivity().getClient();
-            client.removeTimelineEntry(entry, new BabyBuddyClient.RequestCallback<Boolean>() {
-                @Override
-                public void error(Exception error) {
-                }
+            fragment.showQuestion(
+                true,
+                "Delete entry",
+                defaultPhraseFields(
+                    Phrase.from(
+                        "Are you sure you want to delete the {type} entry " +
+                        "from {start_date} {start_time} - {end_time}?"
+                    )
+                ).format().toString().trim(),
+                "Delete",
+                "Cancel",
+                b -> {
+                    if (!b) {
+                        return;
+                    }
+                    BabyBuddyClient client = fragment.getMainActivity().getClient();
+                    client.removeTimelineEntry(entry, new BabyBuddyClient.RequestCallback<Boolean>() {
+                        @Override
+                        public void error(Exception error) {
+                        }
 
-                @Override
-                public void response(Boolean response) {
+                        @Override
+                        public void response(Boolean response) {
+                        }
+                    });
                 }
-            });*/
+            );
         }
 
         public TimelineEntry(BaseFragment fragment, BabyBuddyClient.TimeEntry entry) {
@@ -168,7 +185,7 @@ public class ChildEventHistoryLoader {
         public void setTimeEntry(BabyBuddyClient.TimeEntry entry) {
             this.entry = entry;
 
-            if ("tummy time".equals(entry.type)) {
+            if ("tummy-time".equals(entry.type)) {
                 configureTummyTime();
             } else if ("change".equals(entry.type)) {
                 configureChange();
@@ -244,7 +261,7 @@ public class ChildEventHistoryLoader {
         List<BabyBuddyClient.TimeEntry> removedItems = new ArrayList<>(entries.size());
 
         for (BabyBuddyClient.TimeEntry e : timeEntries) {
-            if ((!entries.contains(e)) && (e.type.equals(e))) {
+            if ((!entries.contains(e)) && (type.equals(e.type))) {
                 removedItems.add(e);
             }
         }
@@ -257,8 +274,9 @@ public class ChildEventHistoryLoader {
         timeEntries.removeAll(removedItems);
         timeEntries.addAll(newItems);
 
-        if ((newItems.size() + removedItems.size()) > 0 )
-        updateTimelineList();
+        if ((newItems.size() + removedItems.size()) > 0) {
+            updateTimelineList();
+        }
     }
 
     private void updateTimelineList() {
