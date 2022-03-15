@@ -18,10 +18,6 @@ import androidx.annotation.Nullable;
 import androidx.fragment.app.Fragment;
 
 public class BaseFragment extends Fragment {
-    public static int dpToPx(Context context, float dp) {
-        return (int) (context.getResources().getDisplayMetrics().density * dp + 0.5f);
-    }
-
     public interface DialogCallback {
         void call(boolean b);
     }
@@ -156,6 +152,6 @@ public class BaseFragment extends Fragment {
     }
 
     public int dpToPx(float dp) {
-        return dpToPx(getContext(), dp);
+        return Tools.dpToPx(getContext(), dp);
     }
 }

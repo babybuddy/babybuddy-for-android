@@ -3,4 +3,8 @@
         <attr name="appWidgetBackgroundColor" format="color" />
         <attr name="appWidgetTextColor" format="color" />
     </declare-styleable>
+
+    <declare-styleable name="HorizontalNumberPicker">
+        <attr name="textSize" format="dimension" />
+    </declare-styleable>
 </resources>
