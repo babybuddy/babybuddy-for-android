@@ -9,9 +9,14 @@ import android.graphics.Path;
 import android.graphics.Rect;
 import android.graphics.Typeface;
 import android.util.AttributeSet;
+import android.view.DragEvent;
+import android.view.MotionEvent;
 import android.view.View;
+import android.view.ViewGroup;
 
+import androidx.annotation.NonNull;
 import androidx.annotation.Nullable;
+import androidx.customview.widget.ViewDragHelper;
 import eu.pkgsoftware.babybuddywidgets.R;
 import eu.pkgsoftware.babybuddywidgets.Tools;
 
@@ -36,7 +41,7 @@ public class HorizontalNumberPicker extends View {
 
         @Override
         public long maxValue() {
-            return values.length;
+            return values.length - 1;
         }
 
         @Override
@@ -48,26 +53,34 @@ public class HorizontalNumberPicker extends View {
     public HorizontalNumberPicker(Context context) {
         super(context);
         textSize = Tools.dpToPx(getContext(), 64);
+        initDragHelper();
     }
 
     public HorizontalNumberPicker(Context context, @Nullable AttributeSet attrs) {
         super(context, attrs);
+        initAttrs(context, attrs);
+        initDragHelper();
+    }
+
+    public HorizontalNumberPicker(Context context, @Nullable AttributeSet attrs, int defStyleAttr) {
+        super(context, attrs, defStyleAttr);
+        initAttrs(context, attrs);
+        initDragHelper();
+    }
+
+    public HorizontalNumberPicker(Context context, @Nullable AttributeSet attrs, int defStyleAttr, int defStyleRes) {
+        super(context, attrs, defStyleAttr, defStyleRes);
+        initAttrs(context, attrs);
+        initDragHelper();
+    }
+
+    private void initAttrs(Context context, @Nullable AttributeSet attrs) {
         TypedArray a = context.getTheme().obtainStyledAttributes(
             attrs, R.styleable.HorizontalNumberPicker, 0, 0
         );
         textSize = (int) a.getDimension(R.styleable.HorizontalNumberPicker_textSize, 64);
         a.recycle();
     }
-
-    public HorizontalNumberPicker(Context context, @Nullable AttributeSet attrs, int defStyleAttr) {
-        super(context, attrs, defStyleAttr);
-    }
-
-    public HorizontalNumberPicker(Context context, @Nullable AttributeSet attrs, int defStyleAttr, int defStyleRes) {
-        super(context, attrs, defStyleAttr, defStyleRes);
-    }
-
-    private int textSize;
 
     private final Paint BLACK_STROKE = new Paint();
     private final Paint BLACK_FILL = new Paint();
@@ -96,7 +109,9 @@ public class HorizontalNumberPicker extends View {
         trianglePath.lineTo(0.0f, 0.0f);
     }
 
+    private int textSize;
     private final Rect textBounds = new Rect();
+    private final Rect vertBounds = new Rect();
     private ValueGenerator values;
     private long valueIndex;
 
@@ -107,9 +122,65 @@ public class HorizontalNumberPicker extends View {
         valueIndex = values.minValue();
     }
 
+    private Integer dragPointId = null;
+    private float dragOffset = 0.0f;
+    private float moveOffset = 0.0f;
+    private float boundedMoveOffset = 0.0f;
+
+    private void processDragOffsets() {
+        float xElementSeparation = 3 * textSize;
+
+        long minDiff = valueIndex - values.minValue();
+        long maxDiff = values.maxValue() - valueIndex;
+
+        boundedMoveOffset = moveOffset;
+        if (minDiff * xElementSeparation < boundedMoveOffset) {
+            boundedMoveOffset = minDiff * xElementSeparation;
+        }
+        if (maxDiff * xElementSeparation < -boundedMoveOffset) {
+            boundedMoveOffset = -maxDiff * xElementSeparation;
+        }
+
+        long validDiff = -Math.round(boundedMoveOffset / xElementSeparation);
+        valueIndex += validDiff;
+        dragOffset -= xElementSeparation * validDiff;
+        moveOffset += xElementSeparation * validDiff;
+        boundedMoveOffset += xElementSeparation * validDiff;
+
+        invalidate();
+    }
+
+    private void initDragHelper() {
+        setOnTouchListener((v, event) -> {
+            switch (event.getActionMasked()) {
+                case MotionEvent.ACTION_DOWN:
+                    if (dragPointId == null) {
+                        dragPointId = event.getActionIndex();
+                        dragOffset = event.getX(dragPointId);
+                        moveOffset = 0.0f;
+                    }
+                    break;
+                case MotionEvent.ACTION_UP:
+                    if ((dragPointId != null) && (dragPointId == event.getActionIndex())) {
+                        moveOffset = event.getX(dragPointId) - dragOffset;
+                        processDragOffsets();
+                        dragPointId = null;
+                    }
+                    break;
+                case MotionEvent.ACTION_MOVE:
+                    if (dragPointId != null) {
+                        moveOffset = event.getX(dragPointId) - dragOffset;
+                        processDragOffsets();
+                    }
+                    break;
+            }
+            return true;
+        });
+    }
+
     private void drawText(Canvas canvas, float x, float y, String text, Paint p) {
         p.getTextBounds(text, 0, text.length(), textBounds);
-        canvas.drawText(text, -textBounds.width() / 2.0f + x, p.getTextSize() / 2.0f + y, p);
+        canvas.drawText(text, -textBounds.width() / 2.0f + x, vertBounds.height() / 2.0f + y, p);
     }
 
     @Override
@@ -117,6 +188,8 @@ public class HorizontalNumberPicker extends View {
         BLACK_STROKE.setStrokeWidth(Tools.dpToPx(getContext(), 1));
         VALUE_PAINT.setTextSize(textSize);
         BG_VALUE_PAINT.setTextSize(textSize);
+
+        VALUE_PAINT.getTextBounds("0", 0, 1, vertBounds);
 
         int width = getWidth();
         int height = getHeight();
@@ -154,6 +227,7 @@ public class HorizontalNumberPicker extends View {
 
         canvas.clipRect(-width / 2.0f, -height / 2.0f, width / 2.0f, height / 2.0f);
 
+        canvas.translate(boundedMoveOffset, 0);
         for (long oi = -onesidedCount; oi < onesidedCount + 1; oi++) {
             long i = valueIndex + oi;
 
@@ -162,7 +236,7 @@ public class HorizontalNumberPicker extends View {
             }
 
             Paint paint = oi == 0 ? VALUE_PAINT : BG_VALUE_PAINT;
-            drawText(canvas, i * xElementSeparation, 0, "" + values.getValue(i), paint);
+            drawText(canvas, oi * xElementSeparation, 0, "" + values.getValue(i), paint);
         }
     }
 
@@ -192,10 +266,5 @@ public class HorizontalNumberPicker extends View {
         }
 
         setMeasuredDimension(width, height);
-    }
-
-    @Override
-    protected void onLayout(boolean changed, int left, int top, int right, int bottom) {
-        super.onLayout(changed, left, top, right, bottom);
     }
 }
