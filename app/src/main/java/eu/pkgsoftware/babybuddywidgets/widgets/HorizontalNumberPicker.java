@@ -7,16 +7,12 @@ import android.graphics.Color;
 import android.graphics.Paint;
 import android.graphics.Path;
 import android.graphics.Rect;
-import android.graphics.Typeface;
+import android.os.Handler;
 import android.util.AttributeSet;
-import android.view.DragEvent;
 import android.view.MotionEvent;
 import android.view.View;
-import android.view.ViewGroup;
 
-import androidx.annotation.NonNull;
 import androidx.annotation.Nullable;
-import androidx.customview.widget.ViewDragHelper;
 import eu.pkgsoftware.babybuddywidgets.R;
 import eu.pkgsoftware.babybuddywidgets.Tools;
 
@@ -126,6 +122,94 @@ public class HorizontalNumberPicker extends View {
     private float dragOffset = 0.0f;
     private float moveOffset = 0.0f;
     private float boundedMoveOffset = 0.0f;
+    private float moveSpeed = 0.0f;
+    private boolean moveAnimationQueued = false;
+
+    private static final int SPEED_PROBE_INTERVAL_MILLISEC = 200;
+    private static final int MAX_SPEED_SAMPLE_INTERVAL_MILLISEC = 50;
+    private static final float SPEED_DECAY = 0.01f; // portion of speed available after 1 sec
+
+    private static class LocationSample {
+        public long timeOffset = 0;
+        public float location = 0;
+    }
+
+    private LocationSample[] speedLocationSamples = new LocationSample[
+        SPEED_PROBE_INTERVAL_MILLISEC / MAX_SPEED_SAMPLE_INTERVAL_MILLISEC
+    ];
+    private int speedLocationSampleCursor = 0;
+    {
+        for (int i = 0; i < speedLocationSamples.length; i++) {
+            speedLocationSamples[i] = new LocationSample();
+        }
+    }
+
+    private void addSpeedLocationSample(float location) {
+        final long now = System.currentTimeMillis();
+        if (now - speedLocationSamples[speedLocationSampleCursor].timeOffset > MAX_SPEED_SAMPLE_INTERVAL_MILLISEC) {
+            speedLocationSamples[speedLocationSampleCursor].timeOffset = now;
+            speedLocationSamples[speedLocationSampleCursor].location = location;
+            speedLocationSampleCursor = (speedLocationSampleCursor + 1) % speedLocationSamples.length;
+        }
+    }
+
+    private float computeSpeedFromSamples() {
+        int endSample = speedLocationSampleCursor - 1 + speedLocationSamples.length * 10;
+        long endTimeOffset = speedLocationSamples[endSample % speedLocationSamples.length].timeOffset;
+        int prevItem = endSample - 1;
+        while (
+            (prevItem % speedLocationSamples.length != endSample % speedLocationSamples.length) &&
+            (endTimeOffset - speedLocationSamples[speedLocationSampleCursor].timeOffset < SPEED_PROBE_INTERVAL_MILLISEC)
+        ) {
+            prevItem--;
+        }
+        prevItem++;
+
+        prevItem %= speedLocationSamples.length;
+        endSample %= speedLocationSamples.length;
+        if (prevItem == endSample) {
+            return 0;
+        }
+
+        float timeDiff = speedLocationSamples[endSample].timeOffset - speedLocationSamples[prevItem].timeOffset;
+        float locationDiff = speedLocationSamples[endSample].location - speedLocationSamples[prevItem].location;
+        return 1000.0f * locationDiff / timeDiff;
+    }
+
+    private void clearSpeedSamples() {
+        for (LocationSample s : speedLocationSamples) {
+            s.timeOffset = 0;
+            s.location = 0;
+        }
+    }
+
+    private void animateMove() {
+        double deltaT = 20.0 / 1000.0;
+        if (moveAnimationQueued) {
+            moveSpeed *= Math.pow(SPEED_DECAY, deltaT);
+        }
+        moveAnimationQueued = true;
+
+        moveOffset += deltaT * moveSpeed;
+        System.out.println("AAA " + moveSpeed);
+        processDragOffsets();
+
+        if (Math.abs(moveSpeed) < 1) {
+            moveSpeed = 0;
+            moveAnimationQueued = false;
+        }
+
+        if (moveAnimationQueued) {
+            getHandler().postDelayed(this::animateMove, 20);
+        }
+    }
+
+    private void startMoveAnimation() {
+        if (moveAnimationQueued) {
+            return;
+        }
+        animateMove();
+    }
 
     private void processDragOffsets() {
         float xElementSeparation = 3 * textSize;
@@ -156,19 +240,27 @@ public class HorizontalNumberPicker extends View {
                 case MotionEvent.ACTION_DOWN:
                     if (dragPointId == null) {
                         dragPointId = event.getActionIndex();
+                        addSpeedLocationSample(event.getX(dragPointId));
                         dragOffset = event.getX(dragPointId);
                         moveOffset = 0.0f;
+                        moveSpeed = 0.0f;
                     }
                     break;
                 case MotionEvent.ACTION_UP:
                     if ((dragPointId != null) && (dragPointId == event.getActionIndex())) {
+                        addSpeedLocationSample(event.getX(dragPointId));
                         moveOffset = event.getX(dragPointId) - dragOffset;
                         processDragOffsets();
                         dragPointId = null;
+                        moveSpeed = computeSpeedFromSamples();
+                        startMoveAnimation();
+                        clearSpeedSamples();
                     }
                     break;
                 case MotionEvent.ACTION_MOVE:
                     if (dragPointId != null) {
+                        addSpeedLocationSample(event.getX(dragPointId));
+                        moveSpeed = 0.0f;
                         moveOffset = event.getX(dragPointId) - dragOffset;
                         processDragOffsets();
                     }
@@ -256,11 +348,15 @@ public class HorizontalNumberPicker extends View {
 
         if (widthSpecMode == MeasureSpec.EXACTLY) {
             width = widthSpecV;
+        } else if (widthSpecMode == MeasureSpec.AT_MOST) {
+            width = Math.min(width, widthSpecV);
         } else {
             width = Math.max(width, widthSpecV);
         }
         if (heightSpecMode == MeasureSpec.EXACTLY) {
             height = heightSpecV;
+        } else if (heightSpecMode == MeasureSpec.AT_MOST) {
+            height = Math.min(height, heightSpecV);
         } else {
             height = Math.max(height, heightSpecV);
         }
