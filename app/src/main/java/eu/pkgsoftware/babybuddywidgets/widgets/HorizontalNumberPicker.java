@@ -102,8 +102,8 @@ public class HorizontalNumberPicker extends View {
 
         trianglePath.reset();
         trianglePath.moveTo(0.0f, 0.0f);
-        trianglePath.lineTo(1.0f, 1.0f);
-        trianglePath.lineTo(-1.0f, 1.0f);
+        trianglePath.lineTo(1000.0f, 1000.0f);
+        trianglePath.lineTo(-1000.0f, 1000.0f);
         trianglePath.lineTo(0.0f, 0.0f);
     }
 
@@ -194,13 +194,22 @@ public class HorizontalNumberPicker extends View {
         }
         moveAnimationQueued = true;
 
+        final float xSeparation = getXElementSeparation();
         moveOffset += deltaT * moveSpeed;
-        processDragOffsets();
-
-        if (Math.abs(moveSpeed) < 1) {
+        if (Math.abs(moveSpeed) < xSeparation / 20) {
             moveSpeed = 0;
-            moveAnimationQueued = false;
+            moveOffset = boundedMoveOffset;
+
+            final double moveIncrement = deltaT * xSeparation / 0.5f;
+
+            if (Math.abs(moveOffset) < moveIncrement) {
+                moveOffset = 0.0f;
+                moveAnimationQueued = false;
+            } else {
+                moveOffset -= moveIncrement * Math.signum(moveOffset);
+            }
         }
+        processDragOffsets();
 
         if (moveAnimationQueued) {
             getHandler().postDelayed(this::animateMove, 20);
@@ -214,8 +223,12 @@ public class HorizontalNumberPicker extends View {
         animateMove();
     }
 
+    private float getXElementSeparation() {
+        return 3 * textSize;
+    }
+
     private void processDragOffsets() {
-        float xElementSeparation = 3 * textSize;
+        float xElementSeparation = getXElementSeparation();
 
         long minDiff = valueIndex - values.minValue();
         long maxDiff = values.maxValue() - valueIndex;
@@ -296,8 +309,6 @@ public class HorizontalNumberPicker extends View {
 
             float yOffset = textSize * 1.5f / 2.0f;
             float xOffset = yOffset * 2;
-            //canvas.drawLine(-xOffset, -yOffset, -xOffset, yOffset, BLACK_STROKE);
-            //canvas.drawLine(xOffset, -yOffset, xOffset, yOffset, BLACK_STROKE);
             canvas.drawLine(-xOffset, -yOffset, xOffset, -yOffset, BLACK_STROKE);
             canvas.drawLine(-xOffset, yOffset, xOffset, yOffset, BLACK_STROKE);
 
@@ -305,12 +316,12 @@ public class HorizontalNumberPicker extends View {
             canvas.save();
 
             canvas.translate(0, yOffset);
-            canvas.scale(textSize / 2.0f, textSize / 2.0f);
+            canvas.scale(textSize / 2000.0f, textSize / 2000.0f);
             canvas.drawPath(trianglePath, BLACK_FILL);
             canvas.restore();
 
             canvas.translate(0, -yOffset);
-            canvas.scale(textSize / 2.0f, -textSize / 2.0f);
+            canvas.scale(textSize / 2000.0f, -textSize / 2000.0f);
             canvas.drawPath(trianglePath, BLACK_FILL);
             canvas.restore();
         }
