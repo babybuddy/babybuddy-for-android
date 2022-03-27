@@ -19,7 +19,9 @@ import eu.pkgsoftware.babybuddywidgets.Tools;
 public class HorizontalNumberPicker extends View {
     public interface ValueGenerator {
         long minValue();
+
         long maxValue();
+
         String getValue(long index);
     }
 
@@ -121,6 +123,7 @@ public class HorizontalNumberPicker extends View {
     private Integer dragPointId = null;
     private float dragOffset = 0.0f;
     private float moveOffset = 0.0f;
+    private float startMoveOffset = 0.0f;
     private float boundedMoveOffset = 0.0f;
     private float moveSpeed = 0.0f;
     private boolean moveAnimationQueued = false;
@@ -136,8 +139,9 @@ public class HorizontalNumberPicker extends View {
 
     private LocationSample[] speedLocationSamples = new LocationSample[
         SPEED_PROBE_INTERVAL_MILLISEC / MAX_SPEED_SAMPLE_INTERVAL_MILLISEC
-    ];
+        ];
     private int speedLocationSampleCursor = 0;
+
     {
         for (int i = 0; i < speedLocationSamples.length; i++) {
             speedLocationSamples[i] = new LocationSample();
@@ -159,7 +163,7 @@ public class HorizontalNumberPicker extends View {
         int prevItem = endSample - 1;
         while (
             (prevItem % speedLocationSamples.length != endSample % speedLocationSamples.length) &&
-            (endTimeOffset - speedLocationSamples[speedLocationSampleCursor].timeOffset < SPEED_PROBE_INTERVAL_MILLISEC)
+                (endTimeOffset - speedLocationSamples[speedLocationSampleCursor].timeOffset < SPEED_PROBE_INTERVAL_MILLISEC)
         ) {
             prevItem--;
         }
@@ -191,7 +195,6 @@ public class HorizontalNumberPicker extends View {
         moveAnimationQueued = true;
 
         moveOffset += deltaT * moveSpeed;
-        System.out.println("AAA " + moveSpeed);
         processDragOffsets();
 
         if (Math.abs(moveSpeed) < 1) {
@@ -242,14 +245,14 @@ public class HorizontalNumberPicker extends View {
                         dragPointId = event.getActionIndex();
                         addSpeedLocationSample(event.getX(dragPointId));
                         dragOffset = event.getX(dragPointId);
-                        moveOffset = 0.0f;
+                        startMoveOffset = boundedMoveOffset;
                         moveSpeed = 0.0f;
                     }
                     break;
                 case MotionEvent.ACTION_UP:
                     if ((dragPointId != null) && (dragPointId == event.getActionIndex())) {
                         addSpeedLocationSample(event.getX(dragPointId));
-                        moveOffset = event.getX(dragPointId) - dragOffset;
+                        moveOffset = event.getX(dragPointId) - dragOffset + startMoveOffset;
                         processDragOffsets();
                         dragPointId = null;
                         moveSpeed = computeSpeedFromSamples();
@@ -261,7 +264,7 @@ public class HorizontalNumberPicker extends View {
                     if (dragPointId != null) {
                         addSpeedLocationSample(event.getX(dragPointId));
                         moveSpeed = 0.0f;
-                        moveOffset = event.getX(dragPointId) - dragOffset;
+                        moveOffset = event.getX(dragPointId) - dragOffset + startMoveOffset;
                         processDragOffsets();
                     }
                     break;
@@ -302,12 +305,12 @@ public class HorizontalNumberPicker extends View {
             canvas.save();
 
             canvas.translate(0, yOffset);
-            canvas.scale(textSize / 2.0f,textSize / 2.0f);
+            canvas.scale(textSize / 2.0f, textSize / 2.0f);
             canvas.drawPath(trianglePath, BLACK_FILL);
             canvas.restore();
 
             canvas.translate(0, -yOffset);
-            canvas.scale(textSize / 2.0f,-textSize / 2.0f);
+            canvas.scale(textSize / 2.0f, -textSize / 2.0f);
             canvas.drawPath(trianglePath, BLACK_FILL);
             canvas.restore();
         }
