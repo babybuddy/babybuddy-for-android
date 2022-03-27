@@ -13,6 +13,7 @@ import android.widget.LinearLayout;
 import android.widget.SeekBar;
 import android.widget.Spinner;
 
+import java.text.DecimalFormat;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
@@ -25,15 +26,55 @@ import androidx.navigation.Navigation;
 import eu.pkgsoftware.babybuddywidgets.databinding.FeedingFragmentBinding;
 import eu.pkgsoftware.babybuddywidgets.databinding.NotesEditorBinding;
 import eu.pkgsoftware.babybuddywidgets.networking.BabyBuddyClient;
+import eu.pkgsoftware.babybuddywidgets.widgets.HorizontalNumberPicker;
 
 public class FeedingFragment extends BaseFragment {
     public interface ButtonListCallback {
         void onSelectionChanged(int i);
     };
 
+    public static class AmountValuesGenerator implements HorizontalNumberPicker.ValueGenerator {
+        public static final DecimalFormat FORMAT_VALUE = new DecimalFormat("#.#");
+
+        public long minValue() {
+            return -1L;
+        }
+
+        public long maxValue() {
+            return 1000L;
+        }
+
+        public String getValue(long index) {
+            if (index < 0) {
+                return "None";
+            } else {
+                return FORMAT_VALUE.format(getRawValue(index, 0f));
+            }
+        }
+
+        public Double getRawValue(long index, float offset) {
+            if (index + offset < -0.001) {
+                return null;
+            } else {
+                return Math.pow(1.2, index);
+            }
+        }
+
+        public long getValueIndex(Double value) {
+            if (value == null) {
+                return -1L;
+            } else {
+                long result = (long) Math.round(Math.log(value) / Math.log(1.2));
+                result = Math.max(minValue(), Math.min(maxValue(), result));
+                return result;
+            }
+        }
+    }
+
     private FeedingFragmentBinding binding = null;
-    private double amount = 30.0;
+    private Double amount = 30.0;
     private NotesEditorBinding notesEditor = null;
+    private AmountValuesGenerator amountValuesGenerator = new AmountValuesGenerator();
 
     @Override
     public View onCreateView(LayoutInflater inflater, ViewGroup container, Bundle savedInstanceState) {
@@ -78,7 +119,7 @@ public class FeedingFragment extends BaseFragment {
                                 new Runnable() {
                                     @Override
                                     public void run() {
-                                        liveUpdateAmount(binding.seekBar.getProgress() - binding.seekBar.getMax() / 2);
+                                        //liveUpdateAmount(binding.seekBar.getProgress() - binding.seekBar.getMax() / 2);
                                     }
                                 }
                             );
@@ -92,6 +133,22 @@ public class FeedingFragment extends BaseFragment {
                     timer.purge();
                     timer = null;
                     binding.seekBar.setProgress(binding.seekBar.getMax() / 2);
+                }
+            }
+        );
+
+        binding.amountNumberPicker.setValueGenerator(amountValuesGenerator);
+        binding.amountNumberPicker.setValueUpdatedListener(
+            new HorizontalNumberPicker.ValueUpdatedListener() {
+                @Override
+                public void valueChangeChanging(long valueIndex, float relativeOffset) {
+                    amount = amountValuesGenerator.getRawValue(valueIndex, relativeOffset);
+                    updateAmount();
+                }
+
+                @Override
+                public void valueChangeFinished(long valueIndex, float relativeOffset) {
+                    valueChangeChanging(valueIndex, relativeOffset);
                 }
             }
         );
@@ -151,7 +208,11 @@ public class FeedingFragment extends BaseFragment {
     }
 
     private void updateAmount() {
-        binding.amountText.setText("Amount: " + amount);
+        String text = "(None)";
+        if (amount != null) {
+            text = AmountValuesGenerator.FORMAT_VALUE.format(amount);
+        }
+        binding.amountText.setText("Amount: " + text);
     }
 
     private static class ButtonListOnClickListener implements View.OnClickListener {
@@ -213,8 +274,8 @@ public class FeedingFragment extends BaseFragment {
             }
             amount += foffset * sign;
         }
-        if (amount < 1) {
-            amount = 1;
+        if (amount < 0) {
+            amount = 0d;
         }
         updateAmount();
     }
@@ -272,11 +333,13 @@ public class FeedingFragment extends BaseFragment {
         long feedingMethodId = binding.feedingMethodSpinner.getSelectedItemId();
         Constants.FeedingMethodEnum feedingMethod = assignedMethodButtons.get((int) feedingMethodId);
 
+        Float dAmount = amount == null ? null : (float) (amount * 1.0d);
+
         mainActivity().getClient().createFeedingRecordFromTimer(
             mainActivity().selectedTimer,
             feedingType.post_name,
             feedingMethod.post_name,
-            (float) amount,
+            dAmount,
             notesEditor.noteEditor.getText().toString().trim(),
             new BabyBuddyClient.RequestCallback<Boolean>() {
                 @Override

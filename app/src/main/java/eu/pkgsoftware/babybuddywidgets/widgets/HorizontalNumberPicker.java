@@ -25,6 +25,11 @@ public class HorizontalNumberPicker extends View {
         String getValue(long index);
     }
 
+    public interface ValueUpdatedListener {
+        void valueChangeChanging(long valueIndex, float relativeOffset);
+        void valueChangeFinished(long valueIndex, float relativeOffset);
+    }
+
     public static class StringListValues implements ValueGenerator {
         private String[] values;
 
@@ -119,6 +124,8 @@ public class HorizontalNumberPicker extends View {
 
         valueIndex = values.minValue();
     }
+
+    private ValueUpdatedListener valueUpdatedListener = null;
 
     private Integer dragPointId = null;
     private float dragOffset = 0.0f;
@@ -228,6 +235,9 @@ public class HorizontalNumberPicker extends View {
     }
 
     private void processDragOffsets() {
+        long oldValueIndex = valueIndex;
+        float oldBoundedMoveOffset = boundedMoveOffset;
+
         float xElementSeparation = getXElementSeparation();
 
         long minDiff = valueIndex - values.minValue();
@@ -246,6 +256,16 @@ public class HorizontalNumberPicker extends View {
         dragOffset -= xElementSeparation * validDiff;
         moveOffset += xElementSeparation * validDiff;
         boundedMoveOffset += xElementSeparation * validDiff;
+
+        if ((boundedMoveOffset != oldBoundedMoveOffset) || (valueIndex != oldValueIndex)) {
+            if (valueUpdatedListener != null) {
+                if ((dragPointId != null) || (moveAnimationQueued)) {
+                    valueUpdatedListener.valueChangeChanging(valueIndex, getRelativeValueIndexOffset());
+                } else {
+                    valueUpdatedListener.valueChangeFinished(valueIndex, getRelativeValueIndexOffset());
+                }
+            }
+        }
 
         invalidate();
     }
@@ -327,7 +347,7 @@ public class HorizontalNumberPicker extends View {
         }
 
 
-        float xElementSeparation = 3 * textSize;
+        float xElementSeparation = getXElementSeparation();
         int xElementCount = (int) Math.ceil((float) getWidth() / (float) xElementSeparation) + 1;
         int onesidedCount = Math.max(1, xElementCount / 2);
 
@@ -376,5 +396,36 @@ public class HorizontalNumberPicker extends View {
         }
 
         setMeasuredDimension(width, height);
+    }
+
+    public long getValueIndex() {
+        return valueIndex;
+    }
+
+    public void setValueIndex(long i) {
+        valueIndex = Math.min(Math.max(i, values.minValue()), values.maxValue());
+        dragPointId = null;
+        setRelativeValueIndexOffset(0.0f);
+    }
+
+    public float getRelativeValueIndexOffset() {
+        return Math.max(-1.0f, Math.min(1.0f, -boundedMoveOffset / getXElementSeparation()));
+    }
+
+    public void setRelativeValueIndexOffset(float offset) {
+        moveOffset = Math.max(-1.0f, Math.min(1.0f, offset)) * getXElementSeparation();
+        dragPointId = null;
+        moveSpeed = 0.0f;
+        moveAnimationQueued = false;
+        processDragOffsets();
+    }
+
+    public void setValueUpdatedListener(ValueUpdatedListener l) {
+        valueUpdatedListener = l;
+    }
+
+    public void setValueGenerator(ValueGenerator valueGenerator) {
+        values = valueGenerator;
+        setValueIndex(valueIndex);
     }
 }

@@ -581,7 +581,7 @@ public class BabyBuddyClient extends StreamReader {
         });
     }
 
-    public void createFeedingRecordFromTimer(Timer timer, String type, String method, float amount, String notes, RequestCallback<Boolean> callback) {
+    public void createFeedingRecordFromTimer(Timer timer, String type, String method, Float amount, String notes, RequestCallback<Boolean> callback) {
         String data;
         try {
             data = (new JSONObject())
