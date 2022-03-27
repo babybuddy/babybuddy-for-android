@@ -17,7 +17,8 @@
         app:layout_constraintHorizontal_bias="0.3"
         app:layout_constraintStart_toStartOf="parent"
         app:layout_constraintTop_toTopOf="parent"
-        app:textSize="32dp" />
+        app:textSize="32dp"
+        app:zeroOnValues="false" />
 
     <TextView
         android:id="@+id/amountText"

@@ -27,6 +27,7 @@ public class HorizontalNumberPicker extends View {
 
     public interface ValueUpdatedListener {
         void valueChangeChanging(long valueIndex, float relativeOffset);
+
         void valueChangeFinished(long valueIndex, float relativeOffset);
     }
 
@@ -56,6 +57,7 @@ public class HorizontalNumberPicker extends View {
     public HorizontalNumberPicker(Context context) {
         super(context);
         textSize = Tools.dpToPx(getContext(), 64);
+        zeroOnValues = true;
         initDragHelper();
     }
 
@@ -82,6 +84,7 @@ public class HorizontalNumberPicker extends View {
             attrs, R.styleable.HorizontalNumberPicker, 0, 0
         );
         textSize = (int) a.getDimension(R.styleable.HorizontalNumberPicker_textSize, 64);
+        zeroOnValues = (boolean) a.getBoolean(R.styleable.HorizontalNumberPicker_zeroOnValues, true);
         a.recycle();
     }
 
@@ -113,6 +116,8 @@ public class HorizontalNumberPicker extends View {
     }
 
     private int textSize;
+    private boolean zeroOnValues;
+
     private final Rect textBounds = new Rect();
     private final Rect vertBounds = new Rect();
     private ValueGenerator values;
@@ -209,7 +214,9 @@ public class HorizontalNumberPicker extends View {
 
             final double moveIncrement = deltaT * xSeparation / 0.5f;
 
-            if (Math.abs(moveOffset) < moveIncrement) {
+            if (!zeroOnValues) {
+                moveAnimationQueued = false;
+            } else if (Math.abs(moveOffset) < moveIncrement) {
                 moveOffset = 0.0f;
                 moveAnimationQueued = false;
             } else {
@@ -235,6 +242,10 @@ public class HorizontalNumberPicker extends View {
     }
 
     private void processDragOffsets() {
+        processDragOffsets(false);
+    }
+
+    private void processDragOffsets(boolean forceNotifyListeners) {
         long oldValueIndex = valueIndex;
         float oldBoundedMoveOffset = boundedMoveOffset;
 
@@ -257,7 +268,7 @@ public class HorizontalNumberPicker extends View {
         moveOffset += xElementSeparation * validDiff;
         boundedMoveOffset += xElementSeparation * validDiff;
 
-        if ((boundedMoveOffset != oldBoundedMoveOffset) || (valueIndex != oldValueIndex)) {
+        if (forceNotifyListeners || (boundedMoveOffset != oldBoundedMoveOffset) || (valueIndex != oldValueIndex)) {
             if (valueUpdatedListener != null) {
                 if ((dragPointId != null) || (moveAnimationQueued)) {
                     valueUpdatedListener.valueChangeChanging(valueIndex, getRelativeValueIndexOffset());
@@ -412,12 +423,16 @@ public class HorizontalNumberPicker extends View {
         return Math.max(-1.0f, Math.min(1.0f, -boundedMoveOffset / getXElementSeparation()));
     }
 
+    public void setRelativeValueIndexOffset(double offset) {
+        setRelativeValueIndexOffset((float) offset);
+    }
+
     public void setRelativeValueIndexOffset(float offset) {
         moveOffset = Math.max(-1.0f, Math.min(1.0f, offset)) * getXElementSeparation();
         dragPointId = null;
         moveSpeed = 0.0f;
         moveAnimationQueued = false;
-        processDragOffsets();
+        processDragOffsets(true);
     }
 
     public void setValueUpdatedListener(ValueUpdatedListener l) {

@@ -56,7 +56,7 @@ public class FeedingFragment extends BaseFragment {
             if (index + offset < -0.001) {
                 return null;
             } else {
-                return Math.pow(1.2, index);
+                return Math.pow(1.2, index + offset);
             }
         }
 
@@ -66,6 +66,16 @@ public class FeedingFragment extends BaseFragment {
             } else {
                 long result = (long) Math.round(Math.log(value) / Math.log(1.2));
                 result = Math.max(minValue(), Math.min(maxValue(), result));
+                return result;
+            }
+        }
+
+        public double getValueOffset(Double value) {
+            if (value == null) {
+                return 0.0d;
+            } else {
+                double result = getValueIndex(value) - Math.log(value) / Math.log(1.2);
+                result = Math.max(-0.5, Math.min(0.5, result));
                 return result;
             }
         }
@@ -164,7 +174,8 @@ public class FeedingFragment extends BaseFragment {
     @Override
     public void onStart() {
         super.onStart();
-        amount = 30.0;
+        binding.amountNumberPicker.setValueIndex(amountValuesGenerator.getValueIndex(30.0));
+        binding.amountNumberPicker.setRelativeValueIndexOffset(amountValuesGenerator.getValueOffset(30.0));
 
         resetVisibilityState();
     }
