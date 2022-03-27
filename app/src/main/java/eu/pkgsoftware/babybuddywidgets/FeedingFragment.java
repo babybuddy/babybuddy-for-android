@@ -2,7 +2,6 @@ package eu.pkgsoftware.babybuddywidgets;
 
 import android.app.ProgressDialog;
 import android.os.Bundle;
-import android.os.Handler;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
@@ -10,16 +9,11 @@ import android.widget.AdapterView;
 import android.widget.ArrayAdapter;
 import android.widget.Button;
 import android.widget.LinearLayout;
-import android.widget.SeekBar;
 import android.widget.Spinner;
 
 import java.text.DecimalFormat;
 import java.util.ArrayList;
-import java.util.HashMap;
 import java.util.List;
-import java.util.Map;
-import java.util.Timer;
-import java.util.TimerTask;
 
 import androidx.navigation.NavController;
 import androidx.navigation.Navigation;
@@ -106,43 +100,6 @@ public class FeedingFragment extends BaseFragment {
 
                 @Override
                 public void onNothingSelected(AdapterView<?> adapterView) {
-                }
-            }
-        );
-
-        binding.seekBar.setOnSeekBarChangeListener(
-            new SeekBar.OnSeekBarChangeListener() {
-                Timer timer = null;
-                Handler handler = new Handler(getActivity().getMainLooper());
-
-                @Override
-                public void onProgressChanged(SeekBar seekBar, int i, boolean b) {
-                }
-
-                @Override
-                public void onStartTrackingTouch(SeekBar seekBar) {
-                    timer = new Timer();
-                    timer.scheduleAtFixedRate(new TimerTask() {
-                        @Override
-                        public void run() {
-                            handler.post(
-                                new Runnable() {
-                                    @Override
-                                    public void run() {
-                                        //liveUpdateAmount(binding.seekBar.getProgress() - binding.seekBar.getMax() / 2);
-                                    }
-                                }
-                            );
-                        }
-                    }, 0, 200);
-                }
-
-                @Override
-                public void onStopTrackingTouch(SeekBar seekBar) {
-                    timer.cancel();
-                    timer.purge();
-                    timer = null;
-                    binding.seekBar.setProgress(binding.seekBar.getMax() / 2);
                 }
             }
         );
@@ -266,31 +223,6 @@ public class FeedingFragment extends BaseFragment {
         }
     }
 
-    private void liveUpdateAmount(int offset) {
-        final int[] baseFactors = {1, 2, 5, 10};
-        double foffset = 0;
-        if (offset == 0) {
-        } else {
-            double sign = offset / Math.abs(offset);
-            offset = Math.abs(offset) - 1;
-            foffset = 1;
-            while (offset > 0) {
-                if (offset >= baseFactors.length) {
-                    foffset *= baseFactors[baseFactors.length - 1];
-                    offset -= baseFactors.length;
-                } else {
-                    foffset *= baseFactors[offset];
-                    offset = 0;
-                }
-            }
-            amount += foffset * sign;
-        }
-        if (amount < 0) {
-            amount = 0d;
-        }
-        updateAmount();
-    }
-
     private List<Constants.FeedingMethodEnum> assignedMethodButtons = null;
     private void setupFeedingMethodButtons(Constants.FeedingTypeEnum type) {
         binding.submitButton.setVisibility(View.GONE);
@@ -344,13 +276,16 @@ public class FeedingFragment extends BaseFragment {
         long feedingMethodId = binding.feedingMethodSpinner.getSelectedItemId();
         Constants.FeedingMethodEnum feedingMethod = assignedMethodButtons.get((int) feedingMethodId);
 
-        Float dAmount = amount == null ? null : (float) (amount * 1.0d);
+        Float fAmount = amount == null ? null : (float) (amount * 1.0d);
+        if (fAmount != null) {
+            fAmount = Math.round(fAmount * 10.0f) / 10.0f;
+        }
 
         mainActivity().getClient().createFeedingRecordFromTimer(
             mainActivity().selectedTimer,
             feedingType.post_name,
             feedingMethod.post_name,
-            dAmount,
+            fAmount,
             notesEditor.noteEditor.getText().toString().trim(),
             new BabyBuddyClient.RequestCallback<Boolean>() {
                 @Override
