@@ -4,7 +4,16 @@ FREE_IMAGES = \
 	feeding-breast.png==pkg_breast
 
 FLATICON_IMAGES = \
-	4063767?size=512==pkg_poop
+	4063767?size=512==pkg_poop \
+	3313952?size=512==pkg_wet \
+	768818??size=512==pkg_notes \
+	768818??size=512==pkg_notes \
+	6056851?size=512==pkg_crawl \
+	768140?size=512==pkg_diaper \
+	865779?size=512==pkg_sleep \
+	5834939?size=512==pkg_bottle \
+	2128614?size=512==pkg_solid_food \
+	
 
 VARIANTS = \
 	drawable-mdpi==24 \
@@ -42,7 +51,6 @@ refresh-flaticon-token: flaticon-apikey
 define _variants_macro =
 
 $(VARIANTS_BASE_PATH)$$(call get_field,1,$(1))/%.png: resources/nonfree/%.png
-	@echo "DO STH $$@  $$^ "$$(call get_field,2,$(1))
 	convert "$$^" -resize "$$(call get_field,2,$(1))x$$(call get_field,2,$(1))" "$$@"
 
 endef
