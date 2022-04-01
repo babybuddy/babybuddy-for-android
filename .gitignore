@@ -1,3 +1,4 @@
+# Android stuff
 *.iml
 .gradle
 /local.properties
@@ -13,3 +14,7 @@
 .externalNativeBuild
 .cxx
 local.properties
+
+# Project stuff
+/flaticon-apikey
+/flaticon-token
