@@ -62,7 +62,6 @@ $(foreach v,$(VARIANTS),$(eval $(call _variants_macro,$(v))))
 define _flaticon_image =
 
 image_id := $$(call get_field,1,$$(subst ?,::,$$(call get_field,1,$(1))))
-$$(info XXX $(1) - $$(composite_image) )
 
 resources/nonfree/$$(call get_field,2,$(1)).marker: refresh-flaticon-token
 	@echo "$(1)" > "$$@.tmp"

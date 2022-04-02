@@ -64,7 +64,14 @@ task generateAboutStrings {
     about_strings_file_writer.close()
 }
 
+task updatePictograms {
+    exec {
+        commandLine 'make', '-C', '..', '-f', 'resources.makefile'
+    }
+}
+
 preBuild.finalizedBy(generateAboutStrings)
+preBuild.finalizedBy(updatePictograms)
 
 android {
     compileSdkVersion 30
