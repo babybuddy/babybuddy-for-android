@@ -18,3 +18,18 @@ local.properties
 # Project stuff
 /flaticon-apikey
 /flaticon-token
+
+
+# Non-free images - do not add to repository!
+pkg_bottle.png
+pkg_crawl.png
+pkg_diaper.png
+pkg_no_notes.png
+pkg_no_poop.png
+pkg_not_wet.png
+pkg_notes.png
+pkg_poop.png
+pkg_sleep.png
+pkg_solid_food.png
+pkg_wet.png
+
