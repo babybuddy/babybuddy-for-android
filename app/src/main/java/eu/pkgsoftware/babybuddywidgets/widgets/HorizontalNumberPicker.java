@@ -142,7 +142,7 @@ public class HorizontalNumberPicker extends View {
 
     private static final int SPEED_PROBE_INTERVAL_MILLISEC = 200;
     private static final int MAX_SPEED_SAMPLE_INTERVAL_MILLISEC = 50;
-    private static final float SPEED_DECAY = 0.01f; // portion of speed available after 1 sec
+    private static final float SPEED_DECAY = 0.02f; // portion of speed available after 1 sec
 
     private static class LocationSample {
         public long timeOffset = 0;
@@ -428,7 +428,7 @@ public class HorizontalNumberPicker extends View {
     }
 
     public void setRelativeValueIndexOffset(float offset) {
-        moveOffset = Math.max(-1.0f, Math.min(1.0f, offset)) * getXElementSeparation();
+        moveOffset = Math.max(-1.0f, Math.min(1.0f, -offset)) * getXElementSeparation();
         dragPointId = null;
         moveSpeed = 0.0f;
         moveAnimationQueued = false;

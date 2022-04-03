@@ -35,7 +35,11 @@ public class FeedingFragment extends BaseFragment {
         }
 
         public long maxValue() {
-            return 1000L;
+            return 1 + 5 * 9;
+        } // 5 orders of magnitude
+
+        private long calcBaseValue(long index) {
+            return (long) Math.round(Math.pow(10, (double) Math.max(0, (index / 9))));
         }
 
         public String getValue(long index) {
@@ -50,7 +54,19 @@ public class FeedingFragment extends BaseFragment {
             if (index + offset < -0.001) {
                 return null;
             } else {
-                return Math.pow(1.2, index + offset);
+                if (offset < 0) {
+                    index--;
+                    offset += 1.0f;
+                    if (index < 0) {
+                        index = 0;
+                        offset = 0.0f;
+                    }
+                }
+
+                if (index == 0) {
+                    return (double) offset;
+                }
+                return (double) calcBaseValue(index - 1) * (((index - 1) % 9 + 1) + offset);
             }
         }
 
@@ -58,9 +74,19 @@ public class FeedingFragment extends BaseFragment {
             if (value == null) {
                 return -1L;
             } else {
-                long result = (long) Math.round(Math.log(value) / Math.log(1.2));
-                result = Math.max(minValue(), Math.min(maxValue(), result));
-                return result;
+                long exp = (long) Math.max(0, Math.floor(Math.log10(value)));
+                long base10 = Math.round(Math.pow(10, exp));
+                double relativeRest = value / base10;
+
+                long index = (long) Math.floor(relativeRest);
+                double offset = relativeRest - index;
+                if (offset >= 0.5) {
+                    offset -= 1.0;
+                    index += 1;
+                }
+                index += 9 * exp;
+
+                return Math.max(minValue(), Math.min(maxValue(), index));
             }
         }
 
@@ -68,15 +94,25 @@ public class FeedingFragment extends BaseFragment {
             if (value == null) {
                 return 0.0d;
             } else {
-                double result = getValueIndex(value) - Math.log(value) / Math.log(1.2);
-                result = Math.max(-0.5, Math.min(0.5, result));
-                return result;
+                long exp = (long) Math.max(0, Math.floor(Math.log10(value)));
+                long base10 = Math.round(Math.pow(10, exp));
+                double relativeRest = value / base10;
+
+                long index = (long) Math.floor(relativeRest);
+                double offset = relativeRest - index;
+                if (offset >= 0.5) {
+                    offset -= 1.0;
+                    index += 1;
+                }
+                index +=  9 * exp;
+
+                return Math.max(-0.5, Math.min(0.5, offset));
             }
         }
     }
 
     private FeedingFragmentBinding binding = null;
-    private Double amount = 30.0;
+    private Double amount = 300.0;
     private NotesEditorBinding notesEditor = null;
     private AmountValuesGenerator amountValuesGenerator = new AmountValuesGenerator();
 
