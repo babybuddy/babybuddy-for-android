@@ -77,14 +77,18 @@ public class LoggedInFragment extends BaseFragment {
         }
 
         public void activeViewChanged(int position) {
+            BabyLayoutHolder selectThis = null;
             for (int i = 0; i < holders.size(); i++) {
                 BabyLayoutHolder holder = holders.get(position).holder;
                 if (holder == null) continue;
                 if (i == position) {
-                    holder.onViewSelected(stateTracker);
+                    selectThis = holder;
                 } else {
                     holder.onViewDeselected();
                 }
+            }
+            if (selectThis != null) {
+                selectThis.onViewSelected(stateTracker);
             }
         }
 

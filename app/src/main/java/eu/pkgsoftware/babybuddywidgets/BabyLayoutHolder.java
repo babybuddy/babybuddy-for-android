@@ -240,12 +240,20 @@ public class BabyLayoutHolder extends RecyclerView.ViewHolder {
         }
     }
 
+    private void resetChildHistoryLoader() {
+        if (childHistoryLoader != null) {
+            childHistoryLoader.close();
+        }
+        childHistoryLoader = null;
+    }
+
     public void updateChild(BabyBuddyClient.Child c) {
         this.child = c;
 
         notesEditor.setIdentifier("diaper_" + c.slug);
         notesSwitch.setState(notesEditor.isVisible());
 
+        resetChildHistoryLoader();
         resetDiaperUi();
     }
 
@@ -258,17 +266,14 @@ public class BabyLayoutHolder extends RecyclerView.ViewHolder {
         resetDiaperUi();
         binding.createDefaultTimers.setVisibility(View.GONE);
 
-        if (childHistoryLoader != null) {
-            childHistoryLoader.close();
-        }
+        resetChildHistoryLoader();
         childHistoryLoader = new ChildEventHistoryLoader(baseFragment, binding.timeline, child.id);
         childHistoryLoader.createTimelineObserver(tracker);
     }
 
     public void onViewDeselected() {
         resetDiaperUi();
-        childHistoryLoader.close();
-        childHistoryLoader = null;
+        resetChildHistoryLoader();
     }
 }
 
