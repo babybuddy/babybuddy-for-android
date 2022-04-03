@@ -1,7 +1,7 @@
 SPACE := $(null) $(null)
 
 FREE_IMAGES = \
-	feeding-breast.png::pkg_breast
+	resources/feeding-breast.png::pkg_breast
 
 FLATICON_IMAGES = \
 	6056851?size=512::pkg_crawl::-gravity_center_-resize_90%_-extent_512x512:: \
@@ -31,12 +31,47 @@ VARIANTS_BASE_PATH := app/src/main/res/
 
 get_field = $(word $(1),$(subst ::,$(SPACE),$(2)))
 
-ALL_TARGETS = $(foreach x,$(FLATICON_IMAGES),$(foreach v,$(VARIANTS), $(VARIANTS_BASE_PATH)$(call get_field,1,$(v))/$(call get_field,2,$(x)).png))
+ALL_TARGETS = \
+    $(foreach x,$(FLATICON_IMAGES),$(foreach v,$(VARIANTS), $(VARIANTS_BASE_PATH)$(call get_field,1,$(v))/$(call get_field,2,$(x)).png)) \
+    $(foreach x,$(FREE_IMAGES),$(foreach v,$(VARIANTS), $(VARIANTS_BASE_PATH)$(call get_field,1,$(v))/$(call get_field,2,$(x)).png))
 
-.PHONY: all refresh-flaticon-token
+.PHONY: all info refresh-flaticon-token
 
 all: $(ALL_TARGETS)
 
+info:
+	@echo -e -- Targets refreshed by this command: \\n  $(subst $(SPACE)$(SPACE),\\n$(SPACE)$(SPACE),$(ALL_TARGETS))
+
+# Generate variants for android
+define _variants_macro =
+
+$(VARIANTS_BASE_PATH)$$(call get_field,1,$(1))/%.png: resources/%.png
+	convert "$$<" -resize "$$(call get_field,2,$(1))x$$(call get_field,2,$(1))" "$$@"
+
+$(VARIANTS_BASE_PATH)$$(call get_field,1,$(1))/%.png: resources/nonfree/%.png
+	convert "$$<" -resize "$$(call get_field,2,$(1))x$$(call get_field,2,$(1))" "$$@"
+
+$(VARIANTS_BASE_PATH)$$(call get_field,1,$(1))/%.png: resources/tmp/%.png
+	convert "$$<" -resize "$$(call get_field,2,$(1))x$$(call get_field,2,$(1))" "$$@"
+
+endef
+
+$(foreach v,$(VARIANTS),$(eval $(call _variants_macro,$(v))))
+
+
+# Free images that are part of the repository
+define _prepare_free_image =
+
+$$(info resources/tmp/$$(call get_field,2,$(1)).png: $$(call get_field,1,$(1)))
+resources/tmp/$$(call get_field,2,$(1)).png: $$(call get_field,1,$(1))
+	cp "$$<" "$$@"
+
+endef
+
+$(foreach i,$(FREE_IMAGES),$(eval $(call _prepare_free_image,$(i))))
+
+
+# Flaticon images
 flaticon-apikey:
 	[ -e flaticon-apikey ] || ( echo "You need to create a flaticon api key first" && exit 1 )
 
@@ -48,19 +83,7 @@ refresh-flaticon-token: flaticon-apikey
 		echo Flaticon token refreshed \
 	)
 
-# Generate variant pngs
-define _variants_macro =
-
-$(VARIANTS_BASE_PATH)$$(call get_field,1,$(1))/%.png: resources/nonfree/%.png
-	convert "$$^" -resize "$$(call get_field,2,$(1))x$$(call get_field,2,$(1))" "$$@"
-
-endef
-
-$(foreach v,$(VARIANTS),$(eval $(call _variants_macro,$(v))))
-
-# Download images
-
-targets_created :=
+flaticon_targets_created :=
 define _flaticon_image =
 
 image_id := $$(call get_field,1,$$(subst ?,::,$$(call get_field,1,$(1))))
@@ -69,8 +92,8 @@ resources/nonfree/$$(call get_field,2,$(1)).marker: refresh-flaticon-token
 	@echo "$(1)" > "$$@.tmp"
 	@( [ -e "$$@" ] && diff "$$@" "$$@.tmp" > /dev/null ) && rm "$$@.tmp" || mv "$$@.tmp" "$$@"
 
-ifeq (,$$(findstring $$(image_id),$$(targets_created)))
-targets_created += $$(image_id)
+ifeq (,$$(findstring $$(image_id),$$(flaticon_targets_created)))
+flaticon_targets_created += $$(image_id)
 resources/nonfree/raw_$$(image_id).png:
 	curl $$$$CURL_ARGS -X GET \
 		-H "Accept: application/json" \
