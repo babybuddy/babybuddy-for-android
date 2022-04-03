@@ -12,11 +12,15 @@ while handling children.
 
 [User documentation](doc/index.md) is available as part of this repository.
 
-# License and attributions
+# Licenses
 
-The software is made available under the MIT License.
+The software (code) is made available under the MIT License.
 See [LICENSE.md](LICENSE.md) for details.
 
-In addition, this software contains _media_ published under attribution
-licenses. Please see [the attributions page](ATTRIBUTIONS.md) for details where
+In addition, this software contains _media_ published under
+non-free attribution licenses. Please see
+[the attributions page](ATTRIBUTIONS.md) for details where
 third party media was sourced.
+
+(This has consequences for building the repository. Check
+(BUILDING.md)[BUILDING.md] for details.)
