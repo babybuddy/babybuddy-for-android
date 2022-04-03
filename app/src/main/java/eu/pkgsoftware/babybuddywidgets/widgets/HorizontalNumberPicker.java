@@ -225,7 +225,7 @@ public class HorizontalNumberPicker extends View {
         }
         processDragOffsets();
 
-        if (moveAnimationQueued) {
+        if (moveAnimationQueued && isShown()) {
             getHandler().postDelayed(this::animateMove, 20);
         }
     }

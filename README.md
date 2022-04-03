@@ -23,4 +23,4 @@ non-free attribution licenses. Please see
 third party media was sourced.
 
 (This has consequences for building the repository. Check
-(BUILDING.md)[BUILDING.md] for details.)
+[BUILDING.md](BUILDING.md) for details.)

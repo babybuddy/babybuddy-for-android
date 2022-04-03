@@ -56,6 +56,7 @@ public class CredStore {
     private String encryptedToken;
     private Map<Integer, Integer> timerAssignments = new HashMap<Integer, Integer>();
     private Map<String, Notes> notesAssignments = new HashMap<String, Notes>();
+    private Double lastUsedAmount = null;
 
     private String currentChild = null;
     // private Map<String, String> children = new HashMap<>();
@@ -102,6 +103,17 @@ public class CredStore {
                     }
                     String[] splits = n.split(":", 2);
                     notesAssignments.put(noteName, new Notes(splits[1], "T".equals(splits[0])));
+                }
+            }
+
+
+            lastUsedAmount = null;
+            if (props.contains("last_used_amount")) {
+                String s = props.getProperty("last_used_amount", "null");
+                if ("null".equalsIgnoreCase(s)) {
+                    lastUsedAmount = null;
+                } else {
+                    lastUsedAmount = Double.valueOf(s);
                 }
             }
         }
@@ -178,6 +190,8 @@ public class CredStore {
             }
             props.setProperty("notes_" + e.getKey(), (e.getValue().visible ? "T" : "F") + ":" + e.getValue().note);
         }
+
+        props.setProperty("last_used_amount", "" + lastUsedAmount);
 
         try (FileOutputStream fos = new FileOutputStream(settingsFilePath.toString())) {
             props.store(fos, "");
@@ -280,5 +294,13 @@ public class CredStore {
     public void clearNotes() {
         notesAssignments.clear();
         storePrefs();
+    }
+    
+    public void storeLastUsedAmount(Double amount) {
+        lastUsedAmount = amount;
+    }
+    
+    public Double getLastUsedAmount() {
+        return lastUsedAmount;
     }
 }

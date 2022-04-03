@@ -167,8 +167,10 @@ public class FeedingFragment extends BaseFragment {
     @Override
     public void onStart() {
         super.onStart();
-        binding.amountNumberPicker.setValueIndex(amountValuesGenerator.getValueIndex(30.0));
-        binding.amountNumberPicker.setRelativeValueIndexOffset(amountValuesGenerator.getValueOffset(30.0));
+
+        Double lastUsedAmount = mainActivity().getCredStore().getLastUsedAmount();
+        binding.amountNumberPicker.setValueIndex(amountValuesGenerator.getValueIndex(lastUsedAmount));
+        binding.amountNumberPicker.setRelativeValueIndexOffset(amountValuesGenerator.getValueOffset(lastUsedAmount));
 
         resetVisibilityState();
     }
@@ -339,6 +341,7 @@ public class FeedingFragment extends BaseFragment {
                 @Override
                 public void response(Boolean response) {
                     progressDialog.cancel();
+                    mainActivity().getCredStore().storeLastUsedAmount(amount);
                     notesEditor.noteEditor.setText("");
                     mainActivity().getCredStore().setObjectNotes(
                         "timer_" + mainActivity().selectedTimer.id,
