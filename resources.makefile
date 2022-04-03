@@ -59,6 +59,8 @@ endef
 $(foreach v,$(VARIANTS),$(eval $(call _variants_macro,$(v))))
 
 # Download images
+
+targets_created :=
 define _flaticon_image =
 
 image_id := $$(call get_field,1,$$(subst ?,::,$$(call get_field,1,$(1))))
@@ -67,12 +69,15 @@ resources/nonfree/$$(call get_field,2,$(1)).marker: refresh-flaticon-token
 	@echo "$(1)" > "$$@.tmp"
 	@( [ -e "$$@" ] && diff "$$@" "$$@.tmp" > /dev/null ) && rm "$$@.tmp" || mv "$$@.tmp" "$$@"
 
+ifeq (,$$(findstring $$(image_id),$$(targets_created)))
+targets_created += $$(image_id)
 resources/nonfree/raw_$$(image_id).png:
 	curl $$$$CURL_ARGS -X GET \
 		-H "Accept: application/json" \
 		-H "Authorization: Bearer $$$$( cat ./flaticon-token )" \
 		--output "$$@" \
 		"https://api.flaticon.com/v2/item/icon/download/$$(call get_field,1,$(1))"
+endif
 
 resources/nonfree/$$(call get_field,2,$(1)).png: resources/nonfree/raw_$$(image_id).png resources/nonfree/$$(call get_field,2,$(1)).marker
 	convert "$$<" $$(subst $$(SPACE)$$(SPACE),_,$$(subst _,$(SPACE),$$(call get_field,3,$(1)))) "$$@.tmp.png"
