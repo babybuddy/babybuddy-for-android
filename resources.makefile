@@ -4,17 +4,17 @@ FREE_IMAGES = \
 	feeding-breast.png::pkg_breast
 
 FLATICON_IMAGES = \
-	6056851?size=512::pkg_crawl::-gravity_center_-resize_80%_-extent_512x512:: \
-	768140?size=512::pkg_diaper::-gravity_center_-resize_80%_-extent_512x512:: \
-	865779?size=512::pkg_sleep::-gravity_center_-resize_80%_-extent_512x512:: \
-	5834939?size=512::pkg_bottle::-gravity_center_-resize_80%_-extent_512x512:: \
-	2128614?size=512::pkg_solid_food::-gravity_center_-resize_80%_-extent_512x512:: \
-	4063767?size=512::pkg_poop::-gravity_center_-resize_80%_-extent_512x512:: \
+	6056851?size=512::pkg_crawl::-gravity_center_-resize_90%_-extent_512x512:: \
+	768140?size=512::pkg_diaper::-gravity_center_-resize_90%_-extent_512x512:: \
+	865779?size=512::pkg_sleep::-gravity_center_-resize_90%_-extent_512x512:: \
+	5834939?size=512::pkg_bottle::-gravity_center_-resize_90%_-extent_512x512:: \
+	2128614?size=512::pkg_solid_food::-gravity_center_-resize_90%_-extent_512x512:: \
+	4063767?size=512::pkg_poop::-gravity_center_-resize_100%_-extent_512x512:: \
 	3313952?size=512::pkg_wet::-gravity_center_-resize_80%_-extent_512x512:: \
-	1001371?size=512::pkg_notes::-gravity_center_-resize_80%_-extent_512x512:: \
-	4063767?size=512::pkg_no_poop::-gravity_center_-resize_80%_-extent_512x512::resources/intermed_cross.png \
+	1001371?size=512::pkg_notes::-gravity_center_-resize_90%_-extent_512x512:: \
+	4063767?size=512::pkg_no_poop::-gravity_center_-resize_100%_-extent_512x512::resources/intermed_cross.png \
 	3313952?size=512::pkg_not_wet::-gravity_center_-resize_80%_-extent_512x512::resources/intermed_cross.png \
-	1001371?size=512::pkg_no_notes::-gravity_center_-resize_80%_-extent_512x512::resources/intermed_cross.png \
+	1001371?size=512::pkg_no_notes::-gravity_center_-resize_90%_-extent_512x512::resources/intermed_cross.png \
 
 # Replace again!
 # 1001371 -> 768818??size=512::pkg_notes::-gravity_center_-extent_512x512 \
