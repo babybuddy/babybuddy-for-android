@@ -69,7 +69,7 @@ task updatePictograms {
         commandLine 'make', '-C', '..', '-f', 'resources.makefile'
     }
 }
-
+ 
 preBuild.finalizedBy(generateAboutStrings)
 preBuild.finalizedBy(updatePictograms)
 

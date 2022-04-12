@@ -39,6 +39,7 @@ In addition the following Linux software packages are required:
  - bash
  - curl
  - GNU make
+ - jq (JSON query tool) 
  - ImageMagick
     - Specifically the commands: convert, composite
 
