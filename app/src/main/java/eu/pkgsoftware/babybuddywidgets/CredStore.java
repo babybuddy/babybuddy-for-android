@@ -298,6 +298,7 @@ public class CredStore {
     
     public void storeLastUsedAmount(Double amount) {
         lastUsedAmount = amount;
+        storePrefs();
     }
     
     public Double getLastUsedAmount() {
