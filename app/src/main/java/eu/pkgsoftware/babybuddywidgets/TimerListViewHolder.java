@@ -27,22 +27,23 @@ public class TimerListViewHolder extends RecyclerView.ViewHolder {
     private SwitchButtonLogic startStopLogic = null;
 
     private BabyBuddyClient.Timer timer = null;
-    private long timerStartTime = -1;
+    private Long timerStartTime = null;
 
     private String padToLen(String s, char c, int length) {
         StringBuilder sBuilder = new StringBuilder(s);
         while (sBuilder.length() < length) {
             sBuilder.insert(0, c);
         }
-        return sBuilder.toString()  ;
+        return sBuilder.toString();
     }
 
     private boolean newUpdatedPosted = false;
+
     private void updateTimerTime() {
-        if (timerStartTime < 0) {
+        if (timerStartTime == null) {
             binding.currentTimerTime.setText("");
         } else {
-            long diff = System.currentTimeMillis() - timerStartTime;
+            long diff = System.currentTimeMillis() + timerStartTime;
 
             int seconds = (int) diff / 1000;
             int minutes = seconds / 60;
@@ -181,9 +182,9 @@ public class TimerListViewHolder extends RecyclerView.ViewHolder {
     private void updateActiveState() {
         startStopLogic.setState(timer.active);
         if ((timer == null) || (!timer.active)) {
-            timerStartTime = -1;
+            timerStartTime = null;
         } else {
-            timerStartTime = Math.max(0, timer.start.getTime() - client.getServerDateOffsetMillis());
+            timerStartTime = new Date().getTime() - timer.start.getTime() + client.getServerDateOffsetMillis() - System.currentTimeMillis();
         }
         updateTimerTime();
     }

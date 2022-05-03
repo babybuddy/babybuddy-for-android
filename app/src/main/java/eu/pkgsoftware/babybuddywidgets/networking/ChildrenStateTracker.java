@@ -232,7 +232,7 @@ public class ChildrenStateTracker {
 
         public StateObserver(long requestInterval) {
             this.requestInterval = requestInterval;
-            queueHandler.post(() -> update());
+            queueHandler.post(this::update);
         }
 
         public void close() {
@@ -339,6 +339,8 @@ public class ChildrenStateTracker {
 
                     @Override
                     public void response(BabyBuddyClient.Timer[] response) {
+                        System.out.println("AAA queueRequests-timers " + childId);
+
                         requeue();
 
                         if (isClosed()) {

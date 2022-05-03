@@ -1,5 +1,6 @@
 package eu.pkgsoftware.babybuddywidgets;
 
+import android.os.Looper;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
@@ -7,6 +8,7 @@ import android.view.ViewGroup;
 import java.util.Arrays;
 import java.util.LinkedList;
 import java.util.List;
+import java.util.Timer;
 
 import androidx.annotation.NonNull;
 import androidx.recyclerview.widget.GridLayoutManager;
@@ -38,7 +40,7 @@ public class BabyLayoutHolder extends RecyclerView.ViewHolder {
 
         private TimerListViewHolder findHolderForTimer(BabyBuddyClient.Timer t) {
             TimerListViewHolder result = null;
-            for (TimerListViewHolder h: holders) {
+            for (TimerListViewHolder h : holders) {
                 if (h.getTimer().id == t.id) {
                     if (result != null) {
                         return null; // Multiple timers - dismiss
@@ -121,6 +123,8 @@ public class BabyLayoutHolder extends RecyclerView.ViewHolder {
     private SwitchButtonLogic notesSwitch;
     private ChildEventHistoryLoader childHistoryLoader = null;
 
+    private ChildrenStateTracker.ChildObserver childObserver = null;
+
     public BabyLayoutHolder(BaseFragment fragment, BabyManagerBinding bmb) {
         super(bmb.getRoot());
         binding = bmb;
@@ -168,6 +172,10 @@ public class BabyLayoutHolder extends RecyclerView.ViewHolder {
             false
         );
         notesSwitch.addStateListener((b, userInduced) -> notesEditor.setVisible(b));
+    }
+
+    public BabyBuddyClient.Child getChild() {
+        return child;
     }
 
     private void resetDiaperUi() {
@@ -248,32 +256,68 @@ public class BabyLayoutHolder extends RecyclerView.ViewHolder {
     }
 
     public void updateChild(BabyBuddyClient.Child c) {
+        clear();
         this.child = c;
-
         notesEditor.setIdentifier("diaper_" + c.slug);
         notesSwitch.setState(notesEditor.isVisible());
-
-        resetChildHistoryLoader();
-        resetDiaperUi();
     }
 
     public void updateTimerList(BabyBuddyClient.Timer[] timers) {
+        for (BabyBuddyClient.Timer t : timers) {
+            if ((child == null) || (t.child_id != child.id)) {
+                timerListProvider.updateTimers(new BabyBuddyClient.Timer[0]);
+                return;
+            }
+        }
+
         timerListProvider.updateTimers(timers);
         binding.createDefaultTimers.setVisibility(timers.length == 0 ? View.VISIBLE : View.GONE);
     }
 
-    public void onViewSelected(ChildrenStateTracker tracker) {
-        resetDiaperUi();
+    public void onViewSelected(ChildrenStateTracker stateTracker) {
         binding.createDefaultTimers.setVisibility(View.GONE);
 
+        resetChildObserver();
         resetChildHistoryLoader();
-        childHistoryLoader = new ChildEventHistoryLoader(baseFragment, binding.timeline, child.id);
-        childHistoryLoader.createTimelineObserver(tracker);
+        resetDiaperUi();
+
+        if (child != null) {
+            System.out.println("AAA CREATE " + child.slug);
+            childObserver = stateTracker.new ChildObserver(child.id, new ChildrenStateTracker.ChildListener() {
+                @Override
+                public void childValidUpdated(boolean valid) {
+                }
+
+                @Override
+                public void timersUpdated(BabyBuddyClient.Timer[] timers) {
+                    updateTimerList(timers);
+                }
+            });
+
+            childHistoryLoader = new ChildEventHistoryLoader(baseFragment, binding.timeline, child.id);
+            childHistoryLoader.createTimelineObserver(stateTracker);
+        }
     }
 
     public void onViewDeselected() {
-        resetDiaperUi();
+        resetChildObserver();
         resetChildHistoryLoader();
+        resetDiaperUi();
+    }
+
+    private void resetChildObserver() {
+        if (childObserver != null) {
+            System.out.println("AAA CLOSE " + child.slug);
+            childObserver.close();
+            childObserver = null;
+        }
+    }
+
+    public void clear() {
+        resetChildObserver();
+        resetChildHistoryLoader();
+        resetDiaperUi();
+        child = null;
     }
 }
 

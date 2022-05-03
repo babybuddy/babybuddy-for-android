@@ -11,6 +11,7 @@ import android.view.ViewGroup;
 import android.widget.RelativeLayout;
 
 import java.util.ArrayList;
+import java.util.List;
 import java.util.Objects;
 
 import androidx.annotation.NonNull;
@@ -35,37 +36,41 @@ public class LoggedInFragment extends BaseFragment {
     private BabyBuddyClient.Child[] children = null;
 
     private class BabyPagerAdapter extends RecyclerView.Adapter<BabyLayoutHolder> {
-        private class HolderChildPair {
-            public BabyBuddyClient.Child child;
-            public BabyLayoutHolder holder;
-
-            public HolderChildPair(BabyBuddyClient.Child child, BabyLayoutHolder holder) {
-                this.child = child;
-                this.holder = holder;
-            }
-        }
-
-        private ArrayList<HolderChildPair> holders = new ArrayList<>();
+        private List<BabyLayoutHolder> holders = new ArrayList<>();
 
         @Override
-        public @NonNull BabyLayoutHolder onCreateViewHolder(@NonNull ViewGroup parent, int viewType) {
+        public @NonNull
+        BabyLayoutHolder onCreateViewHolder(@NonNull ViewGroup parent, int viewType) {
             BabyManagerBinding babyBinding = BabyManagerBinding.inflate(
                 getLayoutInflater(), null, false
             );
             View v = babyBinding.getRoot();
             v.setLayoutParams(new RelativeLayout.LayoutParams(
-                ViewGroup.LayoutParams.MATCH_PARENT,ViewGroup.LayoutParams.MATCH_PARENT
+                ViewGroup.LayoutParams.MATCH_PARENT, ViewGroup.LayoutParams.MATCH_PARENT
             ));
-            return new BabyLayoutHolder(LoggedInFragment.this, babyBinding);
+
+            BabyLayoutHolder holder = new BabyLayoutHolder(LoggedInFragment.this, babyBinding);
+            holders.add(holder);
+            return holder;
         }
 
         @Override
         public void onBindViewHolder(@NonNull BabyLayoutHolder holder, int position) {
-            while (position >= holders.size()) holders.add(null);
+            holder.updateChild(children[position]);
 
-            BabyBuddyClient.Child c = children[position];
-            holders.set(position, new HolderChildPair(c, holder));
-            holder.updateChild(c);
+            int childIndex = childIndexBySlug(credStore.getSelectedChild());
+            if (childIndex >= 0) {
+                System.out.println("AAA bind " + children[position]);
+                if (Objects.equals(children[position], children[childIndex])) {
+                    activeViewChanged(children[position]);
+                }
+            }
+        }
+
+        @Override
+        public void onViewRecycled(@NonNull BabyLayoutHolder holder) {
+            holder.clear();
+            System.out.println("AAA recycle " + holder);
         }
 
         @Override
@@ -76,29 +81,22 @@ public class LoggedInFragment extends BaseFragment {
             return children.length;
         }
 
-        public void activeViewChanged(int position) {
-            BabyLayoutHolder selectThis = null;
-            for (int i = 0; i < holders.size(); i++) {
-                BabyLayoutHolder holder = holders.get(position).holder;
-                if (holder == null) continue;
-                if (i == position) {
-                    selectThis = holder;
+        public void activeViewChanged(BabyBuddyClient.Child c) {
+            for (BabyLayoutHolder h : holders) {
+                System.out.println("AAA active changed " + h.getChild() + "  " + c);
+                System.out.println("AAA " + holders + " - " + h + "  this=" + this);
+                if (Objects.equals(c, h.getChild())) {
+                    h.onViewSelected(stateTracker);
                 } else {
-                    holder.onViewDeselected();
+                    h.onViewDeselected();
                 }
-            }
-            if (selectThis != null) {
-                selectThis.onViewSelected(stateTracker);
             }
         }
 
-        public BabyLayoutHolder getHolderFor(BabyBuddyClient.Child c) {
-            for (HolderChildPair p : holders) {
-                if ((p != null) && (p.child != null) && (p.child.id == c.id)) {
-                    return p.holder;
-                }
-            }
-            return null;
+        public void updateChildrenList() {
+            System.out.println("AAA updateChildrenList PRE");
+            notifyDataSetChanged();
+            System.out.println("AAA updateChildrenList POST");
         }
     }
 
@@ -121,46 +119,26 @@ public class LoggedInFragment extends BaseFragment {
         }
     }
 
-    private final ChildrenStateTracker.ChildListener CHILD_LISTENER = new ChildrenStateTracker.ChildListener() {
-        @Override
-        public void childValidUpdated(boolean valid) {
-
-        }
-
-        @Override
-        public void timersUpdated(BabyBuddyClient.Timer[] timers) {
-            BabyBuddyClient.Child child = selectedChild();
-            babyAdapter.getHolderFor(child).updateTimerList(timers);
-        }
-    };
-
     @Override
     public View onCreateView(
-        @NonNull  LayoutInflater inflater, ViewGroup container,
+        @NonNull LayoutInflater inflater, ViewGroup container,
         Bundle savedInstanceState
     ) {
         binding = LoggedInFragmentBinding.inflate(inflater, container, false);
+
+        babyAdapter = new BabyPagerAdapter();
+        binding.babyViewPagerSwitcher.setAdapter(babyAdapter);
         binding.babyViewPagerSwitcher.registerOnPageChangeCallback(
             new ViewPager2.OnPageChangeCallback() {
-                private ChildrenStateTracker.ChildObserver childObserver = null;
-
                 @Override
                 public void onPageSelected(int position) {
-                    super.onPageSelected(position);
-                    babyAdapter.activeViewChanged(position);
+                super.onPageSelected(position);
 
-                    BabyBuddyClient.Child child = children == null ? null : children[position];
-                    credStore.setSelectedChild(child == null ? null : child.slug);
+                BabyBuddyClient.Child child = children == null ? null : children[position];
+                credStore.setSelectedChild(child == null ? null : child.slug);
+                babyAdapter.activeViewChanged(child);
 
-                    if (childObserver != null) {
-                        childObserver.close();
-                        childObserver = null;
-                    }
-                    if (child != null) {
-                        stateTracker.new ChildObserver(child.id, CHILD_LISTENER);
-                    }
-
-                    updateTitle();
+                updateTitle();
                 }
             }
         );
@@ -198,8 +176,7 @@ public class LoggedInFragment extends BaseFragment {
         stateTracker = new ChildrenStateTracker(client, getMainActivity().getMainLooper());
         stateTracker.new ChildListObserver((children) -> {
             LoggedInFragment.this.children = children;
-            babyAdapter = new BabyPagerAdapter();
-            binding.babyViewPagerSwitcher.setAdapter(babyAdapter);
+            babyAdapter.updateChildrenList();
 
             int childIndex = childIndexBySlug(credStore.getSelectedChild());
             binding.babyViewPagerSwitcher.setCurrentItem(Math.max(0, childIndex), false);
