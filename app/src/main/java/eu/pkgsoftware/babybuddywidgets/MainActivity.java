@@ -1,6 +1,7 @@
 package eu.pkgsoftware.babybuddywidgets;
 
 import android.os.Bundle;
+import android.view.View;
 
 import androidx.appcompat.app.AppCompatActivity;
 
@@ -15,6 +16,8 @@ public class MainActivity extends AppCompatActivity {
 
     public BabyBuddyClient.Child[] children = new BabyBuddyClient.Child[0];
     public BabyBuddyClient.Timer selectedTimer = null;
+
+    public TutorialAccess tutorialAccess = null;
 
     public CredStore getCredStore() {
         if (credStore == null) {
@@ -41,6 +44,8 @@ public class MainActivity extends AppCompatActivity {
         binding = ActivityMainBinding.inflate(getLayoutInflater());
         setContentView(binding.getRoot());
         setSupportActionBar(binding.toolbar);
+
+        tutorialAccess = new TutorialAccess(this);
 
         binding.toolbar.setNavigationOnClickListener(view -> {});
         binding.toolbar.setNavigationIcon(null);
