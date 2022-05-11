@@ -99,6 +99,7 @@ android {
     buildFeatures {
         viewBinding true
     }
+    namespace 'eu.pkgsoftware.babybuddywidgets'
 }
 
 dependencies {
