@@ -16,10 +16,4 @@
         app:layout_constraintRight_toRightOf="parent"
         app:layout_constraintTop_toTopOf="parent"
         app:navGraph="@navigation/nav_graph" />
-
-    <android.view.View
-        android:id="@+id/tutorial_arrow"
-        android:layout_width="64dp"
-        android:layout_height="64dp"
-        android:background="@drawable/ic_tutorial_arrow" />
 </androidx.constraintlayout.widget.ConstraintLayout>
