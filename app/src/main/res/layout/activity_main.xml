@@ -28,4 +28,12 @@
         android:layout_height="64dp"
         android:elevation="10dp"
         android:background="@drawable/ic_tutorial_arrow" />
+    <androidx.appcompat.widget.AppCompatTextView
+        android:id="@+id/tutorial_text"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:elevation="10dp"
+        android:gravity="center"
+        android:text="Sample text"
+        />
 </androidx.coordinatorlayout.widget.CoordinatorLayout>

@@ -12,14 +12,17 @@ import android.view.ViewGroup
 import android.view.animation.Animation
 import android.view.animation.AnimationSet
 import android.view.animation.AnimationUtils
+import android.widget.TextView
 import androidx.core.animation.addListener
 
 class TutorialAccess(private val activity: Activity) {
     private val tutorialArrow: View;
+    private val tutorialText: TextView;
     private var animations = arrayOf<Animator>();
 
     init {
         tutorialArrow = activity.findViewById(R.id.tutorial_arrow);
+        tutorialText = activity.findViewById(R.id.tutorial_text);
 
         hideTutorial();
     }
@@ -62,7 +65,7 @@ class TutorialAccess(private val activity: Activity) {
 
     }
 
-    public fun tutorialMessage(view: View, messsage: String) {
+    public fun tutorialMessage(view: View, message: String) {
         if (view.visibility != View.VISIBLE) {
             println("Tutorial: Cannot show tutorial on hidden view");
             hideTutorial();
@@ -89,6 +92,11 @@ class TutorialAccess(private val activity: Activity) {
         tutorialArrow.x = arrowX.toFloat();
         tutorialArrow.y = arrowY.toFloat();
 
+        tutorialText.text = message;
+        tutorialText.y = arrowY + tutorialArrow.height.toFloat();
+        tutorialText.x = arrowX - tutorialText.width / 2f;
+
+        tutorialText.visibility = View.VISIBLE;
         tutorialArrow.visibility = View.VISIBLE;
 
         stopAnimations();
@@ -99,5 +107,6 @@ class TutorialAccess(private val activity: Activity) {
 
     public fun hideTutorial() {
         tutorialArrow.visibility = View.INVISIBLE;
+        tutorialText.visibility = View.INVISIBLE;
     }
 }
