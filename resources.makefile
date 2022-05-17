@@ -20,20 +20,36 @@ FLATICON_IMAGES = \
 # 1001371 -> 768818??size=512::pkg_notes::-gravity_center_-extent_512x512 \
 
 
-VARIANTS = \
+DRAWABLE_VARIANTS = \
 	drawable-mdpi::24 \
 	drawable-hdpi::36 \
 	drawable-xhdpi::48 \
 	drawable-xxhdpi::72 \
 	drawable-xxxhdpi::96 \
 
+MIPMAPS = \
+	mipmap-mdpi::48 \
+	mipmap-hdpi::72 \
+	mipmap-xhdpi::96 \
+	mipmap-xxhdpi::144 \
+	mipmap-xxxhdpi::192 \
+
 VARIANTS_BASE_PATH := app/src/main/res/
 
 get_field = $(word $(1),$(subst ::,$(SPACE),$(2)))
 
+DRAWABLE_TARGETS = \
+    $(foreach x,$(FLATICON_IMAGES),$(foreach v,$(DRAWABLE_VARIANTS), $(VARIANTS_BASE_PATH)$(call get_field,1,$(v))/$(call get_field,2,$(x)).png)) \
+    $(foreach x,$(FREE_IMAGES),$(foreach v,$(DRAWABLE_VARIANTS), $(VARIANTS_BASE_PATH)$(call get_field,1,$(v))/$(call get_field,2,$(x)).png))
+
+PROGRAM_ICON_TARGETS = \
+    $(foreach v,$(MIPMAPS), $(VARIANTS_BASE_PATH)$(call get_field,1,$(v))/ic_launcher.png) \
+    $(foreach v,$(MIPMAPS), $(VARIANTS_BASE_PATH)$(call get_field,1,$(v))/ic_launcher_round.png) \
+    app/src/main/pkg_app_icon-playstore.png
+
 ALL_TARGETS = \
-    $(foreach x,$(FLATICON_IMAGES),$(foreach v,$(VARIANTS), $(VARIANTS_BASE_PATH)$(call get_field,1,$(v))/$(call get_field,2,$(x)).png)) \
-    $(foreach x,$(FREE_IMAGES),$(foreach v,$(VARIANTS), $(VARIANTS_BASE_PATH)$(call get_field,1,$(v))/$(call get_field,2,$(x)).png))
+    $(DRAWABLE_TARGETS) \
+    $(PROGRAM_ICON_TARGETS) \
 
 .PHONY: all info refresh-flaticon-token
 
@@ -42,8 +58,8 @@ all: $(ALL_TARGETS)
 info:
 	@echo -e -- Targets refreshed by this command: \\n  $(subst $(SPACE)$(SPACE),\\n$(SPACE)$(SPACE),$(ALL_TARGETS))
 
-# Generate variants for android
-define _variants_macro =
+# Generate drawable variants for android
+define _drawable_variants_macro =
 
 $(VARIANTS_BASE_PATH)$$(call get_field,1,$(1))/%.png: resources/%.png
 	convert "$$<" -resize "$$(call get_field,2,$(1))x$$(call get_field,2,$(1))" "$$@"
@@ -56,7 +72,7 @@ $(VARIANTS_BASE_PATH)$$(call get_field,1,$(1))/%.png: resources/tmp/%.png
 
 endef
 
-$(foreach v,$(VARIANTS),$(eval $(call _variants_macro,$(v))))
+$(foreach v,$(DRAWABLE_VARIANTS),$(eval $(call _drawable_variants_macro,$(v))))
 
 
 # Free images that are part of the repository
@@ -112,3 +128,33 @@ endef
 
 $(foreach flaticon,$(FLATICON_IMAGES), $(eval $(call _flaticon_image,$(flaticon))))
 
+# Rectangular icon conversion
+define _convert_rectangular_icon =
+
+$(VARIANTS_BASE_PATH)$$(call get_field,1,$(1))/ic_launcher.png: resources/icon/icon.png
+	mkdir $$(dir $$@) 2> /dev/null || true
+	convert $$< -resize $$(call get_field,2,$(1))x$$(call get_field,2,$(1)) $$@
+
+endef
+
+$(foreach mipmap,$(MIPMAPS), $(eval $(call _convert_rectangular_icon,$(mipmap))))
+
+# Round icon conversion
+ROUND_ICON_CUTOUT = resources/tmp/_round_icon_cutout.png
+
+$(ROUND_ICON_CUTOUT): resources/icon/round_icon_cutout.svg
+	convert -background none $< -resize 512x512 $@
+
+define _convert_rectangular_icon =
+
+$(VARIANTS_BASE_PATH)$$(call get_field,1,$(1))/ic_launcher_round.png: resources/icon/icon.png $(ROUND_ICON_CUTOUT)
+	mkdir $$(dir $$@) 2> /dev/null || true
+	convert -background none $$< -gravity center -scale 80% -extent 512x512 $(ROUND_ICON_CUTOUT) -compose Multiply -composite -resize $$(call get_field,2,$(1))x$$(call get_field,2,$(1)) $$@
+
+endef
+
+$(foreach mipmap,$(MIPMAPS), $(eval $(call _convert_rectangular_icon,$(mipmap))))
+
+# Playstore icon
+app/src/main/pkg_app_icon-playstore.png: resources/icon/icon.png
+	convert -background none $< -resize 512x512 $@
