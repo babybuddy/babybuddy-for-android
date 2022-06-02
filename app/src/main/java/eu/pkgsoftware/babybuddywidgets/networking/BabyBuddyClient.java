@@ -456,12 +456,7 @@ public class BabyBuddyClient extends StreamReader {
                     }
                     Collections.sort(
                         result,
-                        new Comparator<Timer>() {
-                            @Override
-                            public int compare(Timer t1, Timer t2) {
-                                return Integer.compare(t1.id, t2.id);
-                            }
-                        }
+                        (t1, t2) -> Integer.compare(t1.id, t2.id)
                     );
                     callback.response(result.toArray(new Timer[0]));
                 } catch (JSONException | ParseException e) {
