@@ -3,9 +3,12 @@
     xmlns:tools="http://schemas.android.com/tools"
     tools:context="eu.pkgsoftware.babybuddywidgets.MainActivity">
     <item
+        android:id="@+id/recreateTimersButton"
+        android:title="@string/recreateTimersMenu" />
+    <item
         android:id="@+id/logoutMenuButton"
-        android:icon="?attr/actionModeCloseDrawable"
-        android:title="Logout" />
+        android:icon="@android:drawable/ic_menu_revert"
+        android:title="@string/logoutMenu" />
     <item
         android:id="@+id/aboutPageMenuItem"
         android:title="@string/about_page_title" />

@@ -37,4 +37,8 @@
     <string name="LoggingInMessage">Logging in…</string>
 
     <string name="about_page_title">About Baby&#160;Buddy for Android</string>
+
+    <!-- Menu items -->
+    <string name="recreateTimersMenu">Recreate default timers</string>
+    <string name="logoutMenu">Logout</string>
 </resources>

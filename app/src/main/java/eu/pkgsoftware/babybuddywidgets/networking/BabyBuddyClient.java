@@ -449,21 +449,32 @@ public class BabyBuddyClient extends StreamReader {
                 try {
                     JSONObject obj = new JSONObject(response);
                     JSONArray timers = obj.getJSONArray("results");
-                    List<Timer> result = new ArrayList<Timer>(timers.length());
+                    List<Timer> result = new ArrayList<>(timers.length());
                     for (int i = 0; i < timers.length(); i++) {
                         JSONObject item = timers.getJSONObject(i);
                         result.add(Timer.fromJSON(item));
                     }
-                    Collections.sort(
-                        result,
-                        (t1, t2) -> Integer.compare(t1.id, t2.id)
-                    );
+                    result.sort(Comparator.comparingInt(t -> t.id));
                     callback.response(result.toArray(new Timer[0]));
                 } catch (JSONException | ParseException e) {
                     this.error(e);
                 }
             }
         });
+    }
+
+    public void deleteTimer(int timer_id, RequestCallback<Boolean> callback) {
+         dispatchQuery("DELETE", String.format("api/timers/%d/", timer_id), null, new RequestCallback<String>() {
+             @Override
+             public void error(Exception error) {
+                 callback.error(error);
+             }
+
+             @Override
+             public void response(String response) {
+                 callback.response(true);
+             }
+         });
     }
 
     private static String urlencode(String s) {
