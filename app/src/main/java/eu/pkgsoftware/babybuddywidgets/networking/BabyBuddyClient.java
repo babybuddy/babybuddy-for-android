@@ -38,7 +38,7 @@ public class BabyBuddyClient extends StreamReader {
 
         // Remove milliseconds
         String strDate = o.getString(field);
-        strDate = strDate.replaceAll("\\.[0-9]+([+Z])", "$1");
+        strDate = strDate.replaceAll("\\.[0-9]+([+-Z])", "$1");
         strDate = strDate.replaceAll("Z$", "+00:00");
         return sdf.parse(strDate);
     }

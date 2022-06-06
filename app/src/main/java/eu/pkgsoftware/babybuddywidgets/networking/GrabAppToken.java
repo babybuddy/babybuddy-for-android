@@ -171,8 +171,11 @@ public class GrabAppToken extends StreamReader {
         postData.put("csrfmiddlewaretoken", csrfmiddlewaretoken);
         postData.put("username", username);
         postData.put("password", password);
-        String urlEncodedString =  urlEncodedPostString(postData);
+        postData.put("next", "/");
+        String urlEncodedString = urlEncodedPostString(postData);
 
+
+        final String referer = con.getURL().toString();
 
         con = doQuery("login/");
         con.setRequestMethod("POST");
@@ -183,6 +186,7 @@ public class GrabAppToken extends StreamReader {
         con.setRequestProperty("Content-Type", "application/x-www-form-urlencoded");
         con.setRequestProperty("Cookie", "csrftoken=" + csrftoken);
         con.setRequestProperty("Content-Length", "" + urlEncodedString.length());
+        con.setRequestProperty("Referer", referer);
 
         OutputStream os = con.getOutputStream();
         os.write(urlEncodedString.getBytes(StandardCharsets.UTF_8));
