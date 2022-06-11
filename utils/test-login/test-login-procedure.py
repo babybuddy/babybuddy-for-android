@@ -1,4 +1,3 @@
-from email import header
 import sys
 import json
 import requests
