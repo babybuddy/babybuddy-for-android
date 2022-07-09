@@ -7,12 +7,22 @@
     android:alpha="0.5"
     tools:context=".LoginFragment">
 
+    <TextView
+        android:layout_marginTop="32dp"
+        android:id="@+id/textView2"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:text="TextView"
+        app:layout_constraintBottom_toTopOf="@+id/serverAddressEdit"
+        app:layout_constraintStart_toStartOf="@+id/serverAddressEdit"
+        app:layout_constraintTop_toTopOf="parent" />
+
     <Button
         android:id="@+id/loginButton"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
         android:layout_marginTop="28dp"
-        android:text="Login"
+        android:text="@string/login_button"
         app:layout_constraintEnd_toEndOf="@+id/passwordEdit"
         app:layout_constraintStart_toStartOf="@+id/passwordEdit"
         app:layout_constraintTop_toBottomOf="@+id/passwordEdit" />
@@ -34,7 +44,7 @@
         android:layout_height="46dp"
         android:layout_marginTop="4dp"
         android:ems="10"
-        android:hint="Login Password"
+        android:hint="@string/login_password_hint"
         android:inputType="textPassword"
         app:layout_constraintStart_toStartOf="@+id/loginNameEdit"
         app:layout_constraintTop_toBottomOf="@+id/loginNameEdit" />
@@ -43,13 +53,13 @@
         android:id="@+id/serverAddressEdit"
         android:layout_width="300dp"
         android:layout_height="46dp"
-        android:layout_marginTop="36dp"
+        android:layout_marginTop="8dp"
         android:ems="10"
-        android:hint="Server Address"
+        android:hint="@string/server_address_hint"
         android:inputType="textUri"
         app:layout_constraintEnd_toEndOf="parent"
         app:layout_constraintHorizontal_bias="0.495"
         app:layout_constraintStart_toStartOf="parent"
-        app:layout_constraintTop_toTopOf="parent" />
+        app:layout_constraintTop_toBottomOf="@id/textView2"/>
 
 </androidx.constraintlayout.widget.ConstraintLayout>
