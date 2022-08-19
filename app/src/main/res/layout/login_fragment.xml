@@ -4,28 +4,15 @@
     xmlns:tools="http://schemas.android.com/tools"
     android:layout_width="match_parent"
     android:layout_height="match_parent"
-    android:alpha="0.5"
     tools:context=".LoginFragment">
 
     <androidx.constraintlayout.widget.ConstraintLayout
-        android:layout_marginTop="16dp"
+        android:layout_width="match_parent"
+        android:layout_height="match_parent"
         android:layout_marginBottom="16dp"
         android:layout_marginLeft="32dp"
         android:layout_marginRight="32dp"
-        android:layout_width="match_parent"
-        android:layout_height="match_parent"
-        android:alpha="0.5">
-
-        <TextView
-            android:id="@+id/loginInfoText"
-            android:layout_width="match_parent"
-            android:layout_height="wrap_content"
-            android:text="@string/login_explanation"
-            android:textColor="@android:color/primary_text_light"
-            app:layout_constraintEnd_toEndOf="parent"
-            app:layout_constraintHorizontal_bias="0.5"
-            app:layout_constraintStart_toStartOf="parent"
-            app:layout_constraintTop_toTopOf="parent" />
+        android:layout_marginTop="16dp">
 
         <Button
             android:id="@+id/loginButton"
@@ -42,9 +29,9 @@
             android:layout_width="match_parent"
             android:layout_height="48dp"
             android:layout_marginTop="8dp"
+            android:autofillHints="username"
             android:ems="10"
             android:hint="@string/login_text_hint"
-            android:autofillHints="username"
             android:inputType="textPersonName"
             app:layout_constraintStart_toStartOf="@+id/serverAddressEdit"
             app:layout_constraintTop_toBottomOf="@+id/serverAddressEdit" />
@@ -54,23 +41,34 @@
             android:layout_width="match_parent"
             android:layout_height="48dp"
             android:layout_marginTop="4dp"
+            android:autofillHints="password"
             android:ems="10"
             android:hint="@string/login_password_hint"
-            android:autofillHints="password"
             android:inputType="textPassword"
             app:layout_constraintStart_toStartOf="@+id/loginNameEdit"
             app:layout_constraintTop_toBottomOf="@+id/loginNameEdit" />
 
         <EditText
             android:id="@+id/serverAddressEdit"
-            android:layout_marginTop="16dp"
             android:layout_width="match_parent"
             android:layout_height="48dp"
+            android:layout_marginTop="16dp"
             android:ems="10"
             android:hint="@string/server_address_hint"
+            android:importantForAutofill="no"
             android:inputType="textUri"
             app:layout_constraintStart_toStartOf="@id/loginInfoText"
-            app:layout_constraintTop_toBottomOf="@id/loginInfoText"
-            android:importantForAutofill="no" />
+            app:layout_constraintTop_toBottomOf="@id/loginInfoText" />
+
+        <TextView
+            android:id="@+id/loginInfoText"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:text="@string/login_explanation"
+            android:textColor="?android:attr/textColorPrimary"
+            app:layout_constraintEnd_toEndOf="parent"
+            app:layout_constraintHorizontal_bias="0.5"
+            app:layout_constraintStart_toStartOf="parent"
+            app:layout_constraintTop_toTopOf="parent" />
     </androidx.constraintlayout.widget.ConstraintLayout>
 </androidx.constraintlayout.widget.ConstraintLayout>
