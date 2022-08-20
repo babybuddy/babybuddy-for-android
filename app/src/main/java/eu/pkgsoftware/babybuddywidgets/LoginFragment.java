@@ -4,6 +4,7 @@ import android.app.AlertDialog;
 import android.os.Bundle;
 import android.text.Editable;
 import android.text.TextWatcher;
+import android.text.method.LinkMovementMethod;
 import android.view.LayoutInflater;
 import android.view.Menu;
 import android.view.MenuInflater;
@@ -12,6 +13,9 @@ import android.view.View;
 import android.view.ViewGroup;
 import android.widget.Button;
 import android.widget.EditText;
+import android.widget.TextView;
+
+import java.util.Objects;
 
 import androidx.annotation.NonNull;
 import androidx.navigation.NavController;
@@ -121,13 +125,15 @@ public class LoginFragment extends BaseFragment {
         binding.passwordEdit.setText("");
         binding.loginNameEdit.setText("");
 
+        binding.loginInfoText.setMovementMethod(LinkMovementMethod.getInstance());
+
         updateLoginButton();
 
         return binding.getRoot();
     }
 
     private void showProgress() {
-        showProgress(getString(R.string.LoggingInMessage));
+        showProgress(getString(R.string.logging_in_message));
     }
 
     @Override

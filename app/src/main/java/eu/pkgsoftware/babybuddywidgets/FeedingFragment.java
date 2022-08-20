@@ -307,7 +307,7 @@ public class FeedingFragment extends BaseFragment {
     private void submitFeeding() {
         ProgressDialog progressDialog = new ProgressDialog(getContext());
         progressDialog.setProgressStyle(ProgressDialog.STYLE_SPINNER);
-        progressDialog.setMessage(getString(R.string.LoggingInMessage));
+        progressDialog.setMessage(getString(R.string.logging_in_message));
 
         long feedingTypeId = binding.feedingTypeSpinner.getSelectedItemId();
         Constants.FeedingTypeEnum feedingType = Constants.FeedingTypeEnumValues.get((int) feedingTypeId);
