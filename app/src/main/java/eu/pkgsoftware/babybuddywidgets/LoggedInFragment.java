@@ -105,6 +105,12 @@ public class LoggedInFragment extends BaseFragment {
         public BabyLayoutHolder getActive() {
             return activeHolder;
         }
+
+        public void close() {
+            for (BabyLayoutHolder h : holders) {
+                h.close();
+            }
+        }
     }
 
     @Override
@@ -235,6 +241,12 @@ public class LoggedInFragment extends BaseFragment {
         stateTracker = null;
 
         credStore.storePrefs();
+    }
+
+    @Override
+    public void onDestroyView() {
+        babyAdapter.close();
+        super.onDestroyView();
     }
 
     private int childIndexBySlug(String slug) {

@@ -108,6 +108,12 @@ public class BabyLayoutHolder extends RecyclerView.ViewHolder {
         public int getItemCount() {
             return timers.length;
         }
+
+        public void close() {
+            for (TimerListViewHolder h : holders) {
+                h.close();
+            }
+        }
     }
 
     private BabyManagerBinding binding;
@@ -397,6 +403,11 @@ public class BabyLayoutHolder extends RecyclerView.ViewHolder {
         resetChildHistoryLoader();
         resetDiaperUi();
         child = null;
+    }
+
+    public void close() {
+        clear();
+        timerListProvider.close();
     }
 }
 

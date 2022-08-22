@@ -29,6 +29,8 @@ public class TimerListViewHolder extends RecyclerView.ViewHolder {
     private BabyBuddyClient.Timer timer = null;
     private Long timerStartTime = null;
 
+    private boolean isClosed = false;
+
     private String padToLen(String s, char c, int length) {
         StringBuilder sBuilder = new StringBuilder(s);
         while (sBuilder.length() < length) {
@@ -59,7 +61,9 @@ public class TimerListViewHolder extends RecyclerView.ViewHolder {
             if (!newUpdatedPosted) {
                 timerHandler.postDelayed(() -> {
                     newUpdatedPosted = false;
-                    updateTimerTime();
+                    if (!isClosed) {
+                        updateTimerTime();
+                    }
                 }, 500);
                 newUpdatedPosted = true;
             }
@@ -202,6 +206,11 @@ public class TimerListViewHolder extends RecyclerView.ViewHolder {
     }
 
     public void assignTimer(BabyBuddyClient.Timer timer) {
+        if (isClosed) {
+            isClosed = false;
+            updateTimerTime();
+        }
+
         this.timer = timer;
         binding.timerName.setText(timer.readableName());
         Integer defaultSelection = credStore.getTimerDefaultSelections().get(timer.id);
@@ -221,5 +230,10 @@ public class TimerListViewHolder extends RecyclerView.ViewHolder {
 
     public BabyBuddyClient.Timer getTimer() {
         return timer.clone();
+    }
+
+    public void close() {
+        timerStartTime = null;
+        isClosed = true;
     }
 }

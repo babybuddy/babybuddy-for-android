@@ -1,7 +1,10 @@
 package eu.pkgsoftware.babybuddywidgets;
 
+import android.annotation.SuppressLint;
 import android.app.AlertDialog;
+import android.content.ContentResolver;
 import android.os.Bundle;
+import android.provider.Settings;
 import android.text.Editable;
 import android.text.TextWatcher;
 import android.text.method.LinkMovementMethod;
@@ -89,6 +92,9 @@ public class LoginFragment extends BaseFragment {
         String serverUrl = credStore.getServerUrl();
         if (serverUrl == null) {
             serverUrl = "";
+            if (isTestlab()) {
+                serverUrl = "https://babybuddy-test.pkgsoftware.eu/";
+            }
         }
         addressEdit.setText(serverUrl);
 
@@ -130,6 +136,24 @@ public class LoginFragment extends BaseFragment {
         updateLoginButton();
 
         return binding.getRoot();
+    }
+
+    /**
+     * Check if running in a testlab-context
+     */
+    @SuppressLint("SetTextI18n")
+    private boolean isTestlab() {
+        boolean testlab = false;
+
+        ContentResolver cr = getMainActivity().getContentResolver();
+        if (cr != null) {
+            String testLabSetting = Settings.System.getString(cr,"firebase.test.lab");
+            if ("true".equals(testLabSetting)) {
+                testlab = true;
+            }
+        }
+
+        return testlab;
     }
 
     private void showProgress() {
