@@ -83,6 +83,8 @@
                 android:layout_margin="4dp"
                 android:layout_weight="0"
                 android:src="@drawable/pkg_no_notes"
+                android:tint="?android:attr/textColorSecondary"
+                android:tintMode="src_in"
                 android:visibility="visible" />
 
             <ImageButton
@@ -93,6 +95,8 @@
                 android:layout_weight="0"
                 android:backgroundTint="#80FF80"
                 android:src="@drawable/pkg_notes"
+                android:tint="@color/fixed_color_button_text_color"
+                android:tintMode="src_in"
                 android:visibility="gone" />
 
             <ImageButton

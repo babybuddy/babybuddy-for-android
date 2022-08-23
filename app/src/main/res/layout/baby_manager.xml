@@ -28,6 +28,8 @@
             android:layout_height="64dp"
             android:scaleType="fitCenter"
             android:src="@drawable/pkg_not_wet"
+            android:tint="?android:attr/textColorSecondary"
+            android:tintMode="src_in"
             android:layout_weight="0"/>
 
         <ImageButton
@@ -38,6 +40,8 @@
             android:backgroundTint="#80FF80"
             android:scaleType="fitCenter"
             android:src="@drawable/pkg_wet"
+            android:tint="@color/fixed_color_button_text_color"
+            android:tintMode="src_in"
             android:visibility="gone" />
 
         <ImageButton
@@ -46,7 +50,10 @@
             android:layout_width="64dp"
             android:layout_height="64dp"
             android:scaleType="fitCenter"
-            android:src="@drawable/pkg_no_poop"/>
+            android:src="@drawable/pkg_no_poop"
+            android:tint="?android:attr/textColorSecondary"
+            android:tintMode="src_in"
+            />
 
         <ImageButton
             android:id="@+id/solidEnabledButton"
@@ -56,6 +63,8 @@
             android:backgroundTint="#80FF80"
             android:scaleType="fitCenter"
             android:src="@drawable/pkg_poop"
+            android:tint="@color/fixed_color_button_text_color"
+            android:tintMode="src_in"
             android:visibility="gone" />
 
         <LinearLayout
@@ -72,6 +81,8 @@
             android:layout_weight="0"
             android:backgroundTint="#80FF80"
             android:src="@drawable/pkg_notes"
+            android:tint="@color/fixed_color_button_text_color"
+            android:tintMode="src_in"
             android:visibility="gone" />
 
         <ImageButton
@@ -81,6 +92,8 @@
             android:layout_margin="4dp"
             android:layout_weight="0"
             android:src="@drawable/pkg_no_notes"
+            android:tint="?android:attr/textColorSecondary"
+            android:tintMode="src_in"
             android:visibility="visible" />
 
         <ImageButton
