@@ -341,6 +341,11 @@ public class FeedingFragment extends BaseFragment {
                 @Override
                 public void response(Boolean response) {
                     progressDialog.cancel();
+                    MainActivity ma = mainActivity();
+                    if (ma == null) {
+                        // Application closed while waiting for a response
+                        return;
+                    }
                     mainActivity().getCredStore().storeLastUsedAmount(amount);
                     notesEditor.noteEditor.setText("");
                     mainActivity().getCredStore().setObjectNotes(
