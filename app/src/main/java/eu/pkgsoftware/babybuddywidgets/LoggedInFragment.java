@@ -245,6 +245,10 @@ public class LoggedInFragment extends BaseFragment {
 
     @Override
     public void onDestroyView() {
+        if (stateTracker != null) {
+            stateTracker.close();
+            stateTracker = null;
+        }
         babyAdapter.close();
         super.onDestroyView();
     }
