@@ -1,10 +1,15 @@
 package eu.pkgsoftware.babybuddywidgets;
 
+import android.content.res.ColorStateList;
 import android.content.res.Resources;
+import android.content.res.TypedArray;
+import android.graphics.BlendMode;
 import android.graphics.Color;
+import android.graphics.PorterDuff;
 import android.graphics.drawable.Drawable;
 import android.graphics.drawable.Icon;
 import android.media.Image;
+import android.opengl.EGLExt;
 import android.os.Bundle;
 import android.text.SpannableString;
 import android.text.SpannableStringBuilder;
@@ -30,6 +35,7 @@ import java.util.regex.Pattern;
 
 import androidx.core.content.ContextCompat;
 import androidx.core.content.res.ResourcesCompat;
+import androidx.core.widget.ImageViewCompat;
 import androidx.core.widget.TextViewCompat;
 import androidx.fragment.app.Fragment;
 import androidx.annotation.NonNull;
@@ -70,15 +76,7 @@ public class AboutFragment extends BaseFragment {
 
     private AboutFragmentBinding binding = null;
 
-    private class Range {
-        public int start, end;
-        public Range(int start, int end) {
-            this.start = start;
-            this.end = end;
-        }
-    }
-
-    private static Pattern HREF_DETECTOR_PATTERN = Pattern.compile("<a .*href=[\"']([^\"']+)[\"'][^>]*>([^<]*)</a>");
+    private static final Pattern HREF_DETECTOR_PATTERN = Pattern.compile("<a .*href=[\"']([^\"']+)[\"'][^>]*>([^<]*)</a>");
 
     private void filterLinksFromTextFields(ViewGroup root) {
         for (int i = 0; i < root.getChildCount(); i++) {
@@ -90,7 +88,6 @@ public class AboutFragment extends BaseFragment {
             TextView tv = (TextView) v;
 
             String orgText = tv.getText().toString();
-            System.out.println("orgText: " + orgText);
             Matcher matcher = HREF_DETECTOR_PATTERN.matcher(orgText);
 
             SpannableStringBuilder builder = null;
@@ -125,11 +122,21 @@ public class AboutFragment extends BaseFragment {
         }
     }
 
+    private ColorStateList getSystemColorList(int attr) {
+        TypedArray a = getContext().obtainStyledAttributes(new int[] { attr });
+        try {
+            return a.getColorStateList(0);
+        }
+        finally {
+            a.recycle();
+        }
+    }
+
     @Override
     public View onCreateView(
-            @NonNull LayoutInflater inflater,
-            @Nullable ViewGroup container,
-            @Nullable Bundle savedInstanceState) {
+        @NonNull LayoutInflater inflater,
+        @Nullable ViewGroup container,
+        @Nullable Bundle savedInstanceState) {
         binding = AboutFragmentBinding.inflate(inflater);
 
         String[] aboutIconLists = getResources().getStringArray(R.array.autostring_about_icon_iconlists);
@@ -160,21 +167,29 @@ public class AboutFragment extends BaseFragment {
 
             for (String icon : iconData.icons) {
                 ImageView iView = new ImageView(getContext());
-                int id = getResources().getIdentifier(icon, "drawable", getActivity().getPackageName());
+                int id = getResources().getIdentifier(
+                    icon, "drawable", getActivity().getPackageName()
+                );
 
                 Drawable d;
                 try {
                     d = ContextCompat.getDrawable(getActivity(), id);
-                }
-                catch (Resources.NotFoundException e) {
+                } catch (Resources.NotFoundException e) {
                     continue;
                 }
                 iView.setImageDrawable(d);
+
+                ImageViewCompat.setImageTintMode(iView, PorterDuff.Mode.SRC_IN);
+                iView.setImageTintList(getSystemColorList(android.R.attr.textColor));
 
                 iView.setMinimumWidth(dpToPx(48));
                 iView.setMinimumHeight(dpToPx(48));
                 iconsList.addView(iView);
             }
+
+            ColorStateList linkColorList = ContextCompat.getColorStateList(
+                getContext(), android.R.color.holo_blue_dark
+            );
 
             TextView tv = new TextView(getContext());
             tv.setMovementMethod(LinkMovementMethod.getInstance());
@@ -195,7 +210,7 @@ public class AboutFragment extends BaseFragment {
                     @Override
                     public void updateDrawState(@NonNull TextPaint ds) {
                         ds.setUnderlineText(true);
-                        ds.setColor(Color.BLUE);
+                        ds.setColor(linkColorList.getDefaultColor());
                     }
                 },
                 rawText.length() + 1,
