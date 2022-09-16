@@ -1,6 +1,8 @@
 package eu.pkgsoftware.babybuddywidgets;
 
+import android.content.Context;
 import android.content.res.ColorStateList;
+import android.content.res.Configuration;
 import android.content.res.Resources;
 import android.content.res.TypedArray;
 import android.graphics.BlendMode;
@@ -33,6 +35,8 @@ import java.util.ArrayList;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
+import androidx.appcompat.app.AppCompatActivity;
+import androidx.appcompat.app.AppCompatDelegate;
 import androidx.core.content.ContextCompat;
 import androidx.core.content.res.ResourcesCompat;
 import androidx.core.widget.ImageViewCompat;
@@ -122,22 +126,14 @@ public class AboutFragment extends BaseFragment {
         }
     }
 
-    private ColorStateList getSystemColorList(int attr) {
-        TypedArray a = getContext().obtainStyledAttributes(new int[] { attr });
-        try {
-            return a.getColorStateList(0);
-        }
-        finally {
-            a.recycle();
-        }
-    }
-
     @Override
     public View onCreateView(
         @NonNull LayoutInflater inflater,
         @Nullable ViewGroup container,
         @Nullable Bundle savedInstanceState) {
         binding = AboutFragmentBinding.inflate(inflater);
+
+        boolean isNightmode = (getContext().getResources().getConfiguration().uiMode & Configuration.UI_MODE_NIGHT_MASK) == Configuration.UI_MODE_NIGHT_YES;
 
         String[] aboutIconLists = getResources().getStringArray(R.array.autostring_about_icon_iconlists);
         String[] aboutIconTitles = getResources().getStringArray(R.array.autostring_about_icon_titles);
@@ -165,6 +161,15 @@ public class AboutFragment extends BaseFragment {
             LinearLayout iconsList = new LinearLayout(getContext());
             group.addView(iconsList);
 
+            int color = android.R.color.secondary_text_light;
+            if (isNightmode) {
+                color = android.R.color.secondary_text_dark;
+            }
+            ColorStateList imageColorList = ContextCompat.getColorStateList(
+                getContext(),
+                color
+            );
+
             for (String icon : iconData.icons) {
                 ImageView iView = new ImageView(getContext());
                 int id = getResources().getIdentifier(
@@ -180,7 +185,7 @@ public class AboutFragment extends BaseFragment {
                 iView.setImageDrawable(d);
 
                 ImageViewCompat.setImageTintMode(iView, PorterDuff.Mode.SRC_IN);
-                iView.setImageTintList(getSystemColorList(android.R.attr.textColor));
+                iView.setImageTintList(imageColorList);
 
                 iView.setMinimumWidth(dpToPx(48));
                 iView.setMinimumHeight(dpToPx(48));

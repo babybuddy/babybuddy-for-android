@@ -149,6 +149,7 @@ public class TimerListViewHolder extends RecyclerView.ViewHolder {
         @Override
         public void error(Exception error) {
             baseFragment.showError(true, "Could not store activity", errorMessage);
+            updateActiveState();
         }
 
         @Override

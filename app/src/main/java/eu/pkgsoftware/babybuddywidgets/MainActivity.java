@@ -1,7 +1,9 @@
 package eu.pkgsoftware.babybuddywidgets;
 
+import android.content.res.Configuration;
 import android.os.Bundle;
 
+import androidx.annotation.NonNull;
 import androidx.appcompat.app.AppCompatActivity;
 
 import eu.pkgsoftware.babybuddywidgets.databinding.ActivityMainBinding;
@@ -42,7 +44,8 @@ public class MainActivity extends AppCompatActivity {
         setContentView(binding.getRoot());
         setSupportActionBar(binding.toolbar);
 
-        binding.toolbar.setNavigationOnClickListener(view -> {});
+        binding.toolbar.setNavigationOnClickListener(view -> {
+        });
         binding.toolbar.setNavigationIcon(null);
     }
 }
