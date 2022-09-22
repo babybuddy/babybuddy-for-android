@@ -7,5 +7,7 @@
     <declare-styleable name="HorizontalNumberPicker">
         <attr name="textSize" format="dimension" />
         <attr name="zeroOnValues" format="boolean">true</attr>
+        <attr name="colorPrimary" format="color">"#000000"</attr>
+        <attr name="colorSecondary" format="color">"#202020"</attr>
     </declare-styleable>
 </resources>

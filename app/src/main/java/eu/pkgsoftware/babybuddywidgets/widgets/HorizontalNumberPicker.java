@@ -85,6 +85,17 @@ public class HorizontalNumberPicker extends View {
         );
         textSize = (int) a.getDimension(R.styleable.HorizontalNumberPicker_textSize, 64);
         zeroOnValues = (boolean) a.getBoolean(R.styleable.HorizontalNumberPicker_zeroOnValues, true);
+
+        int c;
+
+        c = a.getColor(R.styleable.HorizontalNumberPicker_colorPrimary, Color.parseColor("#000000"));
+        BLACK_FILL.setColor(c);
+        BLACK_STROKE.setColor(c);
+
+        c = a.getColor(R.styleable.HorizontalNumberPicker_colorSecondary, Color.parseColor("#202020"));
+        VALUE_PAINT.setColor(c);
+        BG_VALUE_PAINT.setColor(c);
+
         a.recycle();
     }
 
@@ -95,18 +106,11 @@ public class HorizontalNumberPicker extends View {
     private final Path trianglePath = new Path();
 
     {
-        BLACK_STROKE.setColor(Color.parseColor("#000000"));
         BLACK_STROKE.setStyle(Paint.Style.STROKE);
         BLACK_STROKE.setStrokeCap(Paint.Cap.SQUARE);
 
-        BLACK_FILL.setColor(Color.parseColor("#000000"));
         BLACK_FILL.setStyle(Paint.Style.FILL);
         BLACK_FILL.setStrokeCap(Paint.Cap.SQUARE);
-
-        VALUE_PAINT.setColor(Color.parseColor("#202020"));
-
-        BG_VALUE_PAINT.setColor(Color.parseColor("#202020"));
-        BG_VALUE_PAINT.setAlpha(128);
 
         trianglePath.reset();
         trianglePath.moveTo(0.0f, 0.0f);

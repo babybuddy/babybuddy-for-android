@@ -13,6 +13,8 @@
         android:layout_marginEnd="16dp"
         android:layout_marginStart="16dp"
         android:visibility="visible"
+        app:colorPrimary="@android:color/primary_text_light"
+        app:colorSecondary="@android:color/tertiary_text_light"
         app:layout_constraintEnd_toEndOf="parent"
         app:layout_constraintStart_toStartOf="parent"
         app:layout_constraintTop_toTopOf="parent"
