@@ -30,17 +30,27 @@ import eu.pkgsoftware.babybuddywidgets.Constants;
 import eu.pkgsoftware.babybuddywidgets.CredStore;
 
 public class BabyBuddyClient extends StreamReader {
+    public static final String DATE_FORMAT_STRING = "yyyy-MM-dd'T'HH:mm:ssX";
+
     private static Date parseNullOrDate(JSONObject o, String field) throws JSONException, ParseException {
         if (o.isNull(field)) {
             return null;
         }
-        SimpleDateFormat sdf = new SimpleDateFormat("yyyy-MM-dd'T'HH:mm:ssX");
+        final SimpleDateFormat sdf = new SimpleDateFormat(DATE_FORMAT_STRING);
 
         // Remove milliseconds
         String strDate = o.getString(field);
         strDate = strDate.replaceAll("\\.[0-9]+([+-Z])", "$1");
         strDate = strDate.replaceAll("Z$", "+00:00");
         return sdf.parse(strDate);
+    }
+
+    private static String dateToString(Date date) {
+        if (date == null) {
+            return null;
+        }
+        final SimpleDateFormat sdf = new SimpleDateFormat(DATE_FORMAT_STRING);
+        return sdf.format(date);
     }
 
     public static class Child {
@@ -117,6 +127,22 @@ public class BabyBuddyClient extends StreamReader {
             t.active = obj.getBoolean("active");
             t.user_id = obj.getInt("user");
             return t;
+        }
+
+        public JSONObject toJSON() {
+            JSONObject o = new JSONObject();
+            try {
+                o.put("id", id);
+                o.put("child", child_id);
+                o.put("name", name);
+                o.put("start", dateToString(start));
+                o.put("end", dateToString(end));
+                o.put("active", active);
+                o.put("user", user_id);
+            } catch (JSONException e) {
+                throw new RuntimeException("ERROR should not happen");
+            }
+            return o;
         }
 
         @Override

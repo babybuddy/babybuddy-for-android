@@ -5,6 +5,9 @@ import android.os.Build;
 import android.os.Message;
 import android.util.Base64;
 
+import org.json.JSONException;
+import org.json.JSONObject;
+
 import java.io.FileInputStream;
 import java.io.FileOutputStream;
 import java.io.IOException;
@@ -13,6 +16,7 @@ import java.security.InvalidKeyException;
 import java.security.MessageDigest;
 import java.security.NoSuchAlgorithmException;
 import java.security.SecureRandom;
+import java.text.ParseException;
 import java.util.Collections;
 import java.util.Enumeration;
 import java.util.HashMap;
@@ -20,6 +24,7 @@ import java.util.Map;
 import java.util.NoSuchElementException;
 import java.util.Objects;
 import java.util.Properties;
+import java.util.Timer;
 import java.util.regex.Pattern;
 
 import javax.crypto.BadPaddingException;
@@ -31,6 +36,7 @@ import javax.crypto.spec.IvParameterSpec;
 import javax.crypto.spec.SecretKeySpec;
 
 import androidx.annotation.NonNull;
+import eu.pkgsoftware.babybuddywidgets.networking.BabyBuddyClient;
 
 public class CredStore {
     public static class Notes {
@@ -106,7 +112,6 @@ public class CredStore {
                 }
             }
 
-
             lastUsedAmount = null;
             if (props.contains("last_used_amount")) {
                 String s = props.getProperty("last_used_amount", "null");
@@ -116,8 +121,7 @@ public class CredStore {
                     lastUsedAmount = Double.valueOf(s);
                 }
             }
-        }
-        catch (NoSuchElementException e) {
+        } catch (NoSuchElementException e) {
             e.printStackTrace();
         }
     }
@@ -215,14 +219,13 @@ public class CredStore {
                 byte[] rawKey = (SALT_STRING + ":::::" + ENCRYPTION_STRING).getBytes(StandardCharsets.ISO_8859_1);
                 byte[] md5Key = MessageDigest.getInstance("MD5").digest(rawKey);
                 byte[] ivGen = MessageDigest.getInstance("MD5").digest(
-                        (new String(md5Key, StandardCharsets.ISO_8859_1) + ":::::" + SALT_STRING).getBytes(StandardCharsets.UTF_8));
-                SecretKey key = new SecretKeySpec(md5Key,"AES");
+                    (new String(md5Key, StandardCharsets.ISO_8859_1) + ":::::" + SALT_STRING).getBytes(StandardCharsets.UTF_8));
+                SecretKey key = new SecretKeySpec(md5Key, "AES");
                 cipher.init(Cipher.DECRYPT_MODE, key, new IvParameterSpec(ivGen));
                 byte[] decoded = cipher.doFinal(Base64.decode(encryptedToken, Base64.DEFAULT));
                 return new String(decoded, StandardCharsets.ISO_8859_1);
             }
-        }
-        catch (Exception e) {
+        } catch (Exception e) {
             e.printStackTrace();
         }
         return null;
@@ -237,14 +240,13 @@ public class CredStore {
                 byte[] rawKey = (SALT_STRING + ":::::" + ENCRYPTION_STRING).getBytes(StandardCharsets.ISO_8859_1);
                 byte[] md5Key = MessageDigest.getInstance("MD5").digest(rawKey);
                 byte[] ivGen = MessageDigest.getInstance("MD5").digest(
-                        (new String(md5Key, StandardCharsets.ISO_8859_1) + ":::::" + SALT_STRING).getBytes(StandardCharsets.UTF_8));
-                SecretKey key = new SecretKeySpec(md5Key,"AES");
+                    (new String(md5Key, StandardCharsets.ISO_8859_1) + ":::::" + SALT_STRING).getBytes(StandardCharsets.UTF_8));
+                SecretKey key = new SecretKeySpec(md5Key, "AES");
                 cipher.init(Cipher.ENCRYPT_MODE, key, new IvParameterSpec(ivGen));
                 byte[] encoded = cipher.doFinal(token.getBytes(StandardCharsets.ISO_8859_1));
                 encryptedToken = Base64.encodeToString(encoded, Base64.DEFAULT);
             }
-        }
-        catch (Exception e) {
+        } catch (Exception e) {
             e.printStackTrace();
         }
         storePrefs();
@@ -287,7 +289,9 @@ public class CredStore {
     }
 
     private static Notes EMPTY_NOTES = new Notes("", false);
-    public @NonNull Notes getObjectNotes(String id) {
+
+    public @NonNull
+    Notes getObjectNotes(String id) {
         return notesAssignments.getOrDefault(id, EMPTY_NOTES).clone();
     }
 
@@ -295,12 +299,12 @@ public class CredStore {
         notesAssignments.clear();
         storePrefs();
     }
-    
+
     public void storeLastUsedAmount(Double amount) {
         lastUsedAmount = amount;
         storePrefs();
     }
-    
+
     public Double getLastUsedAmount() {
         return lastUsedAmount;
     }
