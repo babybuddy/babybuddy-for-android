@@ -11,31 +11,44 @@ import eu.pkgsoftware.babybuddywidgets.databinding.ActivityMainBinding
 class MainActivity : AppCompatActivity() {
     private var binding: ActivityMainBinding? = null
 
-    var credStore: CredStore? = null
+    internal var internalCredStore: CredStore? = null
+    val credStore: CredStore
         get() {
-            if (field == null) {
-                field = CredStore(applicationContext)
+            internalCredStore.let {
+                if (it == null) {
+                    val newCredStore = CredStore(applicationContext)
+                    internalCredStore = newCredStore
+                    return newCredStore
+                } else {
+                    return it
+                }
             }
-            return field
         }
-        private set
 
-    var client: BabyBuddyClient? = null
+    internal var internalClient: BabyBuddyClient? = null
+    val client: BabyBuddyClient
         get() {
-            if (field == null) {
-                field = BabyBuddyClient(mainLooper, credStore)
+            internalClient.let {
+                if (it == null) {
+                    val newClient = BabyBuddyClient(
+                        mainLooper,
+                        credStore
+                    )
+                    internalClient = newClient
+                    return newClient
+                } else {
+                    return it
+                }
             }
-            return field
         }
-        private set
 
     @JvmField
     var children = arrayOf<Child>()
     @JvmField
     var selectedTimer: BabyBuddyClient.Timer? = null
 
-    fun setTitle(title: String?) {
-        supportActionBar!!.title = title
+    fun setTitle(title: String) {
+        supportActionBar?.title = title
     }
 
     override fun onCreate(savedInstanceState: Bundle?) {
