@@ -3,6 +3,7 @@ import java.util.regex.Matcher
 plugins {
     id 'com.android.application'
 }
+apply plugin: 'kotlin-android'
 
 task generateAboutStrings {
     String attributionsText = new File("ATTRIBUTIONS.md").text
@@ -115,4 +116,9 @@ dependencies {
     testImplementation 'junit:junit:4.+'
     androidTestImplementation 'androidx.test.ext:junit:1.1.2'
     androidTestImplementation 'androidx.test.espresso:espresso-core:3.3.0'
+    implementation "androidx.core:core-ktx:1.8.0"
+    implementation "org.jetbrains.kotlin:kotlin-stdlib-jdk7:$kotlin_version"
+}
+repositories {
+    mavenCentral()
 }
