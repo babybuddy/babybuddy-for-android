@@ -18,7 +18,6 @@ import java.nio.charset.StandardCharsets;
 import java.text.ParseException;
 import java.text.SimpleDateFormat;
 import java.util.ArrayList;
-import java.util.Collections;
 import java.util.Comparator;
 import java.util.Date;
 import java.util.HashMap;
@@ -33,6 +32,7 @@ import eu.pkgsoftware.babybuddywidgets.CredStore;
 
 public class BabyBuddyClient extends StreamReader {
     public static final String DATE_FORMAT_STRING = "yyyy-MM-dd'T'HH:mm:ssX";
+    public static final String DATE_QUERY_FORMAT_STRING = "yyyy-MM-dd'T'HH:mm:ss";
 
     public static class ACTIVITIES {
         public static final String SLEEP = "sleep";
@@ -45,6 +45,15 @@ public class BabyBuddyClient extends StreamReader {
             ALL[0] = SLEEP;
             ALL[1] = TUMMY_TIME;
             ALL[2] = FEEDING;
+        }
+
+        public static int index(String s) {
+            for (int i = 0; i < ALL.length; i++) {
+                if (Objects.equals(ALL[i], s)) {
+                    return i;
+                }
+            }
+            return -1;
         }
     }
 
@@ -69,6 +78,14 @@ public class BabyBuddyClient extends StreamReader {
         return sdf.format(date);
     }
 
+    private static String dateToQueryString(Date date) {
+        if (date == null) {
+            return null;
+        }
+        final SimpleDateFormat sdf = new SimpleDateFormat(DATE_QUERY_FORMAT_STRING);
+        return sdf.format(date);
+    }
+
     public static class Filters {
         public HashMap<String, String> filters = new HashMap<String, String>();
 
@@ -82,7 +99,7 @@ public class BabyBuddyClient extends StreamReader {
         }
 
         public Filters add(String name, Date value) {
-            return this.add(name, dateToString(value));
+            return this.add(name, dateToQueryString(value));
         }
 
         public String toQueryString() {
@@ -436,7 +453,7 @@ public class BabyBuddyClient extends StreamReader {
     private String now() {
         SimpleDateFormat sdf = new SimpleDateFormat("yyyy-MM-dd'T'HH:mm:ss.SSSXXX");
         sdf.setTimeZone(TimeZone.getTimeZone("UTC"));
-        Date now = new Date(System.currentTimeMillis() + serverDateOffset);
+        final Date now = new Date(System.currentTimeMillis() + serverDateOffset);
         return sdf.format(now);
     }
 
@@ -768,7 +785,7 @@ public class BabyBuddyClient extends StreamReader {
         );
     }
 
-    public void listGenericActivity(String activity, Filters filters, RequestCallback<String> callback) {
+    public void listGeneric(String activity, Filters filters, RequestCallback<String> callback) {
         String path = "api/" + activity + "/";
         if (filters != null) {
             path = path + "?" + filters.toQueryString();
@@ -777,7 +794,7 @@ public class BabyBuddyClient extends StreamReader {
     }
 
     public void listSleepEntries(int child_id, int offset, int count, RequestCallback<TimeEntry[]> callback) {
-        listGenericActivity(
+        listGeneric(
             ACTIVITIES.SLEEP,
             new Filters()
                 .add("child", child_id)
@@ -817,7 +834,7 @@ public class BabyBuddyClient extends StreamReader {
     }
 
     public void listFeedingsEntries(int child_id, int offset, int count, RequestCallback<FeedingEntry[]> callback) {
-        listGenericActivity(
+        listGeneric(
             ACTIVITIES.FEEDING,
             new Filters()
                 .add("child", child_id)
@@ -874,7 +891,7 @@ public class BabyBuddyClient extends StreamReader {
     }
 
     public void listTummyTimeEntries(int child_id, int offset, int count, RequestCallback<TimeEntry[]> callback) {
-        listGenericActivity(
+        listGeneric(
             ACTIVITIES.TUMMY_TIME,
             new Filters()
                 .add("child", child_id)
@@ -914,13 +931,12 @@ public class BabyBuddyClient extends StreamReader {
     }
 
     public void listChangeEntries(int child_id, int offset, int count, RequestCallback<ChangeEntry[]> callback) {
-        dispatchQuery(
-            "GET",
-            "api/changes/?child=XXChild&offset=XXOffset&limit=XXCount"
-                .replaceAll("XXChild", "" + child_id)
-                .replaceAll("XXOffset", "" + offset)
-                .replaceAll("XXCount", "" + count),
-            null,
+        listGeneric(
+            "changes",
+            new Filters()
+                .add("child", child_id)
+                .add("offset", offset)
+                .add("limit", count),
             new RequestCallback<String>() {
                 @Override
                 public void error(Exception error) {

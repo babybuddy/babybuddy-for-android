@@ -24,6 +24,7 @@ public class BaseFragment extends Fragment {
 
     public interface Promise<S, F> {
         void succeeded(S s);
+
         void failed(F f);
     }
 
@@ -31,7 +32,23 @@ public class BaseFragment extends Fragment {
     protected ProgressDialog progressDialog;
 
     protected AlertDialog showError(boolean override, String title, String errorMessage) {
-        return showError(override, title, errorMessage, aBoolean -> {});
+        return showError(override, title, errorMessage, aBoolean -> {
+        });
+    }
+
+    protected AlertDialog showError(boolean override, int title, String errorMessage) {
+        return showError(override, getString(title), errorMessage, aBoolean -> {
+        });
+    }
+
+    protected AlertDialog showError(boolean override, String title, int errorMessage) {
+        return showError(override, title, getString(errorMessage), aBoolean -> {
+        });
+    }
+
+    protected AlertDialog showError(boolean override, int title, int errorMessage) {
+        return showError(override, getString(title), getString(errorMessage), aBoolean -> {
+        });
     }
 
     protected AlertDialog showError(boolean override, String title, String errorMessage, DialogCallback callback) {
