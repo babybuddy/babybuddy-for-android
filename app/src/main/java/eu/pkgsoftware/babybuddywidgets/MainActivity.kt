@@ -2,15 +2,20 @@ package eu.pkgsoftware.babybuddywidgets
 
 import android.content.DialogInterface
 import androidx.appcompat.app.AppCompatActivity
-import eu.pkgsoftware.babybuddywidgets.CredStore
 import eu.pkgsoftware.babybuddywidgets.networking.BabyBuddyClient
 import eu.pkgsoftware.babybuddywidgets.networking.BabyBuddyClient.Child
 import android.os.Bundle
 import android.view.View
 import androidx.appcompat.app.AlertDialog
 import eu.pkgsoftware.babybuddywidgets.databinding.ActivityMainBinding
+import kotlinx.coroutines.*
+import org.json.JSONArray
 import java.lang.Exception
 import java.util.*
+import kotlin.coroutines.CoroutineContext
+import kotlin.coroutines.resume
+import kotlin.coroutines.resumeWithException
+import kotlin.coroutines.suspendCoroutine
 
 interface StoreFunction<X> : BabyBuddyClient.RequestCallback<X> {
     fun store(timer: BabyBuddyClient.Timer, callback: BabyBuddyClient.RequestCallback<X>)
@@ -20,7 +25,34 @@ interface StoreFunction<X> : BabyBuddyClient.RequestCallback<X> {
 }
 
 
+enum class ConflictResolutionOptions {
+    CANCEL, RESOLVE, STOP_TIMER
+}
+
+class AsyncClientRequest() {
+    companion object {
+        suspend inline fun <X> call(crossinline body: (callback: BabyBuddyClient.RequestCallback<X>) -> Unit): X {
+            return withContext(Dispatchers.Default) {
+                suspendCoroutine<X> { continuation ->
+                    val callbacks = object : BabyBuddyClient.RequestCallback<X> {
+                        override fun error(error: Exception) {
+                            continuation.resumeWithException(error)
+                        }
+
+                        override fun response(response: X) {
+                            continuation.resume(response)
+                        }
+                    }
+                    body.invoke(callbacks)
+                }
+            }
+        }
+    }
+}
+
 class MainActivity : AppCompatActivity() {
+    val scope = MainScope()
+
     private var binding: ActivityMainBinding? = null
 
     internal var internalCredStore: CredStore? = null
@@ -70,6 +102,7 @@ class MainActivity : AppCompatActivity() {
 
     @JvmField
     var children = arrayOf<Child>()
+
     @JvmField
     var selectedTimer: BabyBuddyClient.Timer? = null
 
@@ -77,70 +110,85 @@ class MainActivity : AppCompatActivity() {
         supportActionBar?.title = title
     }
 
-    inner class StoreActivity<X>(val timer: BabyBuddyClient.Timer, val storeInterface: StoreFunction<X>) {
-        val localCallbacks = object : BabyBuddyClient.RequestCallback<X> {
-            override fun error(error: Exception?) {
-                // Check if there is an overlapping entry
-                // - if overlap is found, offer option to resolve
-                // - if no overlap is found, fail for good
+    fun <X> storeActivity(
+        timer: BabyBuddyClient.Timer,
+        storeInterface: StoreFunction<X>
+    ) {
+        suspend fun trySave(): X {
+            return AsyncClientRequest.call {
+                storeInterface.store(timer, it)
+            }
+        }
 
-                val endDate: Date = timer.computeCurrentServerEndTime(client)
-                val listCommandCallback = object : BabyBuddyClient.RequestCallback<String> {
-                    override fun error(error: Exception?) {
-                        storeInterface.error(error);
-                    }
 
-                    override fun response(response: String) {
-                        AlertDialog.Builder(this@MainActivity)
-                            // !STRINGCOLLECT! Remove strings
-                            .setTitle(R.string.conflicting_activity_title)
-                            .setMessage(R.string.conflicting_activity_text)
-                            .setCancelable(false)
-                            .setPositiveButton(R.string.conflicting_activity_modify_option) {
-                                    dialogInterface: DialogInterface, i: Int ->
-                            }
-                            .setNeutralButton(R.string.conflicting_activity_cancel_option) {
-                                    dialogInterface: DialogInterface, i: Int ->
-                                storeInterface.cancel()
-                            }
-                            .setNegativeButton(R.string.conflicting_activity_stop_timer_option) {
-                                    dialogInterface: DialogInterface, i: Int ->
-                                val callback = object : BabyBuddyClient.RequestCallback<Boolean> {
-                                    override fun error(error: Exception?) {
-                                        storeInterface.error(error)
-                                    }
-
-                                    override fun response(response: Boolean?) {
-                                        storeInterface.timerStopped()
-                                    }
-                                }
-
-                                client.setTimerActive(timer.id, false, callback);
-                            }
-                            .show();
-
-                    }
-                }
+        suspend fun hasConflict(): Boolean {
+            val entries = AsyncClientRequest.call<JSONArray> {
+                val endDate = timer.computeCurrentServerEndTime(client)
                 client.listGeneric(
                     storeInterface.name(),
                     BabyBuddyClient.Filters()
                         .add("start_max", timer.start)
                         .add("end_min", endDate)
                         .add("limit", 10),
-                    listCommandCallback
+                    it
                 )
             }
+            return entries.length() > 0
+        }
 
-            override fun response(response: X?) {
-                storeInterface.response(response)
+        suspend fun askForResolutionMethod(): ConflictResolutionOptions {
+            return suspendCoroutine<ConflictResolutionOptions> { continuation ->
+                AlertDialog.Builder(this@MainActivity)
+                    .setTitle(R.string.conflicting_activity_title)
+                    .setMessage(R.string.conflicting_activity_text)
+                    .setCancelable(false)
+                    .setPositiveButton(R.string.conflicting_activity_modify_option) { a, b ->
+                        continuation.resume(ConflictResolutionOptions.RESOLVE)
+                    }
+                    .setNeutralButton(R.string.conflicting_activity_cancel_option) { a, b ->
+                        continuation.resume(ConflictResolutionOptions.CANCEL)
+                    }
+                    .setNegativeButton(R.string.conflicting_activity_stop_timer_option) { a, b ->
+                        continuation.resume(ConflictResolutionOptions.STOP_TIMER)
+                    }
+                    .show()
             }
         }
 
-        init {
-            storeInterface.store(timer, this.localCallbacks);
+        suspend fun stopTimer() {
+            AsyncClientRequest.call<Boolean> {
+                client.setTimerActive(timer.id, false, it)
+            }
         }
-    }
 
-    fun storeActivity(timer: BabyBuddyClient.Timer, storeInterface: StoreFunction<R>) {
+        suspend fun resolve() {
+            // TODO...
+        }
+
+
+        scope.launch {
+            try {
+                try {
+                    trySave()
+                } catch (e: Exception) {
+                    if (!hasConflict()) {
+                        throw e
+                    }
+                }
+
+                val resolution = askForResolutionMethod()
+                if (resolution == ConflictResolutionOptions.STOP_TIMER) {
+                    stopTimer()
+                    storeInterface.timerStopped()
+                } else if (resolution == ConflictResolutionOptions.RESOLVE) {
+                    resolve()
+                    storeInterface.response(trySave())
+                } else {
+                    storeInterface.cancel()
+                }
+            } catch (e: Exception) {
+                storeInterface.error(e)
+            }
+        }
     }
 }

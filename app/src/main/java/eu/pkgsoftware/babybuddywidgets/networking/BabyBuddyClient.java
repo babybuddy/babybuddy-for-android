@@ -3,6 +3,7 @@ package eu.pkgsoftware.babybuddywidgets.networking;
 import android.os.Handler;
 import android.os.Looper;
 
+import org.jetbrains.annotations.NotNull;
 import org.json.JSONArray;
 import org.json.JSONException;
 import org.json.JSONObject;
@@ -410,7 +411,7 @@ public class BabyBuddyClient extends StreamReader {
     }
 
     public interface RequestCallback<R> {
-        void error(Exception error);
+        void error(@NotNull Exception error);
 
         void response(R response);
     }
@@ -785,12 +786,34 @@ public class BabyBuddyClient extends StreamReader {
         );
     }
 
-    public void listGeneric(String activity, Filters filters, RequestCallback<String> callback) {
+    public void listGeneric(String activity, Filters filters, RequestCallback<JSONArray> callback) {
         String path = "api/" + activity + "/";
         if (filters != null) {
             path = path + "?" + filters.toQueryString();
         }
-        dispatchQuery("GET", path, null, callback);
+        dispatchQuery("GET", path, null, new RequestCallback<String>() {
+            @Override
+            public void error(@NonNull Exception error) {
+                callback.error(error);
+            }
+
+            @Override
+            public void response(String response) {
+                JSONArray result = null;
+                try {
+                    JSONObject listResponse = new JSONObject(response);
+                    result = listResponse.getJSONArray("results");
+                } catch (JSONException e) {
+                    error(e);
+                    return;
+                }
+                if (result == null) {
+                    callback.response(new JSONArray());
+                } else {
+                    callback.response(result);
+                }
+            }
+        });
     }
 
     public void listSleepEntries(int child_id, int offset, int count, RequestCallback<TimeEntry[]> callback) {
@@ -800,18 +823,16 @@ public class BabyBuddyClient extends StreamReader {
                 .add("child", child_id)
                 .add("offset", offset)
                 .add("limit", count),
-            new RequestCallback<String>() {
+            new RequestCallback<JSONArray>() {
                 @Override
-                public void error(Exception error) {
+                public void error(@NotNull Exception error) {
                     callback.error(error);
                 }
 
                 @Override
-                public void response(String response) {
+                public void response(JSONArray objects) {
                     List<TimeEntry> result = new ArrayList<>();
                     try {
-                        JSONObject listResponse = new JSONObject(response);
-                        JSONArray objects = listResponse.getJSONArray("results");
                         for (int i = 0; i < objects.length(); i++) {
                             JSONObject o = objects.getJSONObject(i);
                             String notes = o.getString("notes");
@@ -840,18 +861,16 @@ public class BabyBuddyClient extends StreamReader {
                 .add("child", child_id)
                 .add("offset", offset)
                 .add("limit", count),
-            new RequestCallback<String>() {
+            new RequestCallback<JSONArray>() {
                 @Override
-                public void error(Exception error) {
+                public void error(@NotNull Exception error) {
                     callback.error(error);
                 }
 
                 @Override
-                public void response(String response) {
+                public void response(JSONArray objects) {
                     List<FeedingEntry> result = new ArrayList<>();
                     try {
-                        JSONObject listResponse = new JSONObject(response);
-                        JSONArray objects = listResponse.getJSONArray("results");
                         for (int i = 0; i < objects.length(); i++) {
                             JSONObject o = objects.getJSONObject(i);
                             String notes = o.getString("notes");
@@ -897,18 +916,16 @@ public class BabyBuddyClient extends StreamReader {
                 .add("child", child_id)
                 .add("offset", offset)
                 .add("limit", count),
-            new RequestCallback<String>() {
+            new RequestCallback<JSONArray>() {
                 @Override
-                public void error(Exception error) {
+                public void error(@NotNull Exception error) {
                     callback.error(error);
                 }
 
                 @Override
-                public void response(String response) {
+                public void response(JSONArray objects) {
                     List<TimeEntry> result = new ArrayList<>();
                     try {
-                        JSONObject listResponse = new JSONObject(response);
-                        JSONArray objects = listResponse.getJSONArray("results");
                         for (int i = 0; i < objects.length(); i++) {
                             JSONObject o = objects.getJSONObject(i);
                             String notes = o.getString("milestone");
@@ -937,18 +954,16 @@ public class BabyBuddyClient extends StreamReader {
                 .add("child", child_id)
                 .add("offset", offset)
                 .add("limit", count),
-            new RequestCallback<String>() {
+            new RequestCallback<JSONArray>() {
                 @Override
-                public void error(Exception error) {
+                public void error(@NotNull Exception error) {
                     callback.error(error);
                 }
 
                 @Override
-                public void response(String response) {
+                public void response(JSONArray objects) {
                     List<ChangeEntry> result = new ArrayList<>();
                     try {
-                        JSONObject listResponse = new JSONObject(response);
-                        JSONArray objects = listResponse.getJSONArray("results");
                         for (int i = 0; i < objects.length(); i++) {
                             JSONObject o = objects.getJSONObject(i);
                             String notes = o.getString("notes");
@@ -979,7 +994,7 @@ public class BabyBuddyClient extends StreamReader {
             null,
             new RequestCallback<String>() {
                 @Override
-                public void error(Exception error) {
+                public void error(@NotNull Exception error) {
                     callback.error(error);
                 }
 

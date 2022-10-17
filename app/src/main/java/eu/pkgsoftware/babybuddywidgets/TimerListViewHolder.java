@@ -4,8 +4,13 @@ import android.os.Handler;
 import android.view.View;
 import android.widget.AdapterView;
 
+import com.squareup.phrase.Phrase;
+
+import org.jetbrains.annotations.NotNull;
+
 import java.util.Date;
 
+import androidx.annotation.NonNull;
 import androidx.navigation.Navigation;
 import androidx.recyclerview.widget.RecyclerView;
 import eu.pkgsoftware.babybuddywidgets.databinding.NotesEditorBinding;
@@ -163,24 +168,73 @@ public class TimerListViewHolder extends RecyclerView.ViewHolder {
     }
 
     private void storeActivity() {
-        int selectedActivity = (int) binding.appTimerDefaultType.getSelectedItemId();
-        if ((int) binding.appTimerDefaultType.getSelectedItemId() == 0) {
+        final int selectedActivity = (int) binding.appTimerDefaultType.getSelectedItemId();
+        final MainActivity mainActivity = this.baseFragment.getMainActivity();
+        final String[] timerTypeStrings = baseFragment.getResources().getStringArray(R.array.timerTypes);
+        final StoreActivityCallback sac = new StoreActivityCallback(
+            Phrase.from("Storing {name} entry failed.")
+                .putOptional("name", timerTypeStrings[selectedActivity])
+                .format()
+                .toString()
+        );
+
+
+        if (selectedActivity == 0) {
             baseFragment.getMainActivity().selectedTimer = timer;
             Navigation.findNavController(baseFragment.getView()).navigate(R.id.action_loggedInFragment2_to_feedingFragment);
         } else if (selectedActivity == 1) {
-            client.createSleepRecordFromTimer(
-                timer,
-                notesEditor.getText(),
-                new StoreActivityCallback("Storing Sleep Time failed.")
-            );
+
+            mainActivity.storeActivity(timer, new StoreFunction<Boolean>() {
+                @Override
+                public void store(@NonNull BabyBuddyClient.Timer timer, @NonNull BabyBuddyClient.RequestCallback<Boolean> callback) {
+                    client.createSleepRecordFromTimer(
+                        timer,
+                        notesEditor.getText(),
+                        callback
+                    );
+                }
+
+                @NonNull
+                @Override
+                public String name() {
+                    return BabyBuddyClient.ACTIVITIES.ALL[selectedActivity];
+                }
+
+                @Override
+                public void error(@NotNull Exception error) {
+                    sac.error(error);
+                    updateActiveState();
+                }
+
+                @Override
+                public void response(Boolean response) {
+                    sac.response(response);
+                    updateActiveState();
+                }
+
+                @Override
+                public void timerStopped() {
+                    updateActiveState();
+                }
+
+                @Override
+                public void cancel() {
+                    timer.active = true;
+                    updateActiveState();
+                }
+            });
         } else if (selectedActivity == 2) {
             client.createTummyTimeRecordFromTimer(
                 timer,
                 notesEditor.getText(),
-                new StoreActivityCallback("Storing Tummy Time failed.")
+                sac
             );
         } else {
-            baseFragment.showError(true, "Could not store activity", "Unsupported activity");
+            baseFragment.showError(
+                true,
+                R.string.error_storing_activity_failed_title,
+                R.string.error_storing_activity_unsupported
+            );
         }
     }
 
