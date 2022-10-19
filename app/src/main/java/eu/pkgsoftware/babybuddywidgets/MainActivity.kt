@@ -127,8 +127,8 @@ class MainActivity : AppCompatActivity() {
                 client.listGeneric(
                     storeInterface.name(),
                     BabyBuddyClient.Filters()
-                        .add("start_max", timer.start)
-                        .add("end_min", endDate)
+                        .add("start_max", endDate)
+                        .add("end_min", timer.start)
                         .add("limit", 10),
                     it
                 )
@@ -187,6 +187,7 @@ class MainActivity : AppCompatActivity() {
                     storeInterface.cancel()
                 }
             } catch (e: Exception) {
+                e.printStackTrace()
                 storeInterface.error(e)
             }
         }

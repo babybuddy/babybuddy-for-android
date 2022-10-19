@@ -32,6 +32,8 @@ import eu.pkgsoftware.babybuddywidgets.Constants;
 import eu.pkgsoftware.babybuddywidgets.CredStore;
 
 public class BabyBuddyClient extends StreamReader {
+    public final boolean DEBUG = true;
+
     public static final String DATE_FORMAT_STRING = "yyyy-MM-dd'T'HH:mm:ssX";
     public static final String DATE_QUERY_FORMAT_STRING = "yyyy-MM-dd'T'HH:mm:ss";
 
@@ -43,9 +45,9 @@ public class BabyBuddyClient extends StreamReader {
         public static final String[] ALL = new String[3];
 
         static {
-            ALL[0] = SLEEP;
-            ALL[1] = TUMMY_TIME;
-            ALL[2] = FEEDING;
+            ALL[0] = FEEDING;
+            ALL[1] = SLEEP;
+            ALL[2] = TUMMY_TIME;
         }
 
         public static int index(String s) {
@@ -111,7 +113,7 @@ public class BabyBuddyClient extends StreamReader {
                 }
                 result.append(e.getKey());
                 result.append("=");
-                result.append(e.getValue());
+                result.append(urlencode(e.getValue()));
             }
             return result.toString();
         }
@@ -470,6 +472,15 @@ public class BabyBuddyClient extends StreamReader {
             public void run() {
                 try {
                     HttpURLConnection query = doQuery(path);
+                    if (DEBUG) {
+                        System.out.println(
+                            "BabyBuddyClient.DEBUG "
+                                + method
+                                + "  path: " + path
+                                + "  payload: " + payload
+                        );
+                    }
+
                     query.setRequestMethod(method);
                     if (payload != null) {
                         query.setDoOutput(true);
@@ -484,6 +495,9 @@ public class BabyBuddyClient extends StreamReader {
                     updateServerDateTime(query);
 
                     int responseCode = query.getResponseCode();
+                    if (DEBUG) {
+                        System.out.println(" -> response code: " + responseCode);
+                    }
                     if ((responseCode < 200) || (responseCode >= 300)) {
                         String message = query.getResponseMessage();
                         throw new RequestCodeFailure(message);
