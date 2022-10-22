@@ -86,28 +86,29 @@ public class BabyBuddyClient extends StreamReader {
             return null;
         }
         final SimpleDateFormat sdf = new SimpleDateFormat(DATE_QUERY_FORMAT_STRING);
+        sdf.setTimeZone(TimeZone.getTimeZone("UTC"));
         return sdf.format(date);
     }
 
-    public static class Filters {
-        public HashMap<String, String> filters = new HashMap<String, String>();
+    public static class QueryValues {
+        public HashMap<String, String> queryValues = new HashMap<String, String>();
 
-        public Filters add(String name, String value) {
-            filters.put(name, value);
+        public QueryValues add(String name, String value) {
+            queryValues.put(name, value);
             return this;
         }
 
-        public Filters add(String name, int value) {
+        public QueryValues add(String name, int value) {
             return this.add(name, "" + value);
         }
 
-        public Filters add(String name, Date value) {
+        public QueryValues add(String name, Date value) {
             return this.add(name, dateToQueryString(value));
         }
 
         public String toQueryString() {
             StringBuilder result = new StringBuilder("");
-            for (Map.Entry<String, String> e : filters.entrySet()) {
+            for (Map.Entry<String, String> e : queryValues.entrySet()) {
                 if (result.length() > 0) {
                     result.append("&");
                 }
@@ -116,6 +117,10 @@ public class BabyBuddyClient extends StreamReader {
                 result.append(urlencode(e.getValue()));
             }
             return result.toString();
+        }
+
+        public JSONObject toJsonObject() {
+            return new JSONObject(queryValues);
         }
     }
 
@@ -260,6 +265,17 @@ public class BabyBuddyClient extends StreamReader {
         public Date end;
         public String notes;
 
+        public static TimeEntry fromJsonObject(JSONObject json, String type) throws JSONException, ParseException {
+            String notes = json.getString("notes");
+            return new TimeEntry(
+                type,
+                json.getInt("id"),
+                parseNullOrDate(json, "start"),
+                parseNullOrDate(json, "end"),
+                notes == null ? "" : notes
+            );
+        }
+
         public TimeEntry(String type, int typeId, Date start, Date end, String notes) {
             this.type = type;
             this.typeId = typeId;
@@ -284,7 +300,11 @@ public class BabyBuddyClient extends StreamReader {
             if (this == o) return true;
             if (o == null || getClass() != o.getClass()) return false;
             TimeEntry timeEntry = (TimeEntry) o;
-            return typeId == timeEntry.typeId && Objects.equals(type, timeEntry.type) && Objects.equals(start, timeEntry.start) && Objects.equals(end, timeEntry.end) && Objects.equals(notes, timeEntry.notes);
+            return typeId == timeEntry.typeId &&
+                Objects.equals(type, timeEntry.type) &&
+                Objects.equals(start, timeEntry.start) &&
+                Objects.equals(end, timeEntry.end) &&
+                Objects.equals(notes, timeEntry.notes);
         }
 
         @Override
@@ -800,10 +820,10 @@ public class BabyBuddyClient extends StreamReader {
         );
     }
 
-    public void listGeneric(String activity, Filters filters, RequestCallback<JSONArray> callback) {
+    public void listGeneric(String activity, QueryValues queryValues, RequestCallback<JSONArray> callback) {
         String path = "api/" + activity + "/";
-        if (filters != null) {
-            path = path + "?" + filters.toQueryString();
+        if (queryValues != null) {
+            path = path + "?" + queryValues.toQueryString();
         }
         dispatchQuery("GET", path, null, new RequestCallback<String>() {
             @Override
@@ -833,7 +853,7 @@ public class BabyBuddyClient extends StreamReader {
     public void listSleepEntries(int child_id, int offset, int count, RequestCallback<TimeEntry[]> callback) {
         listGeneric(
             ACTIVITIES.SLEEP,
-            new Filters()
+            new QueryValues()
                 .add("child", child_id)
                 .add("offset", offset)
                 .add("limit", count),
@@ -871,7 +891,7 @@ public class BabyBuddyClient extends StreamReader {
     public void listFeedingsEntries(int child_id, int offset, int count, RequestCallback<FeedingEntry[]> callback) {
         listGeneric(
             ACTIVITIES.FEEDING,
-            new Filters()
+            new QueryValues()
                 .add("child", child_id)
                 .add("offset", offset)
                 .add("limit", count),
@@ -926,7 +946,7 @@ public class BabyBuddyClient extends StreamReader {
     public void listTummyTimeEntries(int child_id, int offset, int count, RequestCallback<TimeEntry[]> callback) {
         listGeneric(
             ACTIVITIES.TUMMY_TIME,
-            new Filters()
+            new QueryValues()
                 .add("child", child_id)
                 .add("offset", offset)
                 .add("limit", count),
@@ -964,7 +984,7 @@ public class BabyBuddyClient extends StreamReader {
     public void listChangeEntries(int child_id, int offset, int count, RequestCallback<ChangeEntry[]> callback) {
         listGeneric(
             "changes",
-            new Filters()
+            new QueryValues()
                 .add("child", child_id)
                 .add("offset", offset)
                 .add("limit", count),
@@ -1015,6 +1035,35 @@ public class BabyBuddyClient extends StreamReader {
                 @Override
                 public void response(String response) {
                     callback.response(true);
+                }
+            }
+        );
+    }
+
+    public void updateTimelineEntry(
+        @NotNull TimeEntry entry,
+        @NotNull QueryValues values,
+        @NotNull RequestCallback<TimeEntry> callback
+    ) {
+        String path = "api/" + entry.type + "/" + entry.typeId + "/";
+        dispatchQuery(
+            "PATCH",
+            path,
+            values.toJsonObject().toString(),
+            new RequestCallback<String>() {
+                @Override
+                public void error(@NonNull Exception error) {
+                    callback.error(error);
+                }
+
+                @Override
+                public void response(String response) {
+                    try {
+                        JSONObject o = new JSONObject(response);
+                        callback.response(TimeEntry.fromJsonObject(o, entry.type));
+                    } catch (JSONException | ParseException e) {
+                        callback.error(e);
+                    }
                 }
             }
         );

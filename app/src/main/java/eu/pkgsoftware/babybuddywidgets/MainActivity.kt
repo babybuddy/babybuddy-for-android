@@ -1,18 +1,19 @@
 package eu.pkgsoftware.babybuddywidgets
 
-import android.content.DialogInterface
 import androidx.appcompat.app.AppCompatActivity
 import eu.pkgsoftware.babybuddywidgets.networking.BabyBuddyClient
 import eu.pkgsoftware.babybuddywidgets.networking.BabyBuddyClient.Child
 import android.os.Bundle
+import android.util.Log
 import android.view.View
 import androidx.appcompat.app.AlertDialog
 import eu.pkgsoftware.babybuddywidgets.databinding.ActivityMainBinding
 import kotlinx.coroutines.*
 import org.json.JSONArray
+import org.json.JSONException
 import java.lang.Exception
 import java.util.*
-import kotlin.coroutines.CoroutineContext
+import kotlin.collections.ArrayList
 import kotlin.coroutines.resume
 import kotlin.coroutines.resumeWithException
 import kotlin.coroutines.suspendCoroutine
@@ -114,26 +115,41 @@ class MainActivity : AppCompatActivity() {
         timer: BabyBuddyClient.Timer,
         storeInterface: StoreFunction<X>
     ) {
+        val MINUTE = 60 * 1000L
+        val rawEndDate = timer.computeCurrentServerEndTime(client)
+        val roundedStart = Date(timer.start.time - timer.start.time % MINUTE)
+        val roundedEnd = Date(rawEndDate.time - rawEndDate.time % MINUTE + MINUTE)
+
         suspend fun trySave(): X {
             return AsyncClientRequest.call {
                 storeInterface.store(timer, it)
             }
         }
 
+        suspend fun listConflicts(): List<BabyBuddyClient.TimeEntry> {
+            val jsonEntries = AsyncClientRequest.call<JSONArray> {
 
-        suspend fun hasConflict(): Boolean {
-            val entries = AsyncClientRequest.call<JSONArray> {
-                val endDate = timer.computeCurrentServerEndTime(client)
                 client.listGeneric(
                     storeInterface.name(),
-                    BabyBuddyClient.Filters()
-                        .add("start_max", endDate)
-                        .add("end_min", timer.start)
-                        .add("limit", 10),
+                    BabyBuddyClient.QueryValues()
+                        .add("start_max", roundedEnd)
+                        .add("end_min", roundedStart)
+                        .add("limit", 50),
                     it
                 )
             }
-            return entries.length() > 0
+            val result = ArrayList<BabyBuddyClient.TimeEntry>()
+            for (i in 0..jsonEntries.length() - 1) {
+                try {
+                    val entry = BabyBuddyClient.TimeEntry.fromJsonObject(
+                        jsonEntries.getJSONObject(i), storeInterface.name()
+                    )
+                    result.add(entry)
+                } catch (e: Exception) {
+                    Log.e("MainActivity", "Received unparsable json object")
+                }
+            }
+            return result
         }
 
         suspend fun askForResolutionMethod(): ConflictResolutionOptions {
@@ -161,28 +177,67 @@ class MainActivity : AppCompatActivity() {
             }
         }
 
-        suspend fun resolve() {
-            // TODO...
+        suspend fun patchEntry(
+            e: BabyBuddyClient.TimeEntry,
+            values: BabyBuddyClient.QueryValues
+        ): BabyBuddyClient.TimeEntry {
+            return AsyncClientRequest.call {
+                client.updateTimelineEntry(e, values, it)
+            }
         }
 
+        suspend fun resolve(conflicts: List<BabyBuddyClient.TimeEntry>) {
+            for (c in conflicts) {
+                val values = BabyBuddyClient.QueryValues()
+                if (c.start.time < roundedStart.time) {
+                    values.add("end", roundedStart)
+                } else if (c.end.time > roundedEnd.time) {
+                    values.add("start", roundedEnd)
+                } else {
+                    val startDistance = Math.abs(c.start.time - roundedStart.time)
+                    val endDistance = Math.abs(c.end.time - roundedEnd.time)
+                    val adjustTimeTo = if (startDistance <= endDistance) roundedStart else roundedEnd
+                    values.add("start", adjustTimeTo)
+                    values.add("end", adjustTimeTo)
+                }
+                patchEntry(c, values)
+            }
+        }
 
         scope.launch {
             try {
+                var conflicts = listOf<BabyBuddyClient.TimeEntry>()
                 try {
                     trySave()
                 } catch (e: Exception) {
-                    if (!hasConflict()) {
+                    conflicts = listConflicts()
+                    if (conflicts.isEmpty()) {
                         throw e
                     }
+                }
+                if (conflicts.isEmpty()) {
+                    return@launch
                 }
 
                 val resolution = askForResolutionMethod()
                 if (resolution == ConflictResolutionOptions.STOP_TIMER) {
-                    stopTimer()
                     storeInterface.timerStopped()
                 } else if (resolution == ConflictResolutionOptions.RESOLVE) {
-                    resolve()
-                    storeInterface.response(trySave())
+                    var retries = 3
+                    while (retries > 0) {
+                        resolve(conflicts)
+                        try {
+                            storeInterface.response(trySave())
+                            return@launch
+                        } catch (e: Exception) {
+                            if (retries == 0) {
+                                storeInterface.error(e)
+                                return@launch
+                            }
+                            conflicts = listConflicts()
+                        }
+                        retries--
+                    }
                 } else {
                     storeInterface.cancel()
                 }
