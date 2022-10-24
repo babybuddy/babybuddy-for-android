@@ -221,6 +221,7 @@ class MainActivity : AppCompatActivity() {
 
                 val resolution = askForResolutionMethod()
                 if (resolution == ConflictResolutionOptions.STOP_TIMER) {
+                    stopTimer()
                     storeInterface.timerStopped()
                 } else if (resolution == ConflictResolutionOptions.RESOLVE) {
                     var retries = 3

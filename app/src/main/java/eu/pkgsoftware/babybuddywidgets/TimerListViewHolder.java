@@ -167,6 +167,68 @@ public class TimerListViewHolder extends RecyclerView.ViewHolder {
         }
     }
 
+    private interface BareStoreFunction {
+        public void doStore(
+            @NonNull BabyBuddyClient.RequestCallback<Boolean> callback
+        );
+    }
+
+    private class TimerStoreFunction implements StoreFunction<Boolean> {
+        private final int selectedActivity;
+        private final BareStoreFunction bareStoreFunction;
+        private final StoreActivityCallback sac;
+        private final BabyBuddyClient.Timer timer;
+
+        public TimerStoreFunction(
+            StoreActivityCallback _sac,
+            BabyBuddyClient.Timer _timer,
+            int _selectedActivity,
+            BareStoreFunction _bareStoreFunction
+        ) {
+            timer = _timer;
+            selectedActivity = _selectedActivity;
+            bareStoreFunction = _bareStoreFunction;
+            sac = _sac;
+        }
+
+        @Override
+        public void store(
+            @NonNull BabyBuddyClient.Timer _timer,
+            @NonNull BabyBuddyClient.RequestCallback<java.lang.Boolean> callback
+        ) {
+            bareStoreFunction.doStore(callback);
+        }
+
+        @NonNull
+        @Override
+        public String name() {
+            return BabyBuddyClient.ACTIVITIES.ALL[selectedActivity];
+        }
+
+        @Override
+        public void error(@NotNull Exception error) {
+            sac.error(error);
+            updateActiveState();
+        }
+
+        @Override
+        public void response(java.lang.Boolean response) {
+            sac.response(response);
+            updateActiveState();
+        }
+
+        @Override
+        public void timerStopped() {
+            updateActiveState();
+        }
+
+        @Override
+        public void cancel() {
+            timer.active = true;
+            updateActiveState();
+        }
+    }
+
     private void storeActivity() {
         final int selectedActivity = (int) binding.appTimerDefaultType.getSelectedItemId();
         final MainActivity mainActivity = this.baseFragment.getMainActivity();
@@ -178,56 +240,21 @@ public class TimerListViewHolder extends RecyclerView.ViewHolder {
                 .toString()
         );
 
-
+        BareStoreFunction storeFunction = null;
         if (selectedActivity == 0) {
             baseFragment.getMainActivity().selectedTimer = timer;
             Navigation.findNavController(baseFragment.getView()).navigate(R.id.action_loggedInFragment2_to_feedingFragment);
         } else if (selectedActivity == 1) {
-
-            mainActivity.storeActivity(timer, new StoreFunction<Boolean>() {
-                @Override
-                public void store(@NonNull BabyBuddyClient.Timer timer, @NonNull BabyBuddyClient.RequestCallback<Boolean> callback) {
-                    client.createSleepRecordFromTimer(
-                        timer,
-                        notesEditor.getText(),
-                        callback
-                    );
-                }
-
-                @NonNull
-                @Override
-                public String name() {
-                    return BabyBuddyClient.ACTIVITIES.ALL[selectedActivity];
-                }
-
-                @Override
-                public void error(@NotNull Exception error) {
-                    sac.error(error);
-                    updateActiveState();
-                }
-
-                @Override
-                public void response(Boolean response) {
-                    sac.response(response);
-                    updateActiveState();
-                }
-
-                @Override
-                public void timerStopped() {
-                    updateActiveState();
-                }
-
-                @Override
-                public void cancel() {
-                    timer.active = true;
-                    updateActiveState();
-                }
-            });
-        } else if (selectedActivity == 2) {
-            client.createTummyTimeRecordFromTimer(
+            storeFunction = callback -> client.createSleepRecordFromTimer(
                 timer,
                 notesEditor.getText(),
-                sac
+                callback
+            );
+        } else if (selectedActivity == 2) {
+            storeFunction = callback -> client.createTummyTimeRecordFromTimer(
+                timer,
+                notesEditor.getText(),
+                callback
             );
         } else {
             baseFragment.showError(
@@ -235,6 +262,16 @@ public class TimerListViewHolder extends RecyclerView.ViewHolder {
                 R.string.error_storing_activity_failed_title,
                 R.string.error_storing_activity_unsupported
             );
+            return;
+        }
+
+        if (storeFunction != null) {
+            mainActivity.storeActivity(timer, new TimerStoreFunction(
+                sac,
+                timer,
+                selectedActivity,
+                storeFunction
+            ));
         }
     }
 

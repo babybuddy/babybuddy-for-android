@@ -266,7 +266,13 @@ public class BabyBuddyClient extends StreamReader {
         public String notes;
 
         public static TimeEntry fromJsonObject(JSONObject json, String type) throws JSONException, ParseException {
-            String notes = json.getString("notes");
+            String notes = null;
+            if (json.has("milestone")) {
+                notes = json.getString("milestone");
+            }
+            if (json.has("notes")) {
+                notes = json.getString("notes");
+            }
             return new TimeEntry(
                 type,
                 json.getInt("id"),
