@@ -54,11 +54,14 @@
     <!--- Store activities -->
     <string name="error_storing_activity_failed_title">Could not store activity</string>
     <string name="error_storing_activity_unsupported">Unsupported activity</string>
+    <string name="popup_message_storing">Storing {activity} ...</string>
 
     <!--- Store activities: Conflicts -->
-    <string name="conflicting_activity_title">Overlapping time entry</string>
-    <string name="conflicting_activity_text">How do you want to resolve the overlapping entries?</string>
-    <string name="conflicting_activity_modify_option">Modify conflicting</string>
-    <string name="conflicting_activity_cancel_option">Cancel</string>
-    <string name="conflicting_activity_stop_timer_option">Stop timer</string>
+    <string name="conflicting_activity_title">Overlapping time entries</string>
+    <string name="conflicting_activity_text">
+        The timer overlaps with stored entries. Please choose a resolution action.
+    </string>
+    <string name="conflicting_activity_modify_option">Adjust stored</string>
+    <string name="conflicting_activity_cancel_option">Cancel saving</string>
+    <string name="conflicting_activity_stop_timer_option">Cancel this timer</string>
 </resources>

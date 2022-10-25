@@ -1,6 +1,5 @@
 package eu.pkgsoftware.babybuddywidgets;
 
-import android.app.ProgressDialog;
 import android.os.Bundle;
 import android.view.LayoutInflater;
 import android.view.View;
@@ -366,10 +365,6 @@ public class FeedingFragment extends BaseFragment {
     }
 
     private void submitFeeding() {
-        ProgressDialog progressDialog = new ProgressDialog(getContext());
-        progressDialog.setProgressStyle(ProgressDialog.STYLE_SPINNER);
-        progressDialog.setMessage(getString(R.string.logging_in_message));
-
         long feedingTypeId = binding.feedingTypeSpinner.getSelectedItemId();
         Constants.FeedingTypeEnum feedingType = Constants.FeedingTypeEnumValues.get((int) feedingTypeId);
         long feedingMethodId = binding.feedingMethodSpinner.getSelectedItemId();
@@ -379,42 +374,63 @@ public class FeedingFragment extends BaseFragment {
         if (fAmount != null) {
             fAmount = Math.round(fAmount * 10.0f) / 10.0f;
         }
+        final Float finalFloatAmount = fAmount;
 
-        mainActivity().getClient().createFeedingRecordFromTimer(
-            selectedTimer,
-            feedingType.post_name,
-            feedingMethod.post_name,
-            fAmount,
-            notesEditor.noteEditor.getText().toString().trim(),
-            new BabyBuddyClient.RequestCallback<Boolean>() {
-                @Override
-                public void error(Exception error) {
-                    progressDialog.cancel();
-
-                    showError(
-                        true,
-                        "Failed storing feeding",
-                        "Error: " + error.getMessage(),
-                        b -> navUp()
-                    );
-                }
-
-                @Override
-                public void response(Boolean response) {
-                    progressDialog.cancel();
-                    MainActivity ma = mainActivity();
-                    mainActivity().getCredStore().storeLastUsedAmount(amount);
-                    notesEditor.noteEditor.setText("");
-                    mainActivity().getCredStore().setObjectNotes(
-                        "timer_" + selectedTimer.id,
-                        false,
-                        ""
-                    );
-                    mainActivity().getCredStore().storePrefs();
-                    navUp();
-                }
+        mainActivity().storeActivity(selectedTimer, new StoreFunction<Boolean>() {
+            @Override
+            public void error(@NonNull Exception error) {
+                showError(
+                    true,
+                    "Failed storing feeding",
+                    "Error: " + error.getMessage(),
+                    b -> navUp()
+                );
             }
-        );
+
+            @Override
+            public void response(Boolean response) {
+                MainActivity ma = mainActivity();
+                mainActivity().getCredStore().storeLastUsedAmount(amount);
+                notesEditor.noteEditor.setText("");
+                mainActivity().getCredStore().setObjectNotes(
+                    "timer_" + selectedTimer.id,
+                    false,
+                    ""
+                );
+                mainActivity().getCredStore().storePrefs();
+                navUp();
+            }
+
+            @Override
+            public void cancel() {
+            }
+
+            @Override
+            public void timerStopped() {
+                navUp();
+            }
+
+            @NonNull
+            @Override
+            public String name() {
+                return BabyBuddyClient.ACTIVITIES.FEEDING;
+            }
+
+            @Override
+            public void store(
+                @NonNull BabyBuddyClient.Timer timer,
+                @NonNull BabyBuddyClient.RequestCallback<Boolean> callback
+            ) {
+                mainActivity().getClient().createFeedingRecordFromTimer(
+                    selectedTimer,
+                    feedingType.post_name,
+                    feedingMethod.post_name,
+                    finalFloatAmount,
+                    notesEditor.noteEditor.getText().toString().trim(),
+                    callback
+                );
+            }
+        });
     }
 
     private void navUp() {

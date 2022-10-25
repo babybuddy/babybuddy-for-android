@@ -1,19 +1,18 @@
 package eu.pkgsoftware.babybuddywidgets
 
-import androidx.appcompat.app.AppCompatActivity
-import eu.pkgsoftware.babybuddywidgets.networking.BabyBuddyClient
-import eu.pkgsoftware.babybuddywidgets.networking.BabyBuddyClient.Child
+import android.app.ProgressDialog
 import android.os.Bundle
 import android.util.Log
 import android.view.View
 import androidx.appcompat.app.AlertDialog
+import androidx.appcompat.app.AppCompatActivity
+import com.squareup.phrase.Phrase
 import eu.pkgsoftware.babybuddywidgets.databinding.ActivityMainBinding
+import eu.pkgsoftware.babybuddywidgets.networking.BabyBuddyClient
+import eu.pkgsoftware.babybuddywidgets.networking.BabyBuddyClient.Child
 import kotlinx.coroutines.*
 import org.json.JSONArray
-import org.json.JSONException
-import java.lang.Exception
 import java.util.*
-import kotlin.collections.ArrayList
 import kotlin.coroutines.resume
 import kotlin.coroutines.resumeWithException
 import kotlin.coroutines.suspendCoroutine
@@ -115,11 +114,6 @@ class MainActivity : AppCompatActivity() {
         timer: BabyBuddyClient.Timer,
         storeInterface: StoreFunction<X>
     ) {
-        val MINUTE = 60 * 1000L
-        val rawEndDate = timer.computeCurrentServerEndTime(client)
-        val roundedStart = Date(timer.start.time - timer.start.time % MINUTE)
-        val roundedEnd = Date(rawEndDate.time - rawEndDate.time % MINUTE + MINUTE)
-
         suspend fun trySave(): X {
             return AsyncClientRequest.call {
                 storeInterface.store(timer, it)
@@ -132,8 +126,8 @@ class MainActivity : AppCompatActivity() {
                 client.listGeneric(
                     storeInterface.name(),
                     BabyBuddyClient.QueryValues()
-                        .add("start_max", roundedEnd)
-                        .add("end_min", roundedStart)
+                        .add("start_max", timer.computeCurrentServerEndTime(client))
+                        .add("end_min", timer.start)
                         .add("limit", 50),
                     it
                 )
@@ -187,43 +181,76 @@ class MainActivity : AppCompatActivity() {
         }
 
         suspend fun resolve(conflicts: List<BabyBuddyClient.TimeEntry>) {
+            var anyException: Exception? = null
+            val endTime = timer.computeCurrentServerEndTime(client)
             for (c in conflicts) {
                 val values = BabyBuddyClient.QueryValues()
-                if (c.start.time < roundedStart.time) {
-                    values.add("end", roundedStart)
-                } else if (c.end.time > roundedEnd.time) {
-                    values.add("start", roundedEnd)
+                if (c.start.time < timer.start.time) {
+                    values.add("end", timer.start)
+                } else if (c.end.time > endTime.time) {
+                    values.add("start", endTime)
                 } else {
-                    val startDistance = Math.abs(c.start.time - roundedStart.time)
-                    val endDistance = Math.abs(c.end.time - roundedEnd.time)
-                    val adjustTimeTo = if (startDistance <= endDistance) roundedStart else roundedEnd
+                    val startDistance = Math.abs(c.start.time - timer.start.time)
+                    val endDistance = Math.abs(c.end.time - endTime.time)
+                    val adjustTimeTo = if (startDistance <= endDistance) timer.start else endTime
                     values.add("start", adjustTimeTo)
                     values.add("end", adjustTimeTo)
                 }
-                patchEntry(c, values)
+                try {
+                    patchEntry(c, values)
+                }
+                catch (e: Exception) {
+                    anyException = e
+                }
+            }
+            if (anyException != null) {
+                throw anyException;
             }
         }
 
+        @Suppress("DEPRECATION")
         scope.launch {
+            var readableActivityName = storeInterface.name()
+            if (BabyBuddyClient.ACTIVITIES.index(readableActivityName) >= 0) {
+                val i = BabyBuddyClient.ACTIVITIES.index(readableActivityName);
+                readableActivityName = resources.getStringArray(R.array.timerTypes).get(i)
+            }
+
+            val progressDialog = ProgressDialog(this@MainActivity)
+            progressDialog.setProgressStyle(ProgressDialog.STYLE_SPINNER)
+            progressDialog.setMessage(
+                Phrase.from(applicationContext, R.string.popup_message_storing)
+                    .putOptional("activity", readableActivityName)
+                    .format()
+            )
+
+            progressDialog.show()
             try {
                 var conflicts = listOf<BabyBuddyClient.TimeEntry>()
                 try {
-                    trySave()
+                    val result = trySave()
+                    storeInterface.response(result)
                 } catch (e: Exception) {
                     conflicts = listConflicts()
                     if (conflicts.isEmpty()) {
+                        progressDialog.cancel()
                         throw e
                     }
                 }
                 if (conflicts.isEmpty()) {
+                    progressDialog.cancel()
                     return@launch
                 }
 
+                progressDialog.hide()
                 val resolution = askForResolutionMethod()
+                progressDialog.show()
                 if (resolution == ConflictResolutionOptions.STOP_TIMER) {
+                    progressDialog.cancel()
                     stopTimer()
                     storeInterface.timerStopped()
                 } else if (resolution == ConflictResolutionOptions.RESOLVE) {
+                    stopTimer()
                     var retries = 3
                     while (retries > 0) {
                         resolve(conflicts)
@@ -231,20 +258,22 @@ class MainActivity : AppCompatActivity() {
                             storeInterface.response(trySave())
                             return@launch
                         } catch (e: Exception) {
-                            if (retries == 0) {
-                                storeInterface.error(e)
-                                return@launch
-                            }
                             conflicts = listConflicts()
                         }
                         retries--
+                        delay(1000)
                     }
+                    storeInterface.error(java.lang.Exception("Failed to correct conflicting"))
                 } else {
+                    progressDialog.cancel()
                     storeInterface.cancel()
                 }
             } catch (e: Exception) {
                 e.printStackTrace()
                 storeInterface.error(e)
+            }
+            finally {
+                progressDialog.cancel()
             }
         }
     }
