@@ -174,6 +174,9 @@ public class LoggedInFragment extends BaseFragment {
         if (item.getItemId() == R.id.logoutMenuButton) {
             logout();
         }
+        if (item.getItemId() == R.id.showHelpMenuButton) {
+            Navigation.findNavController(getView()).navigate(R.id.global_showHelp);
+        }
         if (item.getItemId() == R.id.aboutPageMenuItem) {
             Navigation.findNavController(getView()).navigate(R.id.global_aboutFragment);
         }

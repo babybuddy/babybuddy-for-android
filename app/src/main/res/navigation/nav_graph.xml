@@ -41,4 +41,10 @@
         android:label="AboutFragment" />
 
     <action android:id="@+id/global_aboutFragment" app:destination="@id/aboutFragment"/>
+    <fragment
+        android:id="@+id/help"
+        android:name="eu.pkgsoftware.babybuddywidgets.Help"
+        android:label="help_fragment"
+        tools:layout="@layout/help_fragment" />
+    <action android:id="@+id/global_showHelp" app:destination="@id/help" />
 </navigation>

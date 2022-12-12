@@ -241,5 +241,6 @@ public class AboutFragment extends BaseFragment {
     public void onResume() {
         super.onResume();
         getMainActivity().setTitle(getResources().getString(R.string.about_page_title));
+        getMainActivity().enableBackNavigationButton(true);
     }
 }

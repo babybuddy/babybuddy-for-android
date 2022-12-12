@@ -3,9 +3,16 @@ package eu.pkgsoftware.babybuddywidgets
 import android.app.ProgressDialog
 import android.os.Bundle
 import android.util.Log
+import android.view.MenuItem
 import android.view.View
+import android.widget.TextView
 import androidx.appcompat.app.AlertDialog
 import androidx.appcompat.app.AppCompatActivity
+import androidx.fragment.app.Fragment
+import androidx.fragment.app.FragmentContainerView
+import androidx.navigation.NavController
+import androidx.navigation.Navigation
+import androidx.navigation.fragment.NavHostFragment
 import com.squareup.phrase.Phrase
 import eu.pkgsoftware.babybuddywidgets.databinding.ActivityMainBinding
 import eu.pkgsoftware.babybuddywidgets.networking.BabyBuddyClient
@@ -94,9 +101,19 @@ class MainActivity : AppCompatActivity() {
         ).let {
             setContentView(it.root)
             setSupportActionBar(it.toolbar)
-            it.toolbar.setNavigationOnClickListener { view: View? -> }
-            it.toolbar.navigationIcon = null
             it
+        }
+        enableBackNavigationButton(false)
+    }
+
+    override fun onStart() {
+        super.onStart()
+
+        binding?.root?.let {
+            val ncv = it.findViewById<FragmentContainerView>(R.id.nav_host_fragment_content_main)
+            Navigation.findNavController(ncv).addOnDestinationChangedListener {
+                    controller, destination, arguments -> enableBackNavigationButton(false)
+            }
         }
     }
 
@@ -108,6 +125,19 @@ class MainActivity : AppCompatActivity() {
 
     fun setTitle(title: String) {
         supportActionBar?.title = title
+    }
+
+    fun enableBackNavigationButton(b: Boolean) {
+        supportActionBar?.setDisplayHomeAsUpEnabled(b)
+        supportActionBar?.setDisplayShowHomeEnabled(b)
+    }
+
+    override fun onSupportNavigateUp(): Boolean {
+        binding?.root?.let {
+            val ncv = it.findViewById<FragmentContainerView>(R.id.nav_host_fragment_content_main)
+            Navigation.findNavController(ncv).navigateUp()
+        }
+        return false;
     }
 
     fun <X> storeActivity(

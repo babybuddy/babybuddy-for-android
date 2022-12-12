@@ -39,6 +39,7 @@
     <!-- Menu items -->
     <string name="recreateTimersMenu">Recreate default timers</string>
     <string name="logoutMenu">Logout</string>
+    <string name="showHelpMenuButtonTitle">Help</string>
 
     <!-- Login -->
     <string name="login_explanation">Please enter the URL to your <a href="https://github.com/babybuddy/babybuddy">Baby Buddy WebApp</a> installation. If you do not have a Baby Buddy server already, please visit the project page to find instructions how to host a server yourself.</string>

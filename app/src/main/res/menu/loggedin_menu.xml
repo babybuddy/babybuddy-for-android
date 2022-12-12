@@ -10,6 +10,9 @@
         android:icon="@android:drawable/ic_menu_revert"
         android:title="@string/logoutMenu" />
     <item
+        android:id="@+id/showHelpMenuButton"
+        android:title="@string/showHelpMenuButtonTitle" />
+    <item
         android:id="@+id/aboutPageMenuItem"
         android:title="@string/about_page_title" />
 </menu>
