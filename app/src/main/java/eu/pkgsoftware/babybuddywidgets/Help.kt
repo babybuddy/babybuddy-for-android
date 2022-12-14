@@ -3,16 +3,15 @@ package eu.pkgsoftware.babybuddywidgets
 import android.content.res.Resources
 import android.graphics.drawable.Drawable
 import android.os.Bundle
+import android.util.DisplayMetrics
+import android.util.Log
 import android.view.LayoutInflater
 import android.view.MenuItem
 import android.view.View
 import android.view.ViewGroup
-import android.widget.ImageView
 import androidx.core.content.res.ResourcesCompat
-import androidx.fragment.app.Fragment
 import androidx.recyclerview.widget.RecyclerView.Adapter
 import androidx.recyclerview.widget.RecyclerView.ViewHolder
-import androidx.viewpager2.widget.ViewPager2
 import eu.pkgsoftware.babybuddywidgets.databinding.HelpFragmentBinding
 import eu.pkgsoftware.babybuddywidgets.databinding.HelpPageBinding
 
@@ -35,9 +34,24 @@ class HelpViewHolder(val imageView: HelpPageBinding) : ViewHolder(imageView.root
 
 class Help : BaseFragment() {
     inner class HelpAdapter : Adapter<HelpViewHolder>() {
+        private var _count = 0
+
+        init {
+            while (hasResource(_count + 1)) {
+                _count++
+            }
+        }
+
         override fun onCreateViewHolder(parent: ViewGroup, viewType: Int): HelpViewHolder {
             val helpPage = HelpPageBinding.inflate(this@Help.mainActivity.layoutInflater)
             return HelpViewHolder(helpPage)
+        }
+
+        private fun hasResource(i: Int): Boolean {
+            val id = resources.getIdentifier(
+                "help_item_${i}_text", "string", mainActivity.packageName
+            )
+            return id != 0;
         }
 
         private fun getString(name: String): String {
@@ -53,21 +67,23 @@ class Help : BaseFragment() {
                 drawableName, "drawable", mainActivity.packageName
             )
             try {
-                return ResourcesCompat.getDrawable(resources, drawableId, mainActivity.theme)
+                return ResourcesCompat.getDrawableForDensity(
+                    resources, drawableId, DisplayMetrics.DENSITY_XXXHIGH,null
+                )
             } catch (e: Resources.NotFoundException) {
                 return null
             }
         }
 
         override fun onBindViewHolder(holder: HelpViewHolder, position: Int) {
-            holder.setText(getString("help_item_1_text"))
-            getDrawable("help_item_1_image")?.let {
+            holder.setText(getString("help_item_${position + 1}_text"))
+            getDrawable("help_item_${position + 1}_image")?.let {
                 holder.setImage(it)
             }
         }
 
         override fun getItemCount(): Int {
-            return 1
+            return _count
         }
     }
 
