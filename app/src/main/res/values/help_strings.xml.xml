@@ -1,0 +1,6 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <string name="help_item_1_title">AAAA</string>
+    <string name="help_item_1_image">ic_play</string>
+    <string name="help_item_1_text">TEXT</string>
+</resources>
