@@ -1,22 +1,28 @@
 <?xml version="1.0" encoding="utf-8"?>
 <resources>
-    <string name="help_item_1_title">Login</string>
-    <string name="help_item_1_image">help_normal_login</string>
-    <string name="help_item_1_text">
+    <string name="help_item_1_1_title">Login</string>
+    <string name="help_item_1_1_image">help_normal_login</string>
+    <string name="help_item_1_1_text">
         Enter your Babybuddy Server URL, username, and password. The press login to connect
         the Babybuddy App to the Babybuddy Server.
     </string>
 
-    <string name="help_item_2_title">Insecure Login</string>
-    <string name="help_item_2_image">help_insecure_http</string>
-    <string name="help_item_2_text">
+    <string name="help_item_1_2_title">Insecure Login</string>
+    <string name="help_item_1_2_image">help_insecure_http</string>
+    <string name="help_item_1_2_text">
         If you use a http-address instead of a https-address, …
     </string>
 
-    <string name="help_item_3_title">Insecure Login</string>
-    <string name="help_item_3_image">help_insecure_http_warning</string>
-    <string name="help_item_3_text">
+    <string name="help_item_1_3_title">Insecure Login</string>
+    <string name="help_item_1_3_image">help_insecure_http_warning</string>
+    <string name="help_item_1_3_text">
         … the application will show you this warning. Only use this feature for local BabyBuddy
         servers in a network that you control!
+    </string>
+
+    <string name="help_item_2_1_title">PLACEHOLDER</string>
+    <string name="help_item_2_1_image">help_insecure_http_warning</string>
+    <string name="help_item_2_1_text">
+        PLACEHOLDER PLACEHOLDER PLACEHOLDER
     </string>
 </resources>

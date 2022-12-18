@@ -4,7 +4,6 @@ import android.content.res.Resources
 import android.graphics.drawable.Drawable
 import android.os.Bundle
 import android.util.DisplayMetrics
-import android.util.Log
 import android.view.LayoutInflater
 import android.view.MenuItem
 import android.view.View
@@ -12,10 +11,11 @@ import android.view.ViewGroup
 import androidx.core.content.res.ResourcesCompat
 import androidx.recyclerview.widget.RecyclerView.Adapter
 import androidx.recyclerview.widget.RecyclerView.ViewHolder
+import eu.pkgsoftware.babybuddywidgets.databinding.HelpDepthPagerBinding
 import eu.pkgsoftware.babybuddywidgets.databinding.HelpFragmentBinding
 import eu.pkgsoftware.babybuddywidgets.databinding.HelpPageBinding
 
-class HelpViewHolder(val imageView: HelpPageBinding) : ViewHolder(imageView.root) {
+class HelpDepthViewHolder(val imageView: HelpPageBinding) : ViewHolder(imageView.root) {
     init {
         imageView.root.layoutParams = ViewGroup.LayoutParams(
             ViewGroup.LayoutParams.MATCH_PARENT,
@@ -32,8 +32,21 @@ class HelpViewHolder(val imageView: HelpPageBinding) : ViewHolder(imageView.root
     }
 }
 
+class HelpMainViewHolder(val binding: HelpDepthPagerBinding) : ViewHolder(binding.root) {
+    init {
+        binding.root.layoutParams = ViewGroup.LayoutParams(
+            ViewGroup.LayoutParams.MATCH_PARENT,
+            ViewGroup.LayoutParams.MATCH_PARENT
+        );
+    }
+}
+
 class Help : BaseFragment() {
-    inner class HelpAdapter : Adapter<HelpViewHolder>() {
+    fun constructName(i: Int, j: Int, type: String): String {
+        return "help_item_${i}_${j}_${type}"
+    }
+
+    inner class HelpDepthAdapter(val baseIndex: Int) : Adapter<HelpDepthViewHolder>() {
         private var _count = 0
 
         init {
@@ -42,16 +55,16 @@ class Help : BaseFragment() {
             }
         }
 
-        override fun onCreateViewHolder(parent: ViewGroup, viewType: Int): HelpViewHolder {
+        override fun onCreateViewHolder(parent: ViewGroup, viewType: Int): HelpDepthViewHolder {
             val helpPage = HelpPageBinding.inflate(this@Help.mainActivity.layoutInflater)
-            return HelpViewHolder(helpPage)
+            return HelpDepthViewHolder(helpPage)
         }
 
         private fun hasResource(i: Int): Boolean {
             val id = resources.getIdentifier(
-                "help_item_${i}_text", "string", mainActivity.packageName
+                constructName(baseIndex, i, "text"), "string", mainActivity.packageName
             )
-            return id != 0;
+            return id != 0
         }
 
         private fun getString(name: String): String {
@@ -68,16 +81,16 @@ class Help : BaseFragment() {
             )
             try {
                 return ResourcesCompat.getDrawableForDensity(
-                    resources, drawableId, DisplayMetrics.DENSITY_XXXHIGH,null
+                    resources, drawableId, DisplayMetrics.DENSITY_XXXHIGH, null
                 )
             } catch (e: Resources.NotFoundException) {
                 return null
             }
         }
 
-        override fun onBindViewHolder(holder: HelpViewHolder, position: Int) {
-            holder.setText(getString("help_item_${position + 1}_text"))
-            getDrawable("help_item_${position + 1}_image")?.let {
+        override fun onBindViewHolder(holder: HelpDepthViewHolder, position: Int) {
+            holder.setText(getString(constructName(baseIndex, position + 1, "text")))
+            getDrawable(constructName(baseIndex, position + 1, "image"))?.let {
                 holder.setImage(it)
             }
         }
@@ -87,9 +100,34 @@ class Help : BaseFragment() {
         }
     }
 
+    inner class HelpMainAdapter() : Adapter<HelpMainViewHolder>() {
+        private var _count = 0
 
-    override fun onCreate(savedInstanceState: Bundle?) {
-        super.onCreate(savedInstanceState)
+        init {
+            while (hasResource(_count + 1)) {
+                _count++
+            }
+        }
+
+        private fun hasResource(i: Int): Boolean {
+            val id = resources.getIdentifier(
+                constructName(i, 1,"text"), "string", mainActivity.packageName
+            )
+            return id != 0
+        }
+
+        override fun onCreateViewHolder(parent: ViewGroup, viewType: Int): HelpMainViewHolder {
+            return HelpMainViewHolder(HelpDepthPagerBinding.inflate(layoutInflater))
+        }
+
+        override fun onBindViewHolder(holder: HelpMainViewHolder, position: Int) {
+            holder.binding.helpDepthPager.adapter = HelpDepthAdapter(position + 1)
+            holder.binding.helpDepthPager.currentItem = 0
+        }
+
+        override fun getItemCount(): Int {
+            return _count
+        }
     }
 
     override fun onCreateView(
@@ -97,7 +135,7 @@ class Help : BaseFragment() {
         savedInstanceState: Bundle?
     ): View {
         val binding = HelpFragmentBinding.inflate(inflater)
-        binding.helpPager.adapter = HelpAdapter()
+        binding.helpPager.adapter = HelpMainAdapter()
         return binding.root
     }
 
