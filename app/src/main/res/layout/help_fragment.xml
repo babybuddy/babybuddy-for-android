@@ -1,13 +1,37 @@
 <?xml version="1.0" encoding="utf-8"?>
-<FrameLayout xmlns:android="http://schemas.android.com/apk/res/android"
+<androidx.constraintlayout.widget.ConstraintLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
     xmlns:tools="http://schemas.android.com/tools"
     android:layout_width="match_parent"
     android:layout_height="match_parent"
     tools:context=".Help">
 
+    <ImageView
+        android:id="@+id/leftArrow"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:alpha="0.5"
+        android:rotation="-90"
+        android:src="@drawable/help_navigation_arrow"
+        app:layout_constraintBottom_toBottomOf="parent"
+        app:layout_constraintStart_toStartOf="@+id/helpPager"
+        app:layout_constraintTop_toTopOf="@+id/helpPager" />
+
+    <ImageView
+        android:id="@+id/rightArrow"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:alpha="0.5"
+        android:rotation="90"
+        android:src="@drawable/help_navigation_arrow"
+        app:layout_constraintBottom_toBottomOf="parent"
+        app:layout_constraintEnd_toEndOf="@+id/helpPager"
+        app:layout_constraintTop_toTopOf="@+id/helpPager" />
+
     <androidx.viewpager2.widget.ViewPager2
         android:id="@+id/helpPager"
         android:layout_width="match_parent"
         android:layout_height="match_parent"
+        android:elevation="-1dp"
         android:orientation="horizontal" />
-</FrameLayout>
+</androidx.constraintlayout.widget.ConstraintLayout>
