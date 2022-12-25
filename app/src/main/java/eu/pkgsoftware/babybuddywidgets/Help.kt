@@ -11,9 +11,12 @@ import android.view.ViewGroup
 import androidx.core.content.res.ResourcesCompat
 import androidx.recyclerview.widget.RecyclerView.Adapter
 import androidx.recyclerview.widget.RecyclerView.ViewHolder
+import androidx.viewpager.widget.ViewPager
+import androidx.viewpager2.widget.ViewPager2
 import eu.pkgsoftware.babybuddywidgets.databinding.HelpDepthPagerBinding
 import eu.pkgsoftware.babybuddywidgets.databinding.HelpFragmentBinding
 import eu.pkgsoftware.babybuddywidgets.databinding.HelpPageBinding
+import kotlinx.coroutines.flow.callbackFlow
 
 class HelpDepthViewHolder(val imageView: HelpPageBinding) : ViewHolder(imageView.root) {
     init {
@@ -130,12 +133,40 @@ class Help : BaseFragment() {
         }
     }
 
+    var binding: HelpFragmentBinding? = null
+    var mainAdapter: HelpMainAdapter? = null
+
+    private fun pageSelected(index: Int) {
+        var count = 0
+        mainAdapter?.let {
+            count = it.itemCount
+        }
+        binding?.let {
+            it.leftArrow.visibility = when(index) {
+                0 -> View.INVISIBLE
+                else -> View.VISIBLE
+            }
+            it.rightArrow.visibility = when(index) {
+                count - 1 -> View.INVISIBLE
+                else -> View.VISIBLE
+            }
+        }
+    }
+
     override fun onCreateView(
         inflater: LayoutInflater, container: ViewGroup?,
         savedInstanceState: Bundle?
     ): View {
+        mainAdapter = HelpMainAdapter()
+
         val binding = HelpFragmentBinding.inflate(inflater)
-        binding.helpPager.adapter = HelpMainAdapter()
+        binding.helpPager.adapter = mainAdapter
+        binding.helpPager.registerOnPageChangeCallback(object: ViewPager2.OnPageChangeCallback() {
+            override fun onPageSelected(position: Int) {
+                pageSelected(position)
+            }
+        })
+        this.binding = binding
         return binding.root
     }
 
