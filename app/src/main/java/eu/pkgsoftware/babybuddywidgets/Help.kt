@@ -11,12 +11,10 @@ import android.view.ViewGroup
 import androidx.core.content.res.ResourcesCompat
 import androidx.recyclerview.widget.RecyclerView.Adapter
 import androidx.recyclerview.widget.RecyclerView.ViewHolder
-import androidx.viewpager.widget.ViewPager
 import androidx.viewpager2.widget.ViewPager2
 import eu.pkgsoftware.babybuddywidgets.databinding.HelpDepthPagerBinding
 import eu.pkgsoftware.babybuddywidgets.databinding.HelpFragmentBinding
 import eu.pkgsoftware.babybuddywidgets.databinding.HelpPageBinding
-import kotlinx.coroutines.flow.callbackFlow
 
 class HelpDepthViewHolder(val imageView: HelpPageBinding) : ViewHolder(imageView.root) {
     init {
@@ -36,6 +34,8 @@ class HelpDepthViewHolder(val imageView: HelpPageBinding) : ViewHolder(imageView
 }
 
 class HelpMainViewHolder(val binding: HelpDepthPagerBinding) : ViewHolder(binding.root) {
+    var displayedIndex = -1
+
     init {
         binding.root.layoutParams = ViewGroup.LayoutParams(
             ViewGroup.LayoutParams.MATCH_PARENT,
@@ -106,6 +106,8 @@ class Help : BaseFragment() {
     inner class HelpMainAdapter() : Adapter<HelpMainViewHolder>() {
         private var _count = 0
 
+        val subHolders = mutableMapOf<Int, HelpMainViewHolder>()
+
         init {
             while (hasResource(_count + 1)) {
                 _count++
@@ -125,7 +127,8 @@ class Help : BaseFragment() {
 
         override fun onBindViewHolder(holder: HelpMainViewHolder, position: Int) {
             holder.binding.helpDepthPager.adapter = HelpDepthAdapter(position + 1)
-            holder.binding.helpDepthPager.currentItem = 0
+            holder.displayedIndex = position
+            subHolders.put(position, holder)
         }
 
         override fun getItemCount(): Int {
@@ -135,12 +138,52 @@ class Help : BaseFragment() {
 
     var binding: HelpFragmentBinding? = null
     var mainAdapter: HelpMainAdapter? = null
+    var subAdapter: HelpDepthAdapter? = null
+
+    inner class DepthPagerCallback : ViewPager2.OnPageChangeCallback() {
+        var currentPager: ViewPager2? = null
+
+        fun installOn(viewPager: ViewPager2?) {
+            currentPager?.unregisterOnPageChangeCallback(this)
+            currentPager = viewPager
+            currentPager?.let {
+                it.registerOnPageChangeCallback(this)
+                onPageSelected(it.currentItem)
+            }
+        }
+
+        override fun onPageSelected(position: Int) {
+            currentPager?.let { pager ->
+                subAdapter?.let { adapter ->
+                    binding?.let {
+                        it.upArrow.visibility = when(position) {
+                            0 -> View.INVISIBLE
+                            else -> View.VISIBLE
+                        }
+                        it.downArrow.visibility = when(position) {
+                            adapter.itemCount - 1 -> View.INVISIBLE
+                            else -> View.VISIBLE
+                        }
+                    }
+                }
+            }
+        }
+    }
+
+    val subPagerListener = DepthPagerCallback()
 
     private fun pageSelected(index: Int) {
         var count = 0
+        subAdapter = null
         mainAdapter?.let {
             count = it.itemCount
+
+            it.subHolders[index]?.binding?.helpDepthPager?.let { sv ->
+                sv.currentItem = 0
+                subAdapter = sv.adapter as HelpDepthAdapter?
+            }
         }
+        subPagerListener.installOn(mainAdapter?.subHolders?.get(index)?.binding?.helpDepthPager)
         binding?.let {
             it.leftArrow.visibility = when(index) {
                 0 -> View.INVISIBLE
@@ -181,15 +224,6 @@ class Help : BaseFragment() {
     }
 
     companion object {
-        /**
-         * Use this factory method to create a new instance of
-         * this fragment using the provided parameters.
-         *
-         * @param param1 Parameter 1.
-         * @param param2 Parameter 2.
-         * @return A new instance of fragment Help.
-         */
-        // TODO: Rename and change types and number of parameters
         @JvmStatic
         fun newInstance() =
             Help().apply {
