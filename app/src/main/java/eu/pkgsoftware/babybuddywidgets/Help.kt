@@ -179,7 +179,7 @@ class Help : BaseFragment() {
             count = it.itemCount
 
             it.subHolders[index]?.binding?.helpDepthPager?.let { sv ->
-                sv.currentItem = 0
+                sv.setCurrentItem(0, false)
                 subAdapter = sv.adapter as HelpDepthAdapter?
             }
         }
