@@ -1,5 +1,6 @@
 <?xml version="1.0" encoding="utf-8"?>
 <resources>
+    <!-- Logging in -->
     <string name="help_item_1_1_title">Login</string>
     <string name="help_item_1_1_image">help_normal_login</string>
     <string name="help_item_1_1_text">
@@ -10,7 +11,7 @@
     <string name="help_item_1_2_title">Insecure Login</string>
     <string name="help_item_1_2_image">help_insecure_http</string>
     <string name="help_item_1_2_text">
-        If you use a http-address instead of a https-address, …
+        If you use a http-address instead of a https-address,…
     </string>
 
     <string name="help_item_1_3_title">Insecure Login</string>
@@ -20,9 +21,98 @@
         servers in a network that you control!
     </string>
 
-    <string name="help_item_2_1_title">PLACEHOLDER</string>
-    <string name="help_item_2_1_image">help_insecure_http_warning</string>
+    <!-- Create/manage Timers  -->
+    <string name="help_item_2_1_title">Timer Setup</string>
+    <string name="help_item_2_1_image">help_timer_setup</string>
     <string name="help_item_2_1_text">
-        PLACEHOLDER PLACEHOLDER PLACEHOLDER
+        After you logged in, the first thing you should do is setup the timers. Depending how you
+        use babybuddy, there might be some timers already preconfigured when using the app for the
+        first time or not…
+    </string>
+
+    <string name="help_item_2_2_title">Default Timers</string>
+    <string name="help_item_2_2_image">help_create_default_timers</string>
+    <string name="help_item_2_2_text">
+        If no timers are defined yet, you can click on the "Create Default Timers" button to create
+        a set of default timers for the primary baby buddy activities you might want to log.
+    </string>
+
+    <string name="help_item_2_3_title">Default Timers</string>
+    <string name="help_item_2_3_image">help_create_default_timers_menu</string>
+    <string name="help_item_2_3_text">
+        If timers are already defined, you can create the same set of timers by selecting the
+        "Recreate Default Timers" option from the menu
+    </string>
+
+    <string name="help_item_2_4_title">Configuring Timers</string>
+    <string name="help_item_2_4_image">none</string>
+    <string name="help_item_2_4_text">
+        Alternatively, you can configure the activity for pre-existing timers to match reuse them
+        directly.
+    </string>
+
+    <!-- Overview -->
+    <string name="help_item_3_1_title">Overview</string>
+    <string name="help_item_3_1_image">none</string>
+    <string name="help_item_3_1_text">
+        After logging in, the application will show a full-screen overview for a given child. If
+        you have multiple children, you can swipe horizontally to change the view to another child.
+    </string>
+
+    <string name="help_item_3_2_title">Overview</string>
+    <string name="help_item_3_2_image">none</string>
+    <string name="help_item_3_2_text">
+        The upper part of the application shows buttons for logging activities for the current
+        child. The lower part lists logged events for that child in reverse chronological order.
+    </string>
+
+    <!-- Logging Diapers -->
+    <string name="help_item_4_1_title">Logging Diapers</string>
+    <string name="help_item_4_1_image">none</string>
+    <string name="help_item_4_1_text">
+        The top controls allow logging of diaper changes. Click the wet or solid button to check the
+        type, then…
+    </string>
+
+    <string name="help_item_4_2_title">Logging Diapers</string>
+    <string name="help_item_4_2_image">none</string>
+    <string name="help_item_4_2_text">
+        … optionally, add a notes-text and finally press the save button to save the diaper change.
+    </string>
+
+    <!-- Using Timers -->
+    <string name="help_item_5_1_title">Using Timers</string>
+    <string name="help_item_5_1_image">none</string>
+    <string name="help_item_5_1_text">
+        Press the "play"-button to start a timer for any of the listed activity types.
+    </string>
+
+    <string name="help_item_5_2_title">Using Timers</string>
+    <string name="help_item_5_2_image">none</string>
+    <string name="help_item_5_2_text">
+        While the timer is running you can add notes as usual.
+    </string>
+
+    <string name="help_item_5_3_title">Using Timers</string>
+    <string name="help_item_5_3_image">none</string>
+    <string name="help_item_5_3_text">
+        When the timer should be logged, you press the save button to store the activity.
+    </string>
+
+    <string name="help_item_5_4_title">Feedings</string>
+    <string name="help_item_5_4_image">none</string>
+    <string name="help_item_5_4_text">
+        Feeding timers will show a special form after storing. The feeding type and feeding method
+        need to be entered before a feeding can be stored.
+    </string>
+
+    <!-- Event history -->
+    <string name="help_item_6_1_title">Event history</string>
+    <string name="help_item_6_1_image">none</string>
+    <string name="help_item_6_1_text">
+        The lower portion of the application shows a list of the most recent logged activities of
+        a given child. You can delete individual entries by pressing the red delete button next to
+        the actvity. In addition, you can long-press an entry to open the corresponding page for the
+        logged activity in the BabyBuddy app directly.
     </string>
 </resources>

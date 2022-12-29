@@ -1,3 +1,5 @@
+.PHONY: all info refresh-flaticon-token help
+
 SPACE := $(null) $(null)
 
 FREE_IMAGES = \
@@ -36,6 +38,12 @@ MIPMAPS = \
 
 VARIANTS_BASE_PATH := app/src/main/res/
 
+# Func: get_field
+#   Syntax: get_field,index,::-separated-list
+# 
+#  index:      1-based index into the ::-separted-list
+#  ::-separated-list:
+#              list::of::items::separated::by::double::colons
 get_field = $(word $(1),$(subst ::,$(SPACE),$(2)))
 
 DRAWABLE_TARGETS = \
@@ -51,9 +59,10 @@ ALL_TARGETS = \
     $(DRAWABLE_TARGETS) \
     $(PROGRAM_ICON_TARGETS) \
 
-.PHONY: all info refresh-flaticon-token
+all: $(ALL_TARGETS) help
 
-all: $(ALL_TARGETS)
+help:
+	$(MAKE) -f help.makefile all
 
 info:
 	@echo -e -- Targets refreshed by this command: \\n  $(subst $(SPACE)$(SPACE),\\n$(SPACE)$(SPACE),$(ALL_TARGETS))
