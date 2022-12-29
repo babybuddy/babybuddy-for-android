@@ -116,7 +116,7 @@ class Help : BaseFragment() {
 
         private fun hasResource(i: Int): Boolean {
             val id = resources.getIdentifier(
-                constructName(i, 1,"text"), "string", mainActivity.packageName
+                constructName(i, 1, "text"), "string", mainActivity.packageName
             )
             return id != 0
         }
@@ -153,20 +153,32 @@ class Help : BaseFragment() {
         }
 
         override fun onPageSelected(position: Int) {
+            var message: String? = null
             currentPager?.let { pager ->
                 subAdapter?.let { adapter ->
                     binding?.let {
-                        it.upArrow.visibility = when(position) {
+                        it.upArrow.visibility = when (position) {
                             0 -> View.INVISIBLE
                             else -> View.VISIBLE
                         }
-                        it.downArrow.visibility = when(position) {
+                        it.downArrow.visibility = when (position) {
                             adapter.itemCount - 1 -> View.INVISIBLE
                             else -> View.VISIBLE
                         }
+                        val resId = resources.getIdentifier(
+                            constructName(
+                                it.helpPager.currentItem + 1,
+                                position + 1,
+                                "title"
+                            ),
+                            "string",
+                            mainActivity.packageName
+                        )
+                        message = resources.getString(resId)
                     }
                 }
             }
+            updateTitle(message)
         }
     }
 
@@ -185,11 +197,11 @@ class Help : BaseFragment() {
         }
         subPagerListener.installOn(mainAdapter?.subHolders?.get(index)?.binding?.helpDepthPager)
         binding?.let {
-            it.leftArrow.visibility = when(index) {
+            it.leftArrow.visibility = when (index) {
                 0 -> View.INVISIBLE
                 else -> View.VISIBLE
             }
-            it.rightArrow.visibility = when(index) {
+            it.rightArrow.visibility = when (index) {
                 count - 1 -> View.INVISIBLE
                 else -> View.VISIBLE
             }
@@ -204,7 +216,7 @@ class Help : BaseFragment() {
 
         val binding = HelpFragmentBinding.inflate(inflater)
         binding.helpPager.adapter = mainAdapter
-        binding.helpPager.registerOnPageChangeCallback(object: ViewPager2.OnPageChangeCallback() {
+        binding.helpPager.registerOnPageChangeCallback(object : ViewPager2.OnPageChangeCallback() {
             override fun onPageSelected(position: Int) {
                 pageSelected(position)
             }
@@ -221,6 +233,14 @@ class Help : BaseFragment() {
         super.onResume()
         mainActivity.setTitle("Help");
         mainActivity.enableBackNavigationButton(true)
+    }
+
+    fun updateTitle(message: String?) {
+        if (message == null) {
+            mainActivity.setTitle("Help")
+        } else {
+            mainActivity.setTitle("Help: ${message}")
+        }
     }
 
     companion object {
