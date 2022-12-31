@@ -57,6 +57,9 @@ public class LoginFragment extends BaseFragment {
         if (item.getItemId() == R.id.aboutPageMenuItem) {
             Navigation.findNavController(getView()).navigate(R.id.global_aboutFragment);
         }
+        if (item.getItemId() == R.id.showHelpMenuButton) {
+            Navigation.findNavController(getView()).navigate(R.id.global_showHelp);
+        }
         return false;
     }
 
