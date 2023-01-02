@@ -243,6 +243,33 @@ class Help : BaseFragment() {
         }
     }
 
+    fun navigateIncrementally(horz: Int, vert: Int) {
+        binding?.let { binding ->
+            mainAdapter?.let { adapter ->
+                if (horz != 0) {
+                    binding.helpPager.setCurrentItem(
+                        Math.min(
+                            adapter.itemCount - 1,
+                            Math.max(0, binding.helpPager.currentItem)
+                        ), true
+                    )
+                }
+                if (vert != 0) {
+                    adapter.subHolders[binding.helpPager.currentItem]?.binding?.helpDepthPager?.let { sv ->
+                        (sv.adapter as HelpDepthAdapter?)?.let { subAd ->
+                            sv.setCurrentItem(
+                                Math.min(
+                                    subAd.itemCount - 1,
+                                    Math.max(0, sv.currentItem + vert)
+                                ), false
+                            )
+                        }
+                    }
+                }
+            }
+        }
+    }
+
     companion object {
         @JvmStatic
         fun newInstance() =

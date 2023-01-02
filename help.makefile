@@ -11,6 +11,15 @@ help_image_list := \
 	help_timer_setup.png \
 	help_create_default_timers.png \
 	help_create_default_timers_menu.png \
+	help_timers_configure.png \
+	help_overview.png \
+	help_events.png \
+	help_feeding_form.png \
+	help_play_button_highlight.png \
+	help_notes_button_highlight.png \
+	help_save_button_highlight.png \
+	help_save_diaper_highlight.png \
+	help_timers_configure2.png \
 
 TARGET_PATH := app/src/main/res/drawable
 SOURCE_PATH := resources/help_images
