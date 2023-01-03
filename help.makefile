@@ -1,4 +1,4 @@
-.PHONY: all info refresh-flaticon-token
+.PHONY: all info refresh-flaticon-token stringsxml
 
 define convert_command =
 	convert $(1) -crop "+0+170" -crop "-0-135" $(2)
@@ -24,8 +24,15 @@ help_image_list := \
 TARGET_PATH := app/src/main/res/drawable
 SOURCE_PATH := resources/help_images
 
-all: $(foreach x,$(help_image_list),$(TARGET_PATH)/$(x))
-	
+all: $(foreach x,$(help_image_list),$(TARGET_PATH)/$(x)) stringsxml
+
+stringsxml: app/src/main/res/values/help_strings.xml
+
+app/src/main/res/values/help_strings.xml: $(SOURCE_PATH)/help.md $(SOURCE_PATH)/process_markdown.py
+	cd $(SOURCE_PATH) \
+	&& pipenv install -r requirements.txt \
+	&& pipenv run python process_markdown.py $(abspath $<) $(abspath $@)
+
 $(TARGET_PATH)/%.png: $(SOURCE_PATH)/screenshots/%.png
 	$(call convert_command,$<,$@)
 
