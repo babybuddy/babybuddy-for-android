@@ -30,8 +30,8 @@ stringsxml: app/src/main/res/values/help_strings.xml
 
 app/src/main/res/values/help_strings.xml: $(SOURCE_PATH)/help.md $(SOURCE_PATH)/process_markdown.py
 	cd $(SOURCE_PATH) \
-	&& pipenv install -r requirements.txt \
-	&& pipenv run python process_markdown.py $(abspath $<) $(abspath $@)
+	&& python3 -m pipenv install -r requirements.txt \
+	&& python3 -m pipenv run python process_markdown.py $(abspath $<) $(abspath $@)
 
 $(TARGET_PATH)/%.png: $(SOURCE_PATH)/screenshots/%.png
 	$(call convert_command,$<,$@)
