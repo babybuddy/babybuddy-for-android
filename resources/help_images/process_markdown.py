@@ -31,17 +31,19 @@ class Filter:
         self.topics = []
     
     def filter(self, el: panflute.Element, doc):
-        def extract_string(el: panflute.Element) -> str:
+        def extract_string(extract_el: panflute.Element) -> str:
             parts = []
             def f(el, doc):
-                if isinstance(el, panflute.Space):
+                if isinstance(el, panflute.Quoted) and (extract_el != el):
+                    parts.append('\\"{}\\"'.format(extract_string(el)))
+                elif isinstance(el.parent, panflute.Quoted) and (extract_el != el.parent):
+                    return
+                elif isinstance(el, (panflute.LineBreak, panflute.SoftBreak, panflute.Space)):
                     parts.append(" ")
                 elif isinstance(el, panflute.Str):
                     text = el.text
-                    if isinstance(el.parent, panflute.Quoted):
-                        text = f'"{text}"'
                     parts.append(text)
-            el.walk(f)
+            extract_el.walk(f)
             return "".join(parts)
 
         def last_section() -> Optional[Section]:
