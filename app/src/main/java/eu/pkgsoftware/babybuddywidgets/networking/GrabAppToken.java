@@ -203,10 +203,10 @@ public class GrabAppToken extends StreamReader {
 
         int repCode = con.getResponseCode();
         if (repCode == 403) {
-            StringBuilder sb = new StringBuilder();
-            sb.append("Error stream content:\n");
-            sb.append(loadHttpData(con.getErrorStream()));
-            System.err.println(sb);
+            String errorMessage = loadHttpData(con.getErrorStream());
+            if (checkPresentableMessage(errorMessage)) {
+                throw new IOException(errorMessage);
+            }
             throw new IOException("Invalid username or password (403)");
         }
         if ((repCode != 200) && ((repCode < 300) || (repCode > 307))) {
@@ -223,11 +223,25 @@ public class GrabAppToken extends StreamReader {
             }
         }
         if (sessionid == null) {
+            // Try to parse out the HTML-embedded error message
+            String errorMessage = parseOutAlertPillMessage(loadHttpData(con));
+            if ((errorMessage != null) && checkPresentableMessage(errorMessage)) {
+                throw new IOException(errorMessage);
+            }
+
             throw new IOException("Invalid username or password (sessionid)");
         }
 
         // Login succeeded - store the session id!
         cookies.put("sessionid", sessionid);
+    }
+
+    private boolean checkPresentableMessage(String errorMessage) {
+        return !(
+            errorMessage.contains("<") && errorMessage.contains(">")
+                || errorMessage.contains("\n")
+                || errorMessage.length() > 256
+        );
     }
 
     private String getFromProfilePage() throws MissingPage, IOException {
@@ -281,6 +295,42 @@ public class GrabAppToken extends StreamReader {
         }
         String splits[] = keySection.replaceAll("<[^>]+>", " ").trim().split(" ");
         return splits[splits.length - 1];
+    }
+
+    private String parseOutAlertPillMessage(String html) {
+        // This:
+        // <div class="alert alert-danger" role="alert">
+        //    <strong>Error:</strong> Please enter a correct username and password. Note that both fields may be case-sensitive.
+        // </div>
+        Pattern findDiv = Pattern.compile(
+            "<div[^>]* role=\"alert\"[^>]*>(.*?)</div>",
+            Pattern.DOTALL | Pattern.MULTILINE
+        );
+        Matcher m = findDiv.matcher(html);
+        if (!m.find()) {
+            return null;
+        }
+
+        String errorMessage = m.group(1);
+        Pattern htmlTag = Pattern.compile("<([a-zA-Z-_]+)[^>]*>", Pattern.DOTALL | Pattern.MULTILINE);
+        while (true) {
+            m = htmlTag.matcher(errorMessage);
+            if (!m.find()) {
+                break;
+            }
+
+            String tagName = m.group(1);
+            String tagEnd = "</NAME>".replace("NAME", tagName);
+            int last = errorMessage.indexOf(tagEnd, m.end());
+            if (last >= 0) {
+                last += tagEnd.length();
+                errorMessage = errorMessage.substring(0, m.start()) + errorMessage.substring(last);
+            } else {
+                errorMessage = errorMessage.substring(0, m.start()) + errorMessage.substring(m.end() + 1);
+            }
+        }
+
+        return errorMessage.trim();
     }
 
 }
