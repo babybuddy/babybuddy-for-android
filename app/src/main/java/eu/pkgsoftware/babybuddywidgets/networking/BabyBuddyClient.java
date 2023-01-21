@@ -530,7 +530,7 @@ public class BabyBuddyClient extends StreamReader {
                     }
 
 
-                    String result = loadHtml(query);
+                    String result = loadHttpData(query);
                     syncMessage.post(new Runnable() {
                         @Override
                         public void run() {

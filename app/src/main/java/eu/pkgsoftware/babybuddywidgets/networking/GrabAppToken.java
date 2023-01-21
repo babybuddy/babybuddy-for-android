@@ -25,6 +25,10 @@ Search HTML for "api_key_regenerate", <div>, then find the first "code like"
 text node before that input.
  */
 
+import org.json.JSONException;
+import org.json.JSONObject;
+
+import java.io.IOError;
 import java.io.IOException;
 import java.io.OutputStream;
 import java.io.UnsupportedEncodingException;
@@ -40,6 +44,9 @@ import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
 public class GrabAppToken extends StreamReader {
+    public static class MissingPage extends Exception {
+    }
+
     private static class ThreadResult {
         public Exception error = null;
         public String result = null;
@@ -52,10 +59,9 @@ public class GrabAppToken extends StreamReader {
      * @param url
      * @param username
      * @param password
-     * @return
-     * Returns the token on success, or null on failure.
+     * @return Returns the token on success, or null on failure.
      */
-    public static String grabToken(String url, String username, String password) {
+    public static String grabToken(String url, String username, String password) throws Exception {
         // Screw you android! I run my network-stuff synchronous if _I_ want to!
         ThreadResult threadResult = new ThreadResult();
         Thread thread = new Thread() {
@@ -65,11 +71,14 @@ public class GrabAppToken extends StreamReader {
                 try {
                     GrabAppToken gat = new GrabAppToken(new URL(url));
                     gat.login(username, password);
-                    key = gat.obtainAppKey();
+                    try {
+                        key = gat.getFromProfilePage();
+                    } catch (MissingPage e) {
+                        key = gat.parseFromSettingsPage();
+                    }
                 } catch (IOException e) {
                     threadResult.error = e;
-                }
-                catch (Exception e) {
+                } catch (Exception e) {
                     e.printStackTrace();
                     threadResult.error = e;
                 }
@@ -84,7 +93,7 @@ public class GrabAppToken extends StreamReader {
         }
 
         if (threadResult.error != null) {
-            System.out.println("Baby Buddy login error: " + threadResult.error);
+            throw threadResult.error;
         }
         return threadResult.result;
     }
@@ -161,7 +170,7 @@ public class GrabAppToken extends StreamReader {
         }
 
         // Load the html - max 1 MB
-        String html = loadHtml(con);;
+        String html = loadHttpData(con);
 
         // Find: <input type="hidden" name="csrfmiddlewaretoken" value="...">
         String csrfmiddlewaretoken = UserFormInteractions.extractCsrfmiddlewaretoken(html);
@@ -194,10 +203,14 @@ public class GrabAppToken extends StreamReader {
 
         int repCode = con.getResponseCode();
         if (repCode == 403) {
-            throw new IOException("Invalid username or password");
+            StringBuilder sb = new StringBuilder();
+            sb.append("Error stream content:\n");
+            sb.append(loadHttpData(con.getErrorStream()));
+            System.err.println(sb);
+            throw new IOException("Invalid username or password (403)");
         }
         if ((repCode != 200) && ((repCode < 300) || (repCode > 307))) {
-            throw new IOException("Login failed");
+            throw new IOException("Login failed for unknown reason (server issue?)");
         }
 
         String sessionid = null;
@@ -210,20 +223,49 @@ public class GrabAppToken extends StreamReader {
             }
         }
         if (sessionid == null) {
-            throw new IOException("Login failed, sessionid not found");
+            throw new IOException("Invalid username or password (sessionid)");
         }
 
         // Login succeeded - store the session id!
         cookies.put("sessionid", sessionid);
     }
 
-    private String obtainAppKey() throws IOException {
+    private String getFromProfilePage() throws MissingPage, IOException {
+        HttpURLConnection con = doQuery("api/profile");
+        con.setRequestProperty("Accept", "application/json");
+        if (con.getResponseCode() == 404) {
+            throw new MissingPage();
+        }
+        if (con.getResponseCode() != 200) {
+            throw new IOException("Cannot access profile page");
+        }
+
+        String json = loadHttpData(con);
+        JSONObject o = null;
+        try {
+            o = new JSONObject(json);
+        } catch (JSONException e) {
+            throw new IOException("Invalid JSON response");
+        }
+
+        if (!o.has("api_key")) {
+            throw new MissingPage();
+        }
+
+        try {
+            return o.getString("api_key");
+        } catch (JSONException e) {
+            throw new IOException("api_key has wrong type");
+        }
+    }
+
+    private String parseFromSettingsPage() throws IOException {
         HttpURLConnection con = doQuery("user/settings/");
         if (con.getResponseCode() != 200) {
             throw new IOException("Cannot access user settings");
         }
 
-        String html = loadHtml(con);
+        String html = loadHttpData(con);
         String flatHtml = html.replace("\n", "").replace("\r", "");
 
         Pattern pat = Pattern.compile("<div[^>]*>(.*)<input.*name=.api_key_regenerate");

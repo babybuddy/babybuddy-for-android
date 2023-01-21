@@ -44,6 +44,7 @@
             android:autofillHints="password"
             android:ems="10"
             android:hint="@string/login_password_hint"
+            android:imeOptions="actionGo"
             android:inputType="textPassword"
             app:layout_constraintStart_toStartOf="@+id/loginNameEdit"
             app:layout_constraintTop_toBottomOf="@+id/loginNameEdit" />
