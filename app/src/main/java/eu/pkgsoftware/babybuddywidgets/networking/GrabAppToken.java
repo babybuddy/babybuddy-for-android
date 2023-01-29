@@ -159,9 +159,12 @@ public class GrabAppToken extends StreamReader {
         Map<String, List<String>> headers = con.getHeaderFields();
         String csrftoken = null;
         if (headers.containsKey("Set-Cookie")) {
-            for (String item : headers.get("Set-Cookie")) {
-                if (item.startsWith("csrftoken=")) {
-                    csrftoken = item.split("=", 2)[1].split(";")[0];
+            List<String> cookieItems = headers.get("Set-Cookie");
+            if (cookieItems != null) {
+                for (String item : cookieItems) {
+                    if (item.startsWith("csrftoken=")) {
+                        csrftoken = item.split("=", 2)[1].split(";")[0];
+                    }
                 }
             }
         }
@@ -216,9 +219,12 @@ public class GrabAppToken extends StreamReader {
         String sessionid = null;
         headers = con.getHeaderFields();
         if (headers.containsKey("Set-Cookie")) {
-            for (String item : headers.get("Set-Cookie")) {
-                if (item.startsWith("sessionid=")) {
-                    sessionid = item.split("=", 2)[1].split(";")[0];
+            List<String> cookieItems = headers.get("Set-Cookie");
+            if (cookieItems != null) {
+                for (String item : cookieItems) {
+                    if (item.startsWith("sessionid=")) {
+                        sessionid = item.split("=", 2)[1].split(";")[0];
+                    }
                 }
             }
         }
@@ -289,11 +295,14 @@ public class GrabAppToken extends StreamReader {
         }
 
         String keySection = match.group(1);
+        if (keySection == null) {
+            throw new IOException("Cannot find api-key section");
+        }
         int divIndex = keySection.lastIndexOf("<div");
         if (divIndex >= 0) {
             keySection = keySection.substring(divIndex);
         }
-        String splits[] = keySection.replaceAll("<[^>]+>", " ").trim().split(" ");
+        String[] splits = keySection.replaceAll("<[^>]+>", " ").trim().split(" ");
         return splits[splits.length - 1];
     }
 
@@ -312,6 +321,10 @@ public class GrabAppToken extends StreamReader {
         }
 
         String errorMessage = m.group(1);
+        if (errorMessage == null) {
+            return null;
+        }
+
         Pattern htmlTag = Pattern.compile("<([a-zA-Z-_]+)[^>]*>", Pattern.DOTALL | Pattern.MULTILINE);
         while (true) {
             m = htmlTag.matcher(errorMessage);
@@ -320,6 +333,9 @@ public class GrabAppToken extends StreamReader {
             }
 
             String tagName = m.group(1);
+            if (tagName == null) {
+                break;
+            }
             String tagEnd = "</NAME>".replace("NAME", tagName);
             int last = errorMessage.indexOf(tagEnd, m.end());
             if (last >= 0) {
