@@ -38,12 +38,12 @@ for o in output:
     per_author[o["author"]] = per_author.get(o["author"], []) + [o]
 
 
-print("Third Party Attributions")
+print("<h2><b>Third Party Attributions</b></h2>")
 print("""
-The project contains the icons from www.flaticon.com, made by the following authors:
+The application contains the following media from www.flaticon.com, licensed under their attributions license for free use:
 """, end="")
 for author, values in per_author.items():
     for v in values:
-      items_list_text = "{type} ({href})".format(**v)
-      print(f"- {author}: {items_list_text}")
+        locals().update(v)
+        print(f"""- <a href="{href}">{type} created by {author} - Flaticon</a>""")
 
