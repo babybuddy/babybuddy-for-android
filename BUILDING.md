@@ -41,7 +41,9 @@ In addition the following Linux software packages are required:
  - GNU make
  - jq (JSON query tool) 
  - ImageMagick
-    - Specifically the commands: convert, composite
+   - Specifically the commands: convert, composite
+ - python >=3.8
+   - pipenv installed 
 
 ## Building
 

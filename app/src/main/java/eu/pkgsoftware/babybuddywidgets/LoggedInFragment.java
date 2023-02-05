@@ -37,6 +37,7 @@ public class LoggedInFragment extends BaseFragment {
 
     private class BabyPagerAdapter extends RecyclerView.Adapter<BabyLayoutHolder> {
         private List<BabyLayoutHolder> holders = new ArrayList<>();
+        private BabyLayoutHolder activeHolder = null;
 
         @Override
         public @NonNull
@@ -82,11 +83,13 @@ public class LoggedInFragment extends BaseFragment {
         }
 
         public void activeViewChanged(BabyBuddyClient.Child c) {
+            activeHolder = null;
             for (BabyLayoutHolder h : holders) {
                 System.out.println("AAA active changed " + h.getChild() + "  " + c);
                 System.out.println("AAA " + holders + " - " + h + "  this=" + this);
                 if (Objects.equals(c, h.getChild())) {
                     h.onViewSelected(stateTracker);
+                    activeHolder = h;
                 } else {
                     h.onViewDeselected();
                 }
@@ -97,6 +100,16 @@ public class LoggedInFragment extends BaseFragment {
             System.out.println("AAA updateChildrenList PRE");
             notifyDataSetChanged();
             System.out.println("AAA updateChildrenList POST");
+        }
+
+        public BabyLayoutHolder getActive() {
+            return activeHolder;
+        }
+
+        public void close() {
+            for (BabyLayoutHolder h : holders) {
+                h.close();
+            }
         }
     }
 
@@ -128,10 +141,9 @@ public class LoggedInFragment extends BaseFragment {
 
         babyAdapter = new BabyPagerAdapter();
         binding.babyViewPagerSwitcher.setAdapter(babyAdapter);
-        binding.babyViewPagerSwitcher.registerOnPageChangeCallback(
-            new ViewPager2.OnPageChangeCallback() {
-                @Override
-                public void onPageSelected(int position) {
+        binding.babyViewPagerSwitcher.registerOnPageChangeCallback(new ViewPager2.OnPageChangeCallback() {
+            @Override
+            public void onPageSelected(int position) {
                 super.onPageSelected(position);
 
                 BabyBuddyClient.Child child = children == null ? null : children[position];
@@ -139,9 +151,8 @@ public class LoggedInFragment extends BaseFragment {
                 babyAdapter.activeViewChanged(child);
 
                 updateTitle();
-                }
             }
-        );
+        });
 
         return binding.getRoot();
     }
@@ -163,8 +174,19 @@ public class LoggedInFragment extends BaseFragment {
         if (item.getItemId() == R.id.logoutMenuButton) {
             logout();
         }
+        if (item.getItemId() == R.id.showHelpMenuButton) {
+            Navigation.findNavController(getView()).navigate(R.id.global_showHelp);
+        }
         if (item.getItemId() == R.id.aboutPageMenuItem) {
             Navigation.findNavController(getView()).navigate(R.id.global_aboutFragment);
+        }
+        if (item.getItemId() == R.id.recreateTimersButton) {
+            if (babyAdapter != null) {
+                BabyLayoutHolder holder = babyAdapter.getActive();
+                if (holder != null) {
+                    holder.recreateDefaultTimers();
+                }
+            }
         }
         return false;
     }
@@ -222,6 +244,16 @@ public class LoggedInFragment extends BaseFragment {
         stateTracker = null;
 
         credStore.storePrefs();
+    }
+
+    @Override
+    public void onDestroyView() {
+        if (stateTracker != null) {
+            stateTracker.close();
+            stateTracker = null;
+        }
+        babyAdapter.close();
+        super.onDestroyView();
     }
 
     private int childIndexBySlug(String slug) {

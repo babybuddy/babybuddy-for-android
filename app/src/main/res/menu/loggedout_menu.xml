@@ -3,6 +3,11 @@
     xmlns:tools="http://schemas.android.com/tools"
     tools:context="eu.pkgsoftware.babybuddywidgets.MainActivity">
     <item
+        android:id="@+id/showHelpMenuButton"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:title="@string/showHelpMenuButtonTitle" />
+    <item
         android:id="@+id/aboutPageMenuItem"
         android:title="@string/about_page_title" />
 </menu>

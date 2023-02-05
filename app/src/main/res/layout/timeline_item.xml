@@ -44,6 +44,8 @@
                 android:minHeight="48dp"
                 android:minWidth="48dp"
                 android:padding="4dp"
+                app:tintMode="src_in"
+                app:tint="@color/fixed_color_button_text_color"
                 app:srcCompat="@drawable/pkg_crawl" />
 
             <TextView
@@ -71,6 +73,8 @@
                 android:minHeight="48dp"
                 android:minWidth="48dp"
                 android:padding="4dp"
+                app:tintMode="src_in"
+                app:tint="@color/fixed_color_button_text_color"
                 app:srcCompat="@drawable/pkg_diaper" />
 
             <ImageView
@@ -81,6 +85,8 @@
                 android:minHeight="16dp"
                 android:minWidth="16dp"
                 android:padding="4dp"
+                app:tintMode="src_in"
+                app:tint="?android:attr/textColorSecondary"
                 app:srcCompat="@drawable/pkg_wet" />
 
             <ImageView
@@ -91,6 +97,8 @@
                 android:minHeight="16dp"
                 android:minWidth="16dp"
                 android:padding="4dp"
+                app:tintMode="src_in"
+                app:tint="?android:attr/textColorSecondary"
                 app:srcCompat="@drawable/pkg_poop" />
 
             <TextView
@@ -118,6 +126,8 @@
                 android:minHeight="48dp"
                 android:minWidth="48dp"
                 android:padding="4dp"
+                app:tintMode="src_in"
+                app:tint="@color/fixed_color_button_text_color"
                 app:srcCompat="@drawable/pkg_sleep" />
 
             <TextView
@@ -146,6 +156,8 @@
                 android:minHeight="48dp"
                 android:minWidth="48dp"
                 android:padding="4dp"
+                app:tintMode="src_in"
+                app:tint="@color/fixed_color_button_text_color"
                 app:srcCompat="@drawable/pkg_breast" />
 
             <ImageView
@@ -157,6 +169,8 @@
                 android:minHeight="48dp"
                 android:minWidth="48dp"
                 android:padding="4dp"
+                app:tintMode="src_in"
+                app:tint="@color/fixed_color_button_text_color"
                 app:srcCompat="@drawable/pkg_bottle" />
 
             <ImageView
@@ -168,6 +182,8 @@
                 android:minHeight="48dp"
                 android:minWidth="48dp"
                 android:padding="4dp"
+                app:tintMode="src_in"
+                app:tint="@color/fixed_color_button_text_color"
                 app:srcCompat="@drawable/pkg_solid_food" />
 
             <TextView

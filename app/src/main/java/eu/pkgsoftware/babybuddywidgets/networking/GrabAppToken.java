@@ -25,6 +25,10 @@ Search HTML for "api_key_regenerate", <div>, then find the first "code like"
 text node before that input.
  */
 
+import org.json.JSONException;
+import org.json.JSONObject;
+
+import java.io.IOError;
 import java.io.IOException;
 import java.io.OutputStream;
 import java.io.UnsupportedEncodingException;
@@ -40,6 +44,9 @@ import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
 public class GrabAppToken extends StreamReader {
+    public static class MissingPage extends Exception {
+    }
+
     private static class ThreadResult {
         public Exception error = null;
         public String result = null;
@@ -52,10 +59,9 @@ public class GrabAppToken extends StreamReader {
      * @param url
      * @param username
      * @param password
-     * @return
-     * Returns the token on success, or null on failure.
+     * @return Returns the token on success, or null on failure.
      */
-    public static String grabToken(String url, String username, String password) {
+    public static String grabToken(String url, String username, String password) throws Exception {
         // Screw you android! I run my network-stuff synchronous if _I_ want to!
         ThreadResult threadResult = new ThreadResult();
         Thread thread = new Thread() {
@@ -65,11 +71,14 @@ public class GrabAppToken extends StreamReader {
                 try {
                     GrabAppToken gat = new GrabAppToken(new URL(url));
                     gat.login(username, password);
-                    key = gat.obtainAppKey();
+                    try {
+                        key = gat.getFromProfilePage();
+                    } catch (MissingPage e) {
+                        key = gat.parseFromSettingsPage();
+                    }
                 } catch (IOException e) {
                     threadResult.error = e;
-                }
-                catch (Exception e) {
+                } catch (Exception e) {
                     e.printStackTrace();
                     threadResult.error = e;
                 }
@@ -84,7 +93,7 @@ public class GrabAppToken extends StreamReader {
         }
 
         if (threadResult.error != null) {
-            System.out.println("Baby Buddy login error: " + threadResult.error);
+            throw threadResult.error;
         }
         return threadResult.result;
     }
@@ -150,9 +159,12 @@ public class GrabAppToken extends StreamReader {
         Map<String, List<String>> headers = con.getHeaderFields();
         String csrftoken = null;
         if (headers.containsKey("Set-Cookie")) {
-            for (String item : headers.get("Set-Cookie")) {
-                if (item.startsWith("csrftoken=")) {
-                    csrftoken = item.split("=", 2)[1].split(";")[0];
+            List<String> cookieItems = headers.get("Set-Cookie");
+            if (cookieItems != null) {
+                for (String item : cookieItems) {
+                    if (item.startsWith("csrftoken=")) {
+                        csrftoken = item.split("=", 2)[1].split(";")[0];
+                    }
                 }
             }
         }
@@ -161,7 +173,7 @@ public class GrabAppToken extends StreamReader {
         }
 
         // Load the html - max 1 MB
-        String html = loadHtml(con);;
+        String html = loadHttpData(con);
 
         // Find: <input type="hidden" name="csrfmiddlewaretoken" value="...">
         String csrfmiddlewaretoken = UserFormInteractions.extractCsrfmiddlewaretoken(html);
@@ -171,8 +183,11 @@ public class GrabAppToken extends StreamReader {
         postData.put("csrfmiddlewaretoken", csrfmiddlewaretoken);
         postData.put("username", username);
         postData.put("password", password);
-        String urlEncodedString =  urlEncodedPostString(postData);
+        postData.put("next", "/");
+        String urlEncodedString = urlEncodedPostString(postData);
 
+
+        final String referer = con.getURL().toString();
 
         con = doQuery("login/");
         con.setRequestMethod("POST");
@@ -183,6 +198,7 @@ public class GrabAppToken extends StreamReader {
         con.setRequestProperty("Content-Type", "application/x-www-form-urlencoded");
         con.setRequestProperty("Cookie", "csrftoken=" + csrftoken);
         con.setRequestProperty("Content-Length", "" + urlEncodedString.length());
+        con.setRequestProperty("Referer", referer);
 
         OutputStream os = con.getOutputStream();
         os.write(urlEncodedString.getBytes(StandardCharsets.UTF_8));
@@ -190,36 +206,86 @@ public class GrabAppToken extends StreamReader {
 
         int repCode = con.getResponseCode();
         if (repCode == 403) {
-            throw new IOException("Invalid username or password");
+            String errorMessage = loadHttpData(con.getErrorStream());
+            if (checkPresentableMessage(errorMessage)) {
+                throw new IOException(errorMessage);
+            }
+            throw new IOException("Invalid username or password (403)");
         }
         if ((repCode != 200) && ((repCode < 300) || (repCode > 307))) {
-            throw new IOException("Login failed");
+            throw new IOException("Login failed for unknown reason (server issue?)");
         }
 
         String sessionid = null;
         headers = con.getHeaderFields();
         if (headers.containsKey("Set-Cookie")) {
-            for (String item : headers.get("Set-Cookie")) {
-                if (item.startsWith("sessionid=")) {
-                    sessionid = item.split("=", 2)[1].split(";")[0];
+            List<String> cookieItems = headers.get("Set-Cookie");
+            if (cookieItems != null) {
+                for (String item : cookieItems) {
+                    if (item.startsWith("sessionid=")) {
+                        sessionid = item.split("=", 2)[1].split(";")[0];
+                    }
                 }
             }
         }
         if (sessionid == null) {
-            throw new IOException("Login failed, sessionid not found");
+            // Try to parse out the HTML-embedded error message
+            String errorMessage = parseOutAlertPillMessage(loadHttpData(con));
+            if ((errorMessage != null) && checkPresentableMessage(errorMessage)) {
+                throw new IOException(errorMessage);
+            }
+
+            throw new IOException("Invalid username or password (sessionid)");
         }
 
         // Login succeeded - store the session id!
         cookies.put("sessionid", sessionid);
     }
 
-    private String obtainAppKey() throws IOException {
+    private boolean checkPresentableMessage(String errorMessage) {
+        return !(
+            errorMessage.contains("<") && errorMessage.contains(">")
+                || errorMessage.contains("\n")
+                || errorMessage.length() > 256
+        );
+    }
+
+    private String getFromProfilePage() throws MissingPage, IOException {
+        HttpURLConnection con = doQuery("api/profile");
+        con.setRequestProperty("Accept", "application/json");
+        if (con.getResponseCode() == 404) {
+            throw new MissingPage();
+        }
+        if (con.getResponseCode() != 200) {
+            throw new IOException("Cannot access profile page");
+        }
+
+        String json = loadHttpData(con);
+        JSONObject o = null;
+        try {
+            o = new JSONObject(json);
+        } catch (JSONException e) {
+            throw new IOException("Invalid JSON response");
+        }
+
+        if (!o.has("api_key")) {
+            throw new MissingPage();
+        }
+
+        try {
+            return o.getString("api_key");
+        } catch (JSONException e) {
+            throw new IOException("api_key has wrong type");
+        }
+    }
+
+    private String parseFromSettingsPage() throws IOException {
         HttpURLConnection con = doQuery("user/settings/");
         if (con.getResponseCode() != 200) {
             throw new IOException("Cannot access user settings");
         }
 
-        String html = loadHtml(con);
+        String html = loadHttpData(con);
         String flatHtml = html.replace("\n", "").replace("\r", "");
 
         Pattern pat = Pattern.compile("<div[^>]*>(.*)<input.*name=.api_key_regenerate");
@@ -229,12 +295,58 @@ public class GrabAppToken extends StreamReader {
         }
 
         String keySection = match.group(1);
+        if (keySection == null) {
+            throw new IOException("Cannot find api-key section");
+        }
         int divIndex = keySection.lastIndexOf("<div");
         if (divIndex >= 0) {
             keySection = keySection.substring(divIndex);
         }
-        String splits[] = keySection.replaceAll("<[^>]+>", " ").trim().split(" ");
+        String[] splits = keySection.replaceAll("<[^>]+>", " ").trim().split(" ");
         return splits[splits.length - 1];
+    }
+
+    private String parseOutAlertPillMessage(String html) {
+        // This:
+        // <div class="alert alert-danger" role="alert">
+        //    <strong>Error:</strong> Please enter a correct username and password. Note that both fields may be case-sensitive.
+        // </div>
+        Pattern findDiv = Pattern.compile(
+            "<div[^>]* role=\"alert\"[^>]*>(.*?)</div>",
+            Pattern.DOTALL | Pattern.MULTILINE
+        );
+        Matcher m = findDiv.matcher(html);
+        if (!m.find()) {
+            return null;
+        }
+
+        String errorMessage = m.group(1);
+        if (errorMessage == null) {
+            return null;
+        }
+
+        Pattern htmlTag = Pattern.compile("<([a-zA-Z-_]+)[^>]*>", Pattern.DOTALL | Pattern.MULTILINE);
+        while (true) {
+            m = htmlTag.matcher(errorMessage);
+            if (!m.find()) {
+                break;
+            }
+
+            String tagName = m.group(1);
+            if (tagName == null) {
+                break;
+            }
+            String tagEnd = "</NAME>".replace("NAME", tagName);
+            int last = errorMessage.indexOf(tagEnd, m.end());
+            if (last >= 0) {
+                last += tagEnd.length();
+                errorMessage = errorMessage.substring(0, m.start()) + errorMessage.substring(last);
+            } else {
+                errorMessage = errorMessage.substring(0, m.start()) + errorMessage.substring(m.end() + 1);
+            }
+        }
+
+        return errorMessage.trim();
     }
 
 }

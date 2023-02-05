@@ -4,8 +4,13 @@ import android.os.Handler;
 import android.view.View;
 import android.widget.AdapterView;
 
+import com.squareup.phrase.Phrase;
+
+import org.jetbrains.annotations.NotNull;
+
 import java.util.Date;
 
+import androidx.annotation.NonNull;
 import androidx.navigation.Navigation;
 import androidx.recyclerview.widget.RecyclerView;
 import eu.pkgsoftware.babybuddywidgets.databinding.NotesEditorBinding;
@@ -28,6 +33,8 @@ public class TimerListViewHolder extends RecyclerView.ViewHolder {
 
     private BabyBuddyClient.Timer timer = null;
     private Long timerStartTime = null;
+
+    private boolean isClosed = false;
 
     private String padToLen(String s, char c, int length) {
         StringBuilder sBuilder = new StringBuilder(s);
@@ -59,7 +66,9 @@ public class TimerListViewHolder extends RecyclerView.ViewHolder {
             if (!newUpdatedPosted) {
                 timerHandler.postDelayed(() -> {
                     newUpdatedPosted = false;
-                    updateTimerTime();
+                    if (!isClosed) {
+                        updateTimerTime();
+                    }
                 }, 500);
                 newUpdatedPosted = true;
             }
@@ -145,6 +154,7 @@ public class TimerListViewHolder extends RecyclerView.ViewHolder {
         @Override
         public void error(Exception error) {
             baseFragment.showError(true, "Could not store activity", errorMessage);
+            updateActiveState();
         }
 
         @Override
@@ -157,25 +167,111 @@ public class TimerListViewHolder extends RecyclerView.ViewHolder {
         }
     }
 
+    private interface BareStoreFunction {
+        public void doStore(
+            @NonNull BabyBuddyClient.RequestCallback<Boolean> callback
+        );
+    }
+
+    private class TimerStoreFunction implements StoreFunction<Boolean> {
+        private final int selectedActivity;
+        private final BareStoreFunction bareStoreFunction;
+        private final StoreActivityCallback sac;
+        private final BabyBuddyClient.Timer timer;
+
+        public TimerStoreFunction(
+            StoreActivityCallback _sac,
+            BabyBuddyClient.Timer _timer,
+            int _selectedActivity,
+            BareStoreFunction _bareStoreFunction
+        ) {
+            timer = _timer;
+            selectedActivity = _selectedActivity;
+            bareStoreFunction = _bareStoreFunction;
+            sac = _sac;
+        }
+
+        @Override
+        public void store(
+            @NonNull BabyBuddyClient.Timer _timer,
+            @NonNull BabyBuddyClient.RequestCallback<java.lang.Boolean> callback
+        ) {
+            bareStoreFunction.doStore(callback);
+        }
+
+        @NonNull
+        @Override
+        public String name() {
+            return BabyBuddyClient.ACTIVITIES.ALL[selectedActivity];
+        }
+
+        @Override
+        public void error(@NotNull Exception error) {
+            sac.error(error);
+            updateActiveState();
+        }
+
+        @Override
+        public void response(java.lang.Boolean response) {
+            sac.response(response);
+            updateActiveState();
+        }
+
+        @Override
+        public void timerStopped() {
+            updateActiveState();
+        }
+
+        @Override
+        public void cancel() {
+            timer.active = true;
+            updateActiveState();
+        }
+    }
+
     private void storeActivity() {
-        int selectedActivity = (int) binding.appTimerDefaultType.getSelectedItemId();
-        if ((int) binding.appTimerDefaultType.getSelectedItemId() == 0) {
+        final int selectedActivity = (int) binding.appTimerDefaultType.getSelectedItemId();
+        final MainActivity mainActivity = this.baseFragment.getMainActivity();
+        final String[] timerTypeStrings = baseFragment.getResources().getStringArray(R.array.timerTypes);
+        final StoreActivityCallback sac = new StoreActivityCallback(
+            Phrase.from("Storing {name} entry failed.")
+                .putOptional("name", timerTypeStrings[selectedActivity])
+                .format()
+                .toString()
+        );
+
+        BareStoreFunction storeFunction = null;
+        if (selectedActivity == 0) {
             baseFragment.getMainActivity().selectedTimer = timer;
             Navigation.findNavController(baseFragment.getView()).navigate(R.id.action_loggedInFragment2_to_feedingFragment);
         } else if (selectedActivity == 1) {
-            client.createSleepRecordFromTimer(
+            storeFunction = callback -> client.createSleepRecordFromTimer(
                 timer,
                 notesEditor.getText(),
-                new StoreActivityCallback("Storing Sleep Time failed.")
+                callback
             );
         } else if (selectedActivity == 2) {
-            client.createTummyTimeRecordFromTimer(
+            storeFunction = callback -> client.createTummyTimeRecordFromTimer(
                 timer,
                 notesEditor.getText(),
-                new StoreActivityCallback("Storing Tummy Time failed.")
+                callback
             );
         } else {
-            baseFragment.showError(true, "Could not store activity", "Unsupported activity");
+            baseFragment.showError(
+                true,
+                R.string.error_storing_activity_failed_title,
+                R.string.error_storing_activity_unsupported
+            );
+            return;
+        }
+
+        if (storeFunction != null) {
+            mainActivity.storeActivity(timer, new TimerStoreFunction(
+                sac,
+                timer,
+                selectedActivity,
+                storeFunction
+            ));
         }
     }
 
@@ -202,6 +298,11 @@ public class TimerListViewHolder extends RecyclerView.ViewHolder {
     }
 
     public void assignTimer(BabyBuddyClient.Timer timer) {
+        if (isClosed) {
+            isClosed = false;
+            updateTimerTime();
+        }
+
         this.timer = timer;
         binding.timerName.setText(timer.readableName());
         Integer defaultSelection = credStore.getTimerDefaultSelections().get(timer.id);
@@ -221,5 +322,10 @@ public class TimerListViewHolder extends RecyclerView.ViewHolder {
 
     public BabyBuddyClient.Timer getTimer() {
         return timer.clone();
+    }
+
+    public void close() {
+        timerStartTime = null;
+        isClosed = true;
     }
 }

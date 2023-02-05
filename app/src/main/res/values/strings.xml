@@ -1,16 +1,16 @@
 <resources>
-    <array name="timerTypes">
+    <array name="timerTypes" translatable="false">
         <item>Feeding</item>
         <item>Sleep</item>
         <item>Tummy time</item>
     </array>
-    <array name="feedingTypes">
+    <array name="feedingTypes" translatable="false">
         <item>Breast milk</item>
         <item>Formula</item>
         <item>Fortified breast milk</item>
         <item>Solid food</item>
     </array>
-    <array name="feedingMethods">
+    <array name="feedingMethods" translatable="false">
         <item>Bottle</item>
         <item>Left breast</item>
         <item>Right breast</item>
@@ -34,7 +34,35 @@
     <string name="configure">Configure</string>
     <string name="add_widget">Add widget</string>
 
-    <string name="LoggingInMessage">Logging in…</string>
-
     <string name="about_page_title">About Baby&#160;Buddy for Android</string>
+
+    <!-- Menu items -->
+    <string name="recreateTimersMenu">Recreate default timers</string>
+    <string name="logoutMenu">Logout</string>
+    <string name="showHelpMenuButtonTitle">Help</string>
+
+    <!-- Login -->
+    <string name="login_explanation">Please enter the URL to your <a href="https://github.com/babybuddy/babybuddy">Baby Buddy WebApp</a> installation. If you do not have a Baby Buddy server already, please visit the project page to find instructions how to host a server yourself.</string>
+
+    <string name="login_button">Login</string>
+
+    <string name="server_address_hint">Server Address</string>
+    <string name="login_text_hint">Login Name</string>
+    <string name="login_password_hint">Login Password</string>
+
+    <string name="logging_in_message">Logging in…</string>
+
+    <!--- Store activities -->
+    <string name="error_storing_activity_failed_title">Could not store activity</string>
+    <string name="error_storing_activity_unsupported">Unsupported activity</string>
+    <string name="popup_message_storing">Storing {activity} ...</string>
+
+    <!--- Store activities: Conflicts -->
+    <string name="conflicting_activity_title">Overlapping time entries</string>
+    <string name="conflicting_activity_text">
+        The timer overlaps with stored entries. Please choose a resolution action.
+    </string>
+    <string name="conflicting_activity_modify_option">Adjust stored</string>
+    <string name="conflicting_activity_cancel_option">Cancel saving</string>
+    <string name="conflicting_activity_stop_timer_option">Cancel this timer</string>
 </resources>

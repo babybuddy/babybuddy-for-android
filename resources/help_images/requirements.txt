@@ -1,0 +1,2 @@
+panflute==1.12.0
+pypandoc==1.10

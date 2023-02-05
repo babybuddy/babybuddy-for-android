@@ -1,12 +1,23 @@
 package eu.pkgsoftware.babybuddywidgets.networking;
 
 import java.io.IOException;
+import java.io.InputStream;
 import java.net.HttpURLConnection;
 import java.nio.charset.StandardCharsets;
 
+import androidx.annotation.NonNull;
+
 public class StreamReader {
-    public static String loadHtml(HttpURLConnection con) throws IOException {
+    @NonNull
+    public static String loadHttpData(HttpURLConnection con) throws IOException {
+        InputStream in = con.getInputStream();
+
         // Load the html - max 1 MB
+        return loadHttpData(in);
+    }
+
+    @NonNull
+    public static String loadHttpData(InputStream in) throws IOException {
         byte[] buffer = new byte[1000000];
 
         int offset = 0;
@@ -14,7 +25,7 @@ public class StreamReader {
             if (buffer.length - offset <= 0) {
                 break;
             }
-            int len = con.getInputStream().read(buffer, offset, buffer.length - offset);
+            int len = in.read(buffer, offset, buffer.length - offset);
             if (len <= 0) {
                 break;
             }

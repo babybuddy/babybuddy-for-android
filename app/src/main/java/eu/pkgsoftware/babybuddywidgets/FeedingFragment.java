@@ -1,6 +1,5 @@
 package eu.pkgsoftware.babybuddywidgets;
 
-import android.app.ProgressDialog;
 import android.os.Bundle;
 import android.view.LayoutInflater;
 import android.view.View;
@@ -11,10 +10,16 @@ import android.widget.Button;
 import android.widget.LinearLayout;
 import android.widget.Spinner;
 
+import org.json.JSONException;
+import org.json.JSONObject;
+
 import java.text.DecimalFormat;
+import java.text.ParseException;
 import java.util.ArrayList;
 import java.util.List;
 
+import androidx.annotation.NonNull;
+import androidx.annotation.Nullable;
 import androidx.navigation.NavController;
 import androidx.navigation.Navigation;
 import eu.pkgsoftware.babybuddywidgets.databinding.FeedingFragmentBinding;
@@ -25,7 +30,7 @@ import eu.pkgsoftware.babybuddywidgets.widgets.HorizontalNumberPicker;
 public class FeedingFragment extends BaseFragment {
     public interface ButtonListCallback {
         void onSelectionChanged(int i);
-    };
+    }
 
     public static class AmountValuesGenerator implements HorizontalNumberPicker.ValueGenerator {
         public static final DecimalFormat FORMAT_VALUE = new DecimalFormat("#.#");
@@ -104,7 +109,7 @@ public class FeedingFragment extends BaseFragment {
                     offset -= 1.0;
                     index += 1;
                 }
-                index +=  9 * exp;
+                index += 9 * exp;
 
                 return Math.max(-0.5, Math.min(0.5, offset));
             }
@@ -112,9 +117,11 @@ public class FeedingFragment extends BaseFragment {
     }
 
     private FeedingFragmentBinding binding = null;
-    private Double amount = 300.0;
+    private Double amount = -1.0;
     private NotesEditorBinding notesEditor = null;
     private AmountValuesGenerator amountValuesGenerator = new AmountValuesGenerator();
+    private BabyBuddyClient.Timer selectedTimer = null;
+    private boolean restoredPreviousState = false;
 
     @Override
     public View onCreateView(LayoutInflater inflater, ViewGroup container, Bundle savedInstanceState) {
@@ -165,12 +172,43 @@ public class FeedingFragment extends BaseFragment {
     }
 
     @Override
+    public void onViewStateRestored(@Nullable Bundle savedInstanceState) {
+        super.onViewStateRestored(savedInstanceState);
+
+        restoredPreviousState = savedInstanceState != null;
+        if (restoredPreviousState) {
+            final String timerIdString = savedInstanceState.getString("timerId", null);
+            if (timerIdString != null) {
+                try {
+                    selectedTimer = BabyBuddyClient.Timer.fromJSON(new JSONObject(timerIdString));
+                } catch (ParseException | JSONException e) {
+                    selectedTimer = null;
+                    System.err.println("Could not decode selected timer data");
+                }
+            }
+            amount = savedInstanceState.getDouble("amount", -1.0);
+            final String notes = savedInstanceState.getString("notes");
+            notesEditor.noteEditor.setText(notes);
+        }
+    }
+
+    @Override
     public void onStart() {
         super.onStart();
 
-        Double lastUsedAmount = mainActivity().getCredStore().getLastUsedAmount();
-        binding.amountNumberPicker.setValueIndex(amountValuesGenerator.getValueIndex(lastUsedAmount));
-        binding.amountNumberPicker.setRelativeValueIndexOffset(amountValuesGenerator.getValueOffset(lastUsedAmount));
+        if (!restoredPreviousState) {
+            Double lastUsedAmount = mainActivity().getCredStore().getLastUsedAmount();
+            if (lastUsedAmount != null) {
+                amount = lastUsedAmount;
+            }
+        }
+
+        if (amount == null) {
+            amount = -1.0;
+        }
+        final double newAmountValue = amount;
+        binding.amountNumberPicker.setValueIndex(amountValuesGenerator.getValueIndex(newAmountValue));
+        binding.amountNumberPicker.setRelativeValueIndexOffset(amountValuesGenerator.getValueOffset(newAmountValue));
 
         resetVisibilityState();
     }
@@ -179,10 +217,16 @@ public class FeedingFragment extends BaseFragment {
     public void onResume() {
         super.onResume();
 
-        CredStore.Notes notes = mainActivity().getCredStore().getObjectNotes(
-            "timer_" + mainActivity().selectedTimer.id
-        );
-        notesEditor.noteEditor.setText(notes.visible ? notes.note : "");
+        if (!restoredPreviousState) {
+            if (mainActivity().selectedTimer != null) {
+                selectedTimer = mainActivity().selectedTimer;
+            }
+
+            CredStore.Notes notes = mainActivity().getCredStore().getObjectNotes(
+                "timer_" + selectedTimer.id
+            );
+            notesEditor.noteEditor.setText(notes.visible ? notes.note : "");
+        }
     }
 
     @Override
@@ -190,15 +234,30 @@ public class FeedingFragment extends BaseFragment {
         super.onPause();
 
         CredStore.Notes notes = mainActivity().getCredStore().getObjectNotes(
-            "timer_" + mainActivity().selectedTimer.id
+            "timer_" + selectedTimer.id
         );
         notes.note = notesEditor.noteEditor.getText().toString();
         mainActivity().getCredStore().setObjectNotes(
-            "timer_" + mainActivity().selectedTimer.id,
+            "timer_" + selectedTimer.id,
             notes.visible,
             notes.note
         );
         mainActivity().getCredStore().storePrefs();
+    }
+
+    @Override
+    public void onSaveInstanceState(@NonNull Bundle outState) {
+        if (selectedTimer == null) {
+            outState.putString("timerId", null);
+        } else {
+            outState.putString("timerId", selectedTimer.toJSON().toString());
+        }
+        if (amount == null) {
+            outState.putDouble("amount", -1.0);
+        } else {
+            outState.putDouble("amount", amount);
+        }
+        outState.putString("notes", notesEditor.noteEditor.getText().toString());
     }
 
     private void resetVisibilityState() {
@@ -262,6 +321,7 @@ public class FeedingFragment extends BaseFragment {
     }
 
     private List<Constants.FeedingMethodEnum> assignedMethodButtons = null;
+
     private void setupFeedingMethodButtons(Constants.FeedingTypeEnum type) {
         binding.submitButton.setVisibility(View.GONE);
         assignedMethodButtons = new ArrayList<>(10);
@@ -294,8 +354,8 @@ public class FeedingFragment extends BaseFragment {
         populateButtonList(
             textItems.toArray(
                 new CharSequence[0]),
-                binding.feedingMethodButtons,
-                binding.feedingMethodSpinner,
+            binding.feedingMethodButtons,
+            binding.feedingMethodSpinner,
             i -> binding.submitButton.setVisibility(View.VISIBLE)
         );
     }
@@ -305,10 +365,6 @@ public class FeedingFragment extends BaseFragment {
     }
 
     private void submitFeeding() {
-        ProgressDialog progressDialog = new ProgressDialog(getContext());
-        progressDialog.setProgressStyle(ProgressDialog.STYLE_SPINNER);
-        progressDialog.setMessage(getString(R.string.LoggingInMessage));
-
         long feedingTypeId = binding.feedingTypeSpinner.getSelectedItemId();
         Constants.FeedingTypeEnum feedingType = Constants.FeedingTypeEnumValues.get((int) feedingTypeId);
         long feedingMethodId = binding.feedingMethodSpinner.getSelectedItemId();
@@ -318,41 +374,63 @@ public class FeedingFragment extends BaseFragment {
         if (fAmount != null) {
             fAmount = Math.round(fAmount * 10.0f) / 10.0f;
         }
+        final Float finalFloatAmount = fAmount;
 
-        mainActivity().getClient().createFeedingRecordFromTimer(
-            mainActivity().selectedTimer,
-            feedingType.post_name,
-            feedingMethod.post_name,
-            fAmount,
-            notesEditor.noteEditor.getText().toString().trim(),
-            new BabyBuddyClient.RequestCallback<Boolean>() {
-                @Override
-                public void error(Exception error) {
-                    progressDialog.cancel();
-
-                    showError(
-                        true,
-                        "Failed storing feeding",
-                        "Error: " + error.getMessage(),
-                        b -> navUp()
-                    );
-                }
-
-                @Override
-                public void response(Boolean response) {
-                    progressDialog.cancel();
-                    mainActivity().getCredStore().storeLastUsedAmount(amount);
-                    notesEditor.noteEditor.setText("");
-                    mainActivity().getCredStore().setObjectNotes(
-                        "timer_" + mainActivity().selectedTimer.id,
-                        false,
-                        ""
-                    );
-                    mainActivity().getCredStore().storePrefs();
-                    navUp();
-                }
+        mainActivity().storeActivity(selectedTimer, new StoreFunction<Boolean>() {
+            @Override
+            public void error(@NonNull Exception error) {
+                showError(
+                    true,
+                    "Failed storing feeding",
+                    "Error: " + error.getMessage(),
+                    b -> navUp()
+                );
             }
-        );
+
+            @Override
+            public void response(Boolean response) {
+                MainActivity ma = mainActivity();
+                mainActivity().getCredStore().storeLastUsedAmount(amount);
+                notesEditor.noteEditor.setText("");
+                mainActivity().getCredStore().setObjectNotes(
+                    "timer_" + selectedTimer.id,
+                    false,
+                    ""
+                );
+                mainActivity().getCredStore().storePrefs();
+                navUp();
+            }
+
+            @Override
+            public void cancel() {
+            }
+
+            @Override
+            public void timerStopped() {
+                navUp();
+            }
+
+            @NonNull
+            @Override
+            public String name() {
+                return BabyBuddyClient.ACTIVITIES.FEEDING;
+            }
+
+            @Override
+            public void store(
+                @NonNull BabyBuddyClient.Timer timer,
+                @NonNull BabyBuddyClient.RequestCallback<Boolean> callback
+            ) {
+                mainActivity().getClient().createFeedingRecordFromTimer(
+                    selectedTimer,
+                    feedingType.post_name,
+                    feedingMethod.post_name,
+                    finalFloatAmount,
+                    notesEditor.noteEditor.getText().toString().trim(),
+                    callback
+                );
+            }
+        });
     }
 
     private void navUp() {

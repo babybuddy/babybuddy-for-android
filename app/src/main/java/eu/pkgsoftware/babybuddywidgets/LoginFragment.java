@@ -1,17 +1,26 @@
 package eu.pkgsoftware.babybuddywidgets;
 
+import android.annotation.SuppressLint;
 import android.app.AlertDialog;
+import android.content.ContentResolver;
 import android.os.Bundle;
+import android.provider.Settings;
 import android.text.Editable;
 import android.text.TextWatcher;
+import android.text.method.LinkMovementMethod;
 import android.view.LayoutInflater;
 import android.view.Menu;
 import android.view.MenuInflater;
 import android.view.MenuItem;
 import android.view.View;
 import android.view.ViewGroup;
+import android.view.inputmethod.EditorInfo;
 import android.widget.Button;
 import android.widget.EditText;
+import android.widget.TextView;
+
+import java.io.IOException;
+import java.util.Objects;
 
 import androidx.annotation.NonNull;
 import androidx.navigation.NavController;
@@ -28,9 +37,9 @@ public class LoginFragment extends BaseFragment {
 
     private void updateLoginButton() {
         loginButton.setEnabled(
-                (addressEdit.getText().length() > 0) &&
-                        (loginNameEdit.getText().length() > 0) &&
-                        (loginPasswordEdit.getText().length() > 0));
+            (addressEdit.getText().length() > 0) &&
+                (loginNameEdit.getText().length() > 0) &&
+                (loginPasswordEdit.getText().length() > 0));
     }
 
     @Override
@@ -50,13 +59,16 @@ public class LoginFragment extends BaseFragment {
         if (item.getItemId() == R.id.aboutPageMenuItem) {
             Navigation.findNavController(getView()).navigate(R.id.global_aboutFragment);
         }
+        if (item.getItemId() == R.id.showHelpMenuButton) {
+            Navigation.findNavController(getView()).navigate(R.id.global_showHelp);
+        }
         return false;
     }
 
     @Override
     public View onCreateView(
-            LayoutInflater inflater, ViewGroup container,
-            Bundle savedInstanceState
+        LayoutInflater inflater, ViewGroup container,
+        Bundle savedInstanceState
     ) {
         binding = LoginFragmentBinding.inflate(inflater, container, false);
         View view = binding.getRoot();
@@ -85,6 +97,9 @@ public class LoginFragment extends BaseFragment {
         String serverUrl = credStore.getServerUrl();
         if (serverUrl == null) {
             serverUrl = "";
+            if (isTestlab()) {
+                serverUrl = "https://babybuddy-test.pkgsoftware.eu/";
+            }
         }
         addressEdit.setText(serverUrl);
 
@@ -93,41 +108,72 @@ public class LoginFragment extends BaseFragment {
         loginPasswordEdit.addTextChangedListener(tw);
 
         loginButton.setOnClickListener(view1 -> {
-            hideKeyboard();
-
-            String cleanedAddress = ("" + addressEdit.getText()).trim();
-            if (cleanedAddress.toLowerCase().startsWith("http:")) {
-                new AlertDialog.Builder(getContext())
-                    .setTitle("Insecure connection")
-                    .setMessage(
-                        "You have entered a URL  that does not start with 'https'. This means " +
-                            "that the password you entered can be intercepted and stolen!")
-                    .setPositiveButton(
-                        "Cancel (advised)",
-                        (dialogInterface, i) -> dialogInterface.dismiss()
-                    )
-                    .setNegativeButton(
-                        "Continue anyway",
-                        (dialogInterface, i) -> performLogin()
-                    ).show();
-            } else {
-                if (!cleanedAddress.toLowerCase().startsWith("https:")) {
-                    addressEdit.setText("https://" + addressEdit.getText());
-                }
-                performLogin();
-            }
+            uiStartLogin();
         });
 
         binding.passwordEdit.setText("");
         binding.loginNameEdit.setText("");
+        binding.passwordEdit.setOnEditorActionListener((v, actionId, event) -> {
+            if (actionId == EditorInfo.IME_ACTION_GO) {
+                uiStartLogin();
+                return true;
+            }
+            return false;
+        });
+
+        binding.loginInfoText.setMovementMethod(LinkMovementMethod.getInstance());
 
         updateLoginButton();
 
         return binding.getRoot();
     }
 
+    private void uiStartLogin() {
+        hideKeyboard();
+
+        String cleanedAddress = ("" + addressEdit.getText()).trim();
+        if (cleanedAddress.toLowerCase().startsWith("http:")) {
+            new AlertDialog.Builder(getContext())
+                .setTitle("Insecure connection")
+                .setMessage(
+                    "You have entered a URL  that does not start with 'https'. This means " +
+                        "that the password you entered can be intercepted and stolen!")
+                .setPositiveButton(
+                    "Cancel (advised)",
+                    (dialogInterface, i) -> dialogInterface.dismiss()
+                )
+                .setNegativeButton(
+                    "Continue anyway",
+                    (dialogInterface, i) -> performLogin()
+                ).show();
+        } else {
+            if (!cleanedAddress.toLowerCase().startsWith("https:")) {
+                addressEdit.setText("https://" + addressEdit.getText());
+            }
+            performLogin();
+        }
+    }
+
+    /**
+     * Check if running in a testlab-context
+     */
+    @SuppressLint("SetTextI18n")
+    private boolean isTestlab() {
+        boolean testlab = false;
+
+        ContentResolver cr = getMainActivity().getContentResolver();
+        if (cr != null) {
+            String testLabSetting = Settings.System.getString(cr, "firebase.test.lab");
+            if ("true".equals(testLabSetting)) {
+                testlab = true;
+            }
+        }
+
+        return testlab;
+    }
+
     private void showProgress() {
-        showProgress(getString(R.string.LoggingInMessage));
+        showProgress(getString(R.string.logging_in_message));
     }
 
     @Override
@@ -173,10 +219,21 @@ public class LoginFragment extends BaseFragment {
 
         CredStore credStore = getMainActivity().getCredStore();
         credStore.storeServerUrl(addressEdit.getText().toString());
-        String token = GrabAppToken.grabToken(
+        String token = null;
+        try {
+            token = GrabAppToken.grabToken(
                 addressEdit.getText().toString(),
                 loginNameEdit.getText().toString(),
                 loginPasswordEdit.getText().toString());
+        } catch (IOException e) {
+            showError(true, "Login failed", e.getMessage());
+            progressDialog.hide();
+            return;
+        } catch (Exception e) {
+            showError(true, "Login failed", "Internal error message: " + e.getMessage());
+            progressDialog.hide();
+            return;
+        }
         credStore.storeAppToken(token);
 
         testLogin(new Promise<Object, String>() {

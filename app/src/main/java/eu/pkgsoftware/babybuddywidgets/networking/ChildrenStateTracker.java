@@ -339,8 +339,6 @@ public class ChildrenStateTracker {
 
                     @Override
                     public void response(BabyBuddyClient.Timer[] response) {
-                        System.out.println("AAA queueRequests-timers " + childId);
-
                         requeue();
 
                         if (isClosed()) {
