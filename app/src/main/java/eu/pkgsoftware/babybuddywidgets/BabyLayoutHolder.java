@@ -199,7 +199,7 @@ public class BabyLayoutHolder extends RecyclerView.ViewHolder {
         binding.wetEnabledButton.setVisibility(changeWet ? View.VISIBLE : View.GONE);
         binding.wetDisabledButton.setVisibility(!changeWet ? View.VISIBLE : View.GONE);
 
-        baseFragment.getMainActivity().tutorialAccess.tutorialMessage(binding.solidDisabledButton, "Hello");
+        baseFragment.getMainActivity().getTutorialAccess().tutorialMessage(binding.solidDisabledButton, "Hello");
     }
 
     private void storeDiaperChange() {

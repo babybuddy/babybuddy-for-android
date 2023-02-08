@@ -93,6 +93,20 @@ class MainActivity : AppCompatActivity() {
             }
         }
 
+    internal var internalTutorialAccess: TutorialAccess? = null
+    val tutorialAccess: TutorialAccess
+        get() {
+            internalTutorialAccess.let {
+                if (it == null) {
+                    val newTA = TutorialAccess(this)
+                    internalTutorialAccess = newTA
+                    return newTA
+                } else {
+                    return it
+                }
+            }
+        }
+
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
 
@@ -104,6 +118,7 @@ class MainActivity : AppCompatActivity() {
             it
         }
         enableBackNavigationButton(false)
+        tutorialAccess
     }
 
     override fun onStart() {

@@ -14,15 +14,17 @@
         android:layout_marginRight="32dp"
         android:layout_marginTop="16dp">
 
-        <Button
-            android:id="@+id/loginButton"
-            android:layout_width="wrap_content"
-            android:layout_height="wrap_content"
-            android:layout_marginTop="28dp"
-            android:text="@string/login_button"
-            app:layout_constraintEnd_toEndOf="@+id/passwordEdit"
-            app:layout_constraintStart_toStartOf="@+id/passwordEdit"
-            app:layout_constraintTop_toBottomOf="@+id/passwordEdit" />
+        <EditText
+            android:id="@+id/serverAddressEdit"
+            android:layout_width="match_parent"
+            android:layout_height="48dp"
+            android:layout_marginTop="16dp"
+            android:ems="10"
+            android:hint="@string/server_address_hint"
+            android:importantForAutofill="no"
+            android:inputType="textUri"
+            app:layout_constraintStart_toStartOf="@id/loginInfoText"
+            app:layout_constraintTop_toBottomOf="@id/loginInfoText" />
 
         <EditText
             android:id="@+id/loginNameEdit"
@@ -49,18 +51,6 @@
             app:layout_constraintStart_toStartOf="@+id/loginNameEdit"
             app:layout_constraintTop_toBottomOf="@+id/loginNameEdit" />
 
-        <EditText
-            android:id="@+id/serverAddressEdit"
-            android:layout_width="match_parent"
-            android:layout_height="48dp"
-            android:layout_marginTop="16dp"
-            android:ems="10"
-            android:hint="@string/server_address_hint"
-            android:importantForAutofill="no"
-            android:inputType="textUri"
-            app:layout_constraintStart_toStartOf="@id/loginInfoText"
-            app:layout_constraintTop_toBottomOf="@id/loginInfoText" />
-
         <TextView
             android:id="@+id/loginInfoText"
             android:layout_width="match_parent"
@@ -71,5 +61,15 @@
             app:layout_constraintHorizontal_bias="0.5"
             app:layout_constraintStart_toStartOf="parent"
             app:layout_constraintTop_toTopOf="parent" />
+
+        <Button
+            android:id="@+id/loginButton"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_marginTop="28dp"
+            android:text="@string/login_button"
+            app:layout_constraintEnd_toEndOf="@+id/passwordEdit"
+            app:layout_constraintStart_toStartOf="@+id/passwordEdit"
+            app:layout_constraintTop_toBottomOf="@+id/passwordEdit" />
     </androidx.constraintlayout.widget.ConstraintLayout>
 </androidx.constraintlayout.widget.ConstraintLayout>

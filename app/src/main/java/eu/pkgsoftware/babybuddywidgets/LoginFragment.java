@@ -3,6 +3,8 @@ package eu.pkgsoftware.babybuddywidgets;
 import android.annotation.SuppressLint;
 import android.app.AlertDialog;
 import android.content.ContentResolver;
+import android.content.Context;
+import android.graphics.Rect;
 import android.os.Bundle;
 import android.provider.Settings;
 import android.text.Editable;
@@ -14,6 +16,7 @@ import android.view.MenuInflater;
 import android.view.MenuItem;
 import android.view.View;
 import android.view.ViewGroup;
+import android.view.ViewTreeObserver;
 import android.view.inputmethod.EditorInfo;
 import android.widget.Button;
 import android.widget.EditText;
@@ -23,6 +26,7 @@ import java.io.IOException;
 import java.util.Objects;
 
 import androidx.annotation.NonNull;
+import androidx.fragment.app.Fragment;
 import androidx.navigation.NavController;
 import androidx.navigation.Navigation;
 import eu.pkgsoftware.babybuddywidgets.databinding.LoginFragmentBinding;
@@ -124,6 +128,19 @@ public class LoginFragment extends BaseFragment {
         binding.loginInfoText.setMovementMethod(LinkMovementMethod.getInstance());
 
         updateLoginButton();
+
+        new RunOnceAfterLayoutUpdate(binding.getRoot(), () -> {
+            Rect r = new Rect();
+            getView().getGlobalVisibleRect(r);
+            if (r.width() * r.height() <= 0) {
+                return;
+            }
+            getMainActivity().getTutorialAccess().tutorialMessage(
+                r.right - dpToPx(20),
+                r.top,
+                "ABRA CADABRA"
+            );
+        });
 
         return binding.getRoot();
     }
