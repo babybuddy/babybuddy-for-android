@@ -138,7 +138,7 @@ public class LoginFragment extends BaseFragment {
             getMainActivity().getTutorialAccess().tutorialMessage(
                 r.right - dpToPx(20),
                 r.top,
-                "ABRA CADABRA"
+                "You find the in-app\nhelp in the main menu"
             );
         });
 

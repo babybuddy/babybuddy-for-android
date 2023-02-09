@@ -14,6 +14,8 @@ import android.view.animation.AnimationSet
 import android.view.animation.AnimationUtils
 import android.widget.TextView
 import androidx.core.animation.addListener
+import androidx.core.view.doOnNextLayout
+import androidx.core.view.marginLeft
 
 class TutorialAccess(private val activity: Activity) {
     private val tutorialArrow: View
@@ -66,7 +68,6 @@ class TutorialAccess(private val activity: Activity) {
         a1.addListener(AnimStartListener(a2))
         a2.addListener(AnimStartListener(a1))
         a1.start()
-
     }
 
     fun tutorialMessage(view: View, message: String) {
@@ -103,6 +104,17 @@ class TutorialAccess(private val activity: Activity) {
 
         tutorialText.visibility = View.VISIBLE
         tutorialArrow.visibility = View.VISIBLE
+
+        tutorialText.doOnNextLayout {
+            val width = it.width
+            if (tutorialText.x < globalRect.left) {
+                tutorialText.x = globalRect.left.toFloat()
+            }
+            if (tutorialText.x > globalRect.right - width) {
+                tutorialText.x = (globalRect.right - width).toFloat()
+            }
+        }
+        tutorialText.requestLayout()
 
         stopAnimations()
         startArrowAnimation()
