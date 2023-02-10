@@ -2,31 +2,36 @@ package eu.pkgsoftware.babybuddywidgets
 
 import android.animation.Animator
 import android.animation.ObjectAnimator
-import android.animation.ValueAnimator
 import android.app.Activity
-import android.content.Context
-import android.graphics.Matrix
 import android.graphics.Rect
 import android.view.View
-import android.view.ViewGroup
-import android.view.animation.Animation
-import android.view.animation.AnimationSet
-import android.view.animation.AnimationUtils
 import android.widget.TextView
-import androidx.core.animation.addListener
 import androidx.core.view.doOnNextLayout
-import androidx.core.view.marginLeft
+import androidx.fragment.app.FragmentContainerView
+import androidx.navigation.Navigation
 
 class TutorialAccess(private val activity: Activity) {
     private val tutorialArrow: View
     private val tutorialText: TextView
     private var animations = arrayOf<Animator>()
+    private var postInitDone = false
 
     init {
         tutorialArrow = activity.findViewById(R.id.tutorial_arrow)
         tutorialText = activity.findViewById(R.id.tutorial_text)
 
         hideTutorial()
+    }
+
+    private fun postInit() {
+        if (postInitDone) return
+        val fragView =
+            activity.findViewById<FragmentContainerView>(R.id.nav_host_fragment_content_main)
+        val nav = Navigation.findNavController(fragView)
+        nav.addOnDestinationChangedListener() { controller, destionaion, arguments ->
+            hideTutorial()
+        }
+        postInitDone = true
     }
 
     private class AnimStartListener(val startAnim: Animator) : Animator.AnimatorListener {
@@ -84,6 +89,8 @@ class TutorialAccess(private val activity: Activity) {
     }
 
     fun tutorialMessage(_arrowX: Float, _arrowY: Float, message: String) {
+        postInit()
+
         var arrowX: Float = _arrowX - tutorialArrow.width / 2
         var arrowY: Float = _arrowY
 
@@ -123,5 +130,6 @@ class TutorialAccess(private val activity: Activity) {
     fun hideTutorial() {
         tutorialArrow.visibility = View.INVISIBLE
         tutorialText.visibility = View.INVISIBLE
+        stopAnimations()
     }
 }
