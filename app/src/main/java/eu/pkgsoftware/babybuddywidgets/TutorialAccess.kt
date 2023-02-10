@@ -85,8 +85,7 @@ class TutorialAccess(private val activity: Activity) {
 
     fun tutorialMessage(_arrowX: Float, _arrowY: Float, message: String) {
         var arrowX: Float = _arrowX - tutorialArrow.width / 2
-        var arrowY: Float = _arrowY - tutorialArrow.height / 2
-
+        var arrowY: Float = _arrowY
 
         val rootView = tutorialArrow.rootView
         val globalRect = Rect()

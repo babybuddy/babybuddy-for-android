@@ -129,16 +129,17 @@ public class LoginFragment extends BaseFragment {
 
         updateLoginButton();
 
-        new RunOnceAfterLayoutUpdate(binding.getRoot(), () -> {
+        final View mainLayout = getMainActivity().findViewById(R.id.main_layout);
+        mainLayout.requestLayout();
+        new RunOnceAfterLayoutUpdate(mainLayout, () -> {
             Rect r = new Rect();
-            getView().getGlobalVisibleRect(r);
-            if (r.width() * r.height() <= 0) {
-                return;
-            }
+
+            View toolbar = getMainActivity().findViewById(R.id.app_toolbar);
+            toolbar.getGlobalVisibleRect(r);
             getMainActivity().getTutorialAccess().tutorialMessage(
                 r.right - dpToPx(20),
                 r.top,
-                "You find the in-app\nhelp in the main menu"
+                getString(R.string.tutorial_help_1)
             );
         });
 
