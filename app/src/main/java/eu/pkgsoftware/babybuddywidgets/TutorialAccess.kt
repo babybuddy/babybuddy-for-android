@@ -2,25 +2,50 @@ package eu.pkgsoftware.babybuddywidgets
 
 import android.animation.Animator
 import android.animation.ObjectAnimator
-import android.app.Activity
 import android.graphics.Rect
+import android.view.KeyEvent
 import android.view.View
 import android.widget.TextView
+import androidx.core.animation.doOnCancel
+import androidx.core.animation.doOnEnd
+import androidx.core.animation.doOnRepeat
 import androidx.core.view.doOnNextLayout
 import androidx.fragment.app.FragmentContainerView
 import androidx.navigation.Navigation
 
-class TutorialAccess(private val activity: Activity) {
+class TutorialAccess(private val activity: MainActivity) {
     private val tutorialArrow: View
     private val tutorialText: TextView
-    private var animations = arrayOf<Animator>()
     private var postInitDone = false
+    private var runningAnimators = arrayOf<Animator>()
+
+    var hideOnInput = true
 
     init {
         tutorialArrow = activity.findViewById(R.id.tutorial_arrow)
         tutorialText = activity.findViewById(R.id.tutorial_text)
 
+        tutorialArrow.setOnClickListener {
+            handleInput()
+        }
+        tutorialText.setOnClickListener {
+            handleInput()
+        }
+
         hideTutorial()
+        startArrowAnimation()
+
+        activity.inputEventListeners.add {
+            if (it is KeyEvent) {
+                handleInput()
+            }
+        }
+    }
+
+    fun handleInput() {
+        if (hideOnInput) {
+            hideTutorial(false)
+        }
     }
 
     private fun postInit() {
@@ -28,7 +53,7 @@ class TutorialAccess(private val activity: Activity) {
         val fragView =
             activity.findViewById<FragmentContainerView>(R.id.nav_host_fragment_content_main)
         val nav = Navigation.findNavController(fragView)
-        nav.addOnDestinationChangedListener() { controller, destionaion, arguments ->
+        nav.addOnDestinationChangedListener() { controller, destination, arguments ->
             hideTutorial()
         }
         postInitDone = true
@@ -39,7 +64,10 @@ class TutorialAccess(private val activity: Activity) {
         }
 
         override fun onAnimationEnd(p0: Animator?) {
-            startAnim.start();
+            if (p0 == null || p0.isPaused) {
+                return;
+            }
+            startAnim.start()
         }
 
         override fun onAnimationCancel(p0: Animator?) {
@@ -49,15 +77,13 @@ class TutorialAccess(private val activity: Activity) {
         }
     }
 
-    private fun stopAnimations() {
-        for (a in animations) {
-            a.cancel()
-        }
-        animations = arrayOf()
-        tutorialArrow.clearAnimation()
-    }
-
     private fun startArrowAnimation() {
+        val oldAnimators = runningAnimators
+        runningAnimators = arrayOf()
+        oldAnimators.forEach {
+            it.cancel()
+        }
+
         val arrowY = tutorialArrow.y.toFloat()
         val offset = Tools.dpToPx(tutorialArrow.context, 5.0f).toFloat();
         val a1 =
@@ -70,9 +96,20 @@ class TutorialAccess(private val activity: Activity) {
                 .apply {
                     duration = 200;
                 }
-        a1.addListener(AnimStartListener(a2))
-        a2.addListener(AnimStartListener(a1))
+        a1.doOnEnd {
+            if (runningAnimators.contains(a2)) {
+                a2.start()
+            }
+        }
+        a2.doOnEnd {
+            if (runningAnimators.contains(a1)) {
+                a1.start()
+            }
+        }
+        a1.setAutoCancel(true)
+        a2.setAutoCancel(true)
         a1.start()
+        runningAnimators = arrayOf(a1, a2)
     }
 
     fun tutorialMessage(view: View, message: String) {
@@ -122,14 +159,32 @@ class TutorialAccess(private val activity: Activity) {
         }
         tutorialText.requestLayout()
 
-        stopAnimations()
         startArrowAnimation()
     }
 
 
-    fun hideTutorial() {
-        tutorialArrow.visibility = View.INVISIBLE
-        tutorialText.visibility = View.INVISIBLE
-        stopAnimations()
+    fun hideTutorial(immediate: Boolean = true) {
+        if (immediate) {
+            tutorialArrow.visibility = View.INVISIBLE
+            tutorialText.visibility = View.INVISIBLE
+            arrayOf(tutorialArrow, tutorialText).forEach {
+                ObjectAnimator.ofFloat(it, "alpha", 1f).apply {
+                    setAutoCancel(true)
+                    start()
+                }
+            }
+        } else {
+            arrayOf(tutorialArrow, tutorialText).forEach {
+                ObjectAnimator.ofFloat(it, "alpha", 1f, 0f).apply {
+                    duration = 250
+                    setAutoCancel(true)
+                    repeatCount = 0
+                    doOnEnd {
+                        hideTutorial(true)
+                    }
+                    start()
+                }
+            }
+        }
     }
 }

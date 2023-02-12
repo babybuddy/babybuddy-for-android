@@ -3,16 +3,14 @@ package eu.pkgsoftware.babybuddywidgets
 import android.app.ProgressDialog
 import android.os.Bundle
 import android.util.Log
-import android.view.MenuItem
-import android.view.View
-import android.widget.TextView
+import android.view.InputEvent
+import android.view.KeyEvent
+import android.view.MotionEvent
+import android.view.inputmethod.InputMethodManager
 import androidx.appcompat.app.AlertDialog
 import androidx.appcompat.app.AppCompatActivity
-import androidx.fragment.app.Fragment
 import androidx.fragment.app.FragmentContainerView
-import androidx.navigation.NavController
 import androidx.navigation.Navigation
-import androidx.navigation.fragment.NavHostFragment
 import com.squareup.phrase.Phrase
 import eu.pkgsoftware.babybuddywidgets.databinding.ActivityMainBinding
 import eu.pkgsoftware.babybuddywidgets.networking.BabyBuddyClient
@@ -57,10 +55,15 @@ class AsyncClientRequest() {
     }
 }
 
+fun interface InputEventListener {
+    fun inputEvent(event: InputEvent)
+}
+
 class MainActivity : AppCompatActivity() {
     val scope = MainScope()
 
     private var binding: ActivityMainBinding? = null
+    val inputEventListeners = mutableListOf<InputEventListener>()
 
     internal var internalCredStore: CredStore? = null
     val credStore: CredStore
@@ -126,9 +129,10 @@ class MainActivity : AppCompatActivity() {
 
         binding?.root?.let {
             val ncv = it.findViewById<FragmentContainerView>(R.id.nav_host_fragment_content_main)
-            Navigation.findNavController(ncv).addOnDestinationChangedListener {
-                    controller, destination, arguments -> enableBackNavigationButton(false)
-            }
+            Navigation.findNavController(ncv)
+                .addOnDestinationChangedListener { controller, destination, arguments ->
+                    enableBackNavigationButton(false)
+                }
         }
     }
 
@@ -153,6 +157,26 @@ class MainActivity : AppCompatActivity() {
             Navigation.findNavController(ncv).navigateUp()
         }
         return false;
+    }
+
+    private fun invokeInputEventListeners(e: InputEvent) {
+        inputEventListeners.forEach {
+            it.inputEvent(e)
+        }
+    }
+
+    override fun dispatchTouchEvent(ev: MotionEvent?): Boolean {
+        ev?.let {
+            invokeInputEventListeners(it)
+        }
+        return super.dispatchTouchEvent(ev)
+    }
+
+    override fun dispatchKeyEvent(ev: KeyEvent?): Boolean {
+        ev?.let {
+            invokeInputEventListeners(it)
+        }
+        return super.dispatchKeyEvent(ev)
     }
 
     fun <X> storeActivity(
@@ -243,8 +267,7 @@ class MainActivity : AppCompatActivity() {
                 }
                 try {
                     patchEntry(c, values)
-                }
-                catch (e: Exception) {
+                } catch (e: Exception) {
                     anyException = e
                 }
             }
@@ -316,8 +339,7 @@ class MainActivity : AppCompatActivity() {
             } catch (e: Exception) {
                 e.printStackTrace()
                 storeInterface.error(e)
-            }
-            finally {
+            } finally {
                 progressDialog.cancel()
             }
         }
