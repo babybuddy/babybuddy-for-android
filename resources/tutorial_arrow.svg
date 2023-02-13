@@ -7,7 +7,7 @@
    viewBox="0 0 52.916665 52.916668"
    version="1.1"
    id="svg5"
-   inkscape:version="1.1.2 (0a00cf5339, 2022-02-04)"
+   inkscape:version="1.2.2 (b0a8486541, 2022-12-01)"
    sodipodi:docname="tutorial_arrow.svg"
    xmlns:inkscape="http://www.inkscape.org/namespaces/inkscape"
    xmlns:sodipodi="http://sodipodi.sourceforge.net/DTD/sodipodi-0.dtd"
@@ -25,15 +25,17 @@
      showgrid="false"
      units="px"
      width="200px"
-     inkscape:zoom="3.0146465"
-     inkscape:cx="68.664767"
-     inkscape:cy="107.14357"
+     inkscape:zoom="0.53291925"
+     inkscape:cx="-455.97903"
+     inkscape:cy="-23.455711"
      inkscape:window-width="1920"
-     inkscape:window-height="1031"
+     inkscape:window-height="1006"
      inkscape:window-x="0"
      inkscape:window-y="25"
      inkscape:window-maximized="1"
-     inkscape:current-layer="layer1" />
+     inkscape:current-layer="layer1"
+     inkscape:showpageshadow="2"
+     inkscape:deskcolor="#d1d1d1" />
   <defs
      id="defs2">
     <marker
@@ -100,7 +102,8 @@
     <path
        id="path1358"
        style="color:#000000;fill:#000000;fill-rule:evenodd;stroke:none;stroke-width:3.77953;-inkscape-stroke:none"
-       d="M 99.994141 19.267578 L 36.111328 129.78125 L 87.025391 129.78125 L 87.025391 180.73828 L 112.97266 180.73828 L 112.97266 129.78125 L 163.88477 129.78125 C 142.58985 92.9421 121.30238 56.099028 99.994141 19.267578 z "
-       transform="scale(0.26458333)" />
+       d="M 99.999026,19.267578 44.111328,111.78125 h 42.914063 v 68.95703 h 25.947269 v -68.95703 h 40.91211 C 132.58985,74.9421 121.30726,56.099028 99.999026,19.267578 Z"
+       transform="scale(0.26458333)"
+       sodipodi:nodetypes="cccccccc" />
   </g>
 </svg>
