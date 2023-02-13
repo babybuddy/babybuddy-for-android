@@ -63,6 +63,7 @@ public class CredStore {
     private Map<Integer, Integer> timerAssignments = new HashMap<Integer, Integer>();
     private Map<String, Notes> notesAssignments = new HashMap<String, Notes>();
     private Double lastUsedAmount = null;
+    private Map<String, Integer> tutorialParameters = new HashMap<>();
 
     private String currentChild = null;
     // private Map<String, String> children = new HashMap<>();
@@ -113,12 +114,22 @@ public class CredStore {
             }
 
             lastUsedAmount = null;
-            if (props.contains("last_used_amount")) {
+            if (props.containsKey("last_used_amount")) {
                 String s = props.getProperty("last_used_amount", "null");
                 if ("null".equalsIgnoreCase(s)) {
                     lastUsedAmount = null;
                 } else {
                     lastUsedAmount = Double.valueOf(s);
+                }
+            }
+
+            if (props.containsKey("tutorial_parameters")) {
+                Map<String, String> rawMap = stringToStringMap(props.getProperty("tutorial_parameters"));
+                for (Map.Entry<String, String> entry : rawMap.entrySet()) {
+                    try {
+                        tutorialParameters.put(entry.getKey(), Integer.parseInt(entry.getValue()));
+                    } catch (NumberFormatException ignored) {
+                    }
                 }
             }
         } catch (NoSuchElementException e) {
@@ -137,10 +148,7 @@ public class CredStore {
                 Base64.encode(e.getValue().getBytes(StandardCharsets.UTF_8), Base64.DEFAULT),
                 StandardCharsets.UTF_8
             );
-            result.append(k);
-            result.append(":");
-            result.append(v);
-            result.append("\n");
+            result.append(k.trim()).append(":").append(v.trim()).append("\n");
         }
         return result.toString();
     }
@@ -148,7 +156,7 @@ public class CredStore {
     private Map<String, String> stringToStringMap(String s) {
         Map<String, String> result = new HashMap<>();
         for (String split : s.split("\n")) {
-            String[] assignmentParts = s.trim().split(":");
+            String[] assignmentParts = split.trim().split(":");
             if (assignmentParts.length != 2) {
                 continue;
             }
@@ -196,6 +204,14 @@ public class CredStore {
         }
 
         props.setProperty("last_used_amount", "" + lastUsedAmount);
+
+        {
+            Map<String, String> stringMap = new HashMap<>();
+            for (Map.Entry<String, Integer> entry : tutorialParameters.entrySet()) {
+                stringMap.put(entry.getKey(), Integer.toString(entry.getValue()));
+            }
+            props.setProperty("tutorial_parameters", stringMapToString(stringMap));
+        }
 
         try (FileOutputStream fos = new FileOutputStream(settingsFilePath.toString())) {
             props.store(fos, "");
@@ -307,5 +323,14 @@ public class CredStore {
 
     public Double getLastUsedAmount() {
         return lastUsedAmount;
+    }
+
+    public int getTutorialParameter(String s) {
+        return tutorialParameters.getOrDefault(s, 0);
+    }
+
+    public void setTutorialParameter(String s, Integer i) {
+        tutorialParameters.put(s, i);
+        storePrefs();
     }
 }

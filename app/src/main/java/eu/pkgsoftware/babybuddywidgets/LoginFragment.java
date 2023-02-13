@@ -64,6 +64,7 @@ public class LoginFragment extends BaseFragment {
             Navigation.findNavController(getView()).navigate(R.id.global_aboutFragment);
         }
         if (item.getItemId() == R.id.showHelpMenuButton) {
+            getMainActivity().getCredStore().setTutorialParameter("help_hint", 10);
             Navigation.findNavController(getView()).navigate(R.id.global_showHelp);
         }
         return false;
@@ -134,12 +135,21 @@ public class LoginFragment extends BaseFragment {
         new RunOnceAfterLayoutUpdate(mainLayout, () -> {
             Rect r = new Rect();
 
+            final int hintPresentedCount = credStore.getTutorialParameter("help_hint");
+            if (hintPresentedCount >= 2) {
+                return;
+            }
+
             View toolbar = getMainActivity().findViewById(R.id.app_toolbar);
             toolbar.getGlobalVisibleRect(r);
-            getMainActivity().getTutorialAccess().tutorialMessage(
+            TutorialAccess tutorialAccess = getMainActivity().getTutorialAccess();
+            tutorialAccess.tutorialMessage(
                 r.right - dpToPx(20),
                 r.top,
                 getString(R.string.tutorial_help_1)
+            );
+            tutorialAccess.setManuallyDismissedCallback(
+                () -> credStore.setTutorialParameter("help_hint", hintPresentedCount + 1)
             );
         });
 

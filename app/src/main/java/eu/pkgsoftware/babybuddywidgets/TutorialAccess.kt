@@ -13,7 +13,13 @@ import androidx.core.view.doOnNextLayout
 import androidx.fragment.app.FragmentContainerView
 import androidx.navigation.Navigation
 
+fun interface DismissedCallback {
+    fun manuallyDismissed()
+}
+
 class TutorialAccess(private val activity: MainActivity) {
+    var manuallyDismissedCallback: DismissedCallback? = null
+
     private val tutorialArrow: View
     private val tutorialText: TextView
     private var postInitDone = false
@@ -44,7 +50,10 @@ class TutorialAccess(private val activity: MainActivity) {
 
     fun handleInput() {
         if (hideOnInput) {
+            val oldDismissedCallback = manuallyDismissedCallback
+            manuallyDismissedCallback = null
             hideTutorial(false)
+            oldDismissedCallback?.manuallyDismissed()
         }
     }
 
@@ -161,7 +170,6 @@ class TutorialAccess(private val activity: MainActivity) {
 
         startArrowAnimation()
     }
-
 
     fun hideTutorial(immediate: Boolean = true) {
         if (immediate) {
