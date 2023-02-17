@@ -140,7 +140,11 @@ public class LoginFragment extends BaseFragment {
                 return;
             }
 
-            View toolbar = getMainActivity().findViewById(R.id.app_toolbar);
+            MainActivity mainAct = getMainActivity();
+            if (mainAct == null) {
+                return; // Hotfix -  can happen when the app restarts from resume-state if the fragment deactivates.
+            }
+            View toolbar = mainAct.findViewById(R.id.app_toolbar);
             toolbar.getGlobalVisibleRect(r);
             TutorialAccess tutorialAccess = getMainActivity().getTutorialAccess();
             tutorialAccess.tutorialMessage(
