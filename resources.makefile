@@ -87,7 +87,6 @@ $(foreach v,$(DRAWABLE_VARIANTS),$(eval $(call _drawable_variants_macro,$(v))))
 # Free images that are part of the repository
 define _prepare_free_image =
 
-$$(info resources/tmp/$$(call get_field,2,$(1)).png: $$(call get_field,1,$(1)))
 resources/tmp/$$(call get_field,2,$(1)).png: $$(call get_field,1,$(1))
 	cp "$$<" "$$@"
 
