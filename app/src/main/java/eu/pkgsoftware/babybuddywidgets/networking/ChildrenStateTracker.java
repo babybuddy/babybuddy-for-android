@@ -310,8 +310,8 @@ public class ChildrenStateTracker {
     public class ChildObserver extends StateObserver {
         public static final long INTERVAL = 1000;
 
-        private int childId;
-        private ChildListener listener;
+        private final int childId;
+        private final ChildListener listener;
         private boolean closed = false;
         private BabyBuddyClient.Timer[] currentTimerList = null;
 
@@ -367,8 +367,8 @@ public class ChildrenStateTracker {
         public static final long INTERVAL = 5000;
         public static final int COUNT = 20;
 
-        private int childId;
-        private TimelineListener listener;
+        private final int childId;
+        private final TimelineListener listener;
         private boolean closed = false;
         private int requeueGate = 0;
 

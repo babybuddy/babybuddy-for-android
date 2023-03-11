@@ -22,8 +22,8 @@ import eu.pkgsoftware.babybuddywidgets.networking.ChildrenStateTracker;
 
 public class ChildEventHistoryLoader {
     private static class TimelineEntry {
-        private BaseFragment fragment;
-        private TimelineItemBinding binding;
+        private final BaseFragment fragment;
+        private final TimelineItemBinding binding;
 
         private BabyBuddyClient.TimeEntry entry = null;
 
@@ -145,15 +145,12 @@ public class ChildEventHistoryLoader {
 
             fragment.showQuestion(
                 true,
-                "Delete entry",
+                fragment.getResources().getString(R.string.history_delete_title),
                 defaultPhraseFields(
-                    Phrase.from(
-                        "Are you sure you want to delete the {type} entry " +
-                        "from {start_date} {start_time} - {end_time}?"
-                    )
+                    Phrase.from(fragment.getMainActivity(), R.string.history_delete_question)
                 ).format().toString().trim(),
-                "Delete",
-                "Cancel",
+                fragment.getResources().getString(R.string.history_delete_question_delete_button),
+                fragment.getResources().getString(R.string.history_delete_question_cancel_button),
                 b -> {
                     if (!b) {
                         return;
@@ -221,13 +218,13 @@ public class ChildEventHistoryLoader {
     private static final DateFormat DATE_FORMAT = DateFormat.getDateInstance(DateFormat.SHORT);
     private static final DateFormat TIME_FORMAT = DateFormat.getTimeInstance(DateFormat.SHORT);
 
-    private int childId;
-    private BaseFragment fragment;
-    private LinearLayout container;
+    private final int childId;
+    private final BaseFragment fragment;
+    private final LinearLayout container;
     private ChildrenStateTracker.TimelineObserver timelineObserver = null;
 
-    private List<BabyBuddyClient.TimeEntry> timeEntries = new ArrayList<>(100);
-    private List<TimelineEntry> visualTimelineEntries = new ArrayList<>(100);
+    private final List<BabyBuddyClient.TimeEntry> timeEntries = new ArrayList<>(100);
+    private final List<TimelineEntry> visualTimelineEntries = new ArrayList<>(100);
 
     public ChildEventHistoryLoader(BaseFragment fragment, LinearLayout ll, int childId) {
         this.fragment = fragment;
