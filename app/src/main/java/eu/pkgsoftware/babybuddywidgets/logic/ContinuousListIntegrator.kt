@@ -1,11 +1,15 @@
 package eu.pkgsoftware.babybuddywidgets.logic
 
-class ContinuousListItem(val orderNumber: Long, val className: String, val id: String) {
+class ContinuousListItem(val orderNumber: Long, val className: String, val id: String?) {
     var dirty = false
 
     override fun equals(other: Any?): Boolean {
         if (other !is ContinuousListItem) {
             return false;
+        }
+
+        if ((other.id == null) || (id == null)) {
+            return false
         }
 
         return orderNumber == other.orderNumber && className == other.className && id == other.id
@@ -29,9 +33,16 @@ class ContinuousListIntegrator {
     }
 
     fun updateItems(listOffset: Int, items: Array<ContinuousListItem>) {
-        val currentItems = nonDirtyItems.filter { it.className == items[0].className }
+        val currentItems = listItems.filter { it.className == items[0].className }
         val foundOffset = currentItems.indexOf(items[0])
         if (foundOffset < 0) {
+            // We have nothing to go off, we need to trust the listOffset itself and pad everything with dummy values
+            listItems.removeAll(currentItems)
+            listItems.addAll((0 until listOffset).map {
+                val dummy = ContinuousListItem(items[0].orderNumber - 1, items[0].className, null)
+                dummy.dirty = true
+                dummy
+            })
             listItems.addAll(items)
         } else if (foundOffset == listOffset) {
             // All good, we can go and combine things
@@ -48,18 +59,15 @@ class ContinuousListIntegrator {
             } else {
                 // TODO
             }
-            for (i in foundOffset + items.size until currentItems.size) {
-                listItems.remove(currentItems[i])
-            }
+            listItems.removeAll(
+                currentItems.slice(foundOffset + items.size until currentItems.size)
+            )
         } else {
-            val listOffsetRemainder = currentItems.size - listOffset
             currentItems.slice(0 until listOffset).forEach { it.dirty = true }
-            for (i in 0 until listOffsetRemainder) {
-                listItems.remove(currentItems[listOffset + i])
-            }
-            items.slice(0 until items.size).forEach {
-                listItems.add(it)
-            }
+            listItems.removeAll(currentItems.slice(listOffset until currentItems.size))
+            listItems.addAll(items.slice(0 until items.size))
         }
+
+        listItems.sortBy { it.orderNumber }
     }
 }

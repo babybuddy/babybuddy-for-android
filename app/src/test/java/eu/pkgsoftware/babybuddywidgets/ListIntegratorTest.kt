@@ -65,5 +65,16 @@ class ListIntegratorTest {
             arrayOf(true, true, true, false),
             tested.items.map { it.dirty }.toTypedArray()
         )
+
+        // Adding a completely new item at an index overwrites that index
+        val classANewItems = createItemList(
+            "classA", 3, 0, 1000, 10
+        )
+        tested.updateItems(2, classANewItems)
+        Assert.assertArrayEquals(
+            arrayOf(true, true, false, false, false),
+            tested.items.map { it.dirty }.toTypedArray()
+        )
+        assertArrayEqualsWithDirty(classANewItems, tested.items.sliceArray(2..4))
     }
 }
