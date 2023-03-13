@@ -379,7 +379,12 @@ public class BabyLayoutHolder extends RecyclerView.ViewHolder {
                 }
             });
 
-            childHistoryLoader = new ChildEventHistoryLoader(baseFragment, binding.timeline, child.id);
+            childHistoryLoader = new ChildEventHistoryLoader(
+                baseFragment,
+                binding.timeline,
+                child.id,
+                new VisibilityCheck(binding.mainScrollView)
+            );
             childHistoryLoader.createTimelineObserver(stateTracker);
         }
     }

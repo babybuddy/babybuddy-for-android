@@ -221,15 +221,22 @@ public class ChildEventHistoryLoader {
     private final int childId;
     private final BaseFragment fragment;
     private final LinearLayout container;
+    private final VisibilityCheck visibilityCheck;
     private ChildrenStateTracker.TimelineObserver timelineObserver = null;
 
     private final List<BabyBuddyClient.TimeEntry> timeEntries = new ArrayList<>(100);
     private final List<TimelineEntry> visualTimelineEntries = new ArrayList<>(100);
 
-    public ChildEventHistoryLoader(BaseFragment fragment, LinearLayout ll, int childId) {
+    public ChildEventHistoryLoader(
+        BaseFragment fragment,
+        LinearLayout ll,
+        int childId,
+        VisibilityCheck visibilityCheck
+    ) {
         this.fragment = fragment;
         this.container = ll;
         this.childId = childId;
+        this.visibilityCheck = visibilityCheck;
     }
 
     public void createTimelineObserver(ChildrenStateTracker stateTracker) {
