@@ -21,15 +21,23 @@ class ContinuousListItem(val orderNumber: Long, val className: String, val id: S
 }
 
 class ContinuousListIntegrator {
-    private var top: ContinuousListItem? = null
+    private var topOffset = 0L
     private val listItems = mutableListOf<ContinuousListItem>()
-    private val anonymousByClass = mutableMapOf<String, Int>()
 
     val items get() = listItems.toTypedArray()
     val nonDirtyItems get() = listItems.filter { !it.dirty }.toTypedArray()
+    var top: ContinuousListItem?
+        get() = nonDirtyItems.minByOrNull { Math.abs(it.orderNumber - topOffset) }
+        set(v) {
+            if (v == null) {
+                selectTop(0L)
+            } else {
+                selectTop(v.orderNumber)
+            }
+        }
 
     fun selectTop(orderNumber: Long) {
-        top = nonDirtyItems.minByOrNull { Math.abs(it.orderNumber - orderNumber) }
+        topOffset = orderNumber
     }
 
     fun updateItems(listOffset: Int, items: Array<ContinuousListItem>) {

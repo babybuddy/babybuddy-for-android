@@ -134,4 +134,19 @@ class ListIntegratorTest {
             tested.items.sliceArray(0..7).map { it.dirty }.toTypedArray()
         )
     }
+
+    @Test
+    fun selection() {
+        val aItems = createItemList("A", 10, 0, 1000, 1)
+        val bItems = createItemList("B", 10, 500, 1000, 1)
+        val tested = ContinuousListIntegrator()
+        tested.updateItems(0, aItems)
+        tested.updateItems(0, bItems)
+
+        Assert.assertEquals(tested.top, aItems[0])
+        tested.selectTop(1500)
+        Assert.assertEquals(tested.top, bItems[1])
+        tested.top = bItems[6]
+        Assert.assertEquals(tested.top, bItems[6])
+    }
 }
