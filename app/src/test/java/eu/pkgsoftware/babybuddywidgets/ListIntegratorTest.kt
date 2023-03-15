@@ -105,4 +105,33 @@ class ListIntegratorTest {
         tested.updateItems(1, modTested.toTypedArray())
         Assert.assertArrayEquals(shouldBe, tested.items)
     }
+
+    @Test
+    fun mixingItems() {
+        val aItems = createItemList("A", 10, 0, 1000, 1)
+        val bItems = createItemList("B", 10, 500, 1000, 1)
+        val tested = ContinuousListIntegrator()
+
+        tested.updateItems(0, aItems)
+        tested.updateItems(0, bItems)
+
+        Assert.assertEquals(20, tested.items.size)
+        Assert.assertArrayEquals(
+            arrayOf("A", "B", "A", "B", "A", "B"),
+            tested.items.sliceArray(0..5).map { it.className }.toTypedArray()
+        )
+
+        // Test padding
+        val cItems = createItemList("C", 10, 250, 1000, 1)
+        tested.updateItems(3, cItems)
+
+        Assert.assertArrayEquals(
+            arrayOf("A", "C", "C", "C", "C", "B", "A", "C", "B", "A", "C", "B"),
+            tested.items.sliceArray(0..11).map { it.className }.toTypedArray()
+        )
+        Assert.assertArrayEquals(
+            arrayOf(false, true, true, true, false, false, false, false),
+            tested.items.sliceArray(0..7).map { it.dirty }.toTypedArray()
+        )
+    }
 }

@@ -39,19 +39,17 @@ class ContinuousListIntegrator {
             // We have nothing to go off, we need to trust the listOffset itself and pad everything with dummy values
             listItems.removeAll(currentItems)
             listItems.addAll((0 until listOffset).map {
-                val dummy = ContinuousListItem(items[0].orderNumber - 1, items[0].className, null)
+                val dummy = ContinuousListItem(items[0].orderNumber, items[0].className, null)
                 dummy.dirty = true
                 dummy
             })
             listItems.addAll(items)
         } else if (foundOffset == listOffset) {
             // All good, we can go and combine things
-            var allEqual = true
             var equalLen = 0
             val foundOffsetRemainder = currentItems.size - foundOffset
             for (i in 0 until Math.min(foundOffsetRemainder, items.size)) {
                 if (currentItems[foundOffset + i] != items[i]) {
-                    allEqual = false
                     break
                 }
                 equalLen = i + 1
