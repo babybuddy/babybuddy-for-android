@@ -47,21 +47,20 @@ class ContinuousListIntegrator {
         } else if (foundOffset == listOffset) {
             // All good, we can go and combine things
             var allEqual = true
+            var equalLen = 0
             val foundOffsetRemainder = currentItems.size - foundOffset
             for (i in 0 until Math.min(foundOffsetRemainder, items.size)) {
                 if (currentItems[foundOffset + i] != items[i]) {
                     allEqual = false
+                    break
                 }
+                equalLen = i + 1
             }
 
-            if (allEqual) {
-                listItems.addAll(items.slice(foundOffsetRemainder until items.size))
-            } else {
-                // TODO
-            }
             listItems.removeAll(
-                currentItems.slice(foundOffset + items.size until currentItems.size)
+                currentItems.slice(foundOffset + equalLen until currentItems.size)
             )
+            listItems.addAll(items.slice(equalLen until items.size))
         } else {
             currentItems.slice(0 until listOffset).forEach { it.dirty = true }
             listItems.removeAll(currentItems.slice(listOffset until currentItems.size))
@@ -69,5 +68,10 @@ class ContinuousListIntegrator {
         }
 
         listItems.sortBy { it.orderNumber }
+    }
+
+    fun clear() {
+        top = null
+        listItems.clear()
     }
 }

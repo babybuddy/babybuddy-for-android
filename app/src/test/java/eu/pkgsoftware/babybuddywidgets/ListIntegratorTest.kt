@@ -76,5 +76,33 @@ class ListIntegratorTest {
             tested.items.map { it.dirty }.toTypedArray()
         )
         assertArrayEqualsWithDirty(classANewItems, tested.items.sliceArray(2..4))
+
+        // Clear the table - removes everything
+        tested.clear()
+        Assert.assertArrayEquals(arrayOf<ContinuousListItem>(), tested.items)
+    }
+
+    @Test
+    fun modifyingListItemsUpdatesItems() {
+        val testItems = createItemList("test", 10, 0, 1000, 1)
+        val tested = ContinuousListIntegrator()
+
+        tested.updateItems(0, testItems)
+        Assert.assertArrayEquals(testItems, tested.items)
+
+        val modTested = testItems.toMutableList()
+        val replaced = modTested.removeAt(3)
+        modTested.add(
+            2, ContinuousListItem(
+                modTested[2].orderNumber - 100,
+                replaced.className,
+                replaced.id
+            )
+        )
+        val shouldBe = modTested.toTypedArray()
+        modTested.removeAt(0)
+
+        tested.updateItems(1, modTested.toTypedArray())
+        Assert.assertArrayEquals(shouldBe, tested.items)
     }
 }
