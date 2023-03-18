@@ -144,9 +144,50 @@ class ListIntegratorTest {
         tested.updateItems(0, bItems)
 
         Assert.assertEquals(tested.top, aItems[0])
+        Assert.assertArrayEquals(
+            arrayOf(aItems[0], bItems[0], aItems[1]),
+            tested.nElementsFromTop(0, 3)
+        )
+        Assert.assertArrayEquals(
+            arrayOf(aItems[0], bItems[0], aItems[1]),
+            tested.nElementsFromTop(-1, 3)
+        )
+
         tested.selectTop(1500)
         Assert.assertEquals(tested.top, bItems[1])
+        Assert.assertArrayEquals(
+            arrayOf(bItems[1], aItems[2], bItems[2]),
+            tested.nElementsFromTop(0, 3)
+        )
+        Assert.assertArrayEquals(
+            arrayOf(aItems[0], bItems[0], aItems[1]),
+            tested.nElementsFromTop(-3, 3)
+        )
+
         tested.top = bItems[6]
         Assert.assertEquals(tested.top, bItems[6])
+        Assert.assertArrayEquals(
+            arrayOf(bItems[6], aItems[7], bItems[7]),
+            tested.nElementsFromTop(0, 3)
+        )
+
+        tested.top = aItems[9]
+        Assert.assertArrayEquals(
+            arrayOf(aItems[9], bItems[9]),
+            tested.nElementsFromTop(0, 3)
+        )
+    }
+
+    @Test
+    fun classCounts() {
+        val aItems = createItemList("A", 5, 0, 1000, 1)
+        val bItems = createItemList("B", 10, 500, 1000, 1)
+
+        val tested = ContinuousListIntegrator()
+        tested.updateItems(5, aItems)
+        tested.updateItems(5, bItems)
+
+        Assert.assertEquals(10, tested.classElementCount("A"))
+        Assert.assertEquals(15, tested.classElementCount("B"))
     }
 }

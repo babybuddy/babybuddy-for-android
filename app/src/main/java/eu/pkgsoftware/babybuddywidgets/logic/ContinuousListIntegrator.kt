@@ -80,4 +80,19 @@ class ContinuousListIntegrator {
         top = null
         listItems.clear()
     }
+
+    fun classElementCount(className: String): Int {
+        return listItems.count { it.className == className }
+    }
+
+    fun nElementsFromTop(startOffset: Int, n: Int): Array<ContinuousListItem> {
+        val topOffset = listItems.indexOf(this.top)
+        if (topOffset == -1) {
+            return arrayOf()
+        }
+
+        val start = Math.min(listItems.size - 1, Math.max(0, topOffset + startOffset))
+        val count = Math.min(n, Math.max(0, listItems.size - (topOffset + startOffset)))
+        return listItems.slice(start until start + count).toTypedArray()
+    }
 }
