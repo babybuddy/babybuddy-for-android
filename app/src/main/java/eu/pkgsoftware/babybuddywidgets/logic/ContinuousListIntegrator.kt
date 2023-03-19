@@ -4,6 +4,10 @@ class ContinuousListItem(val orderNumber: Long, val className: String, val id: S
     var dirty = false
 
     override fun equals(other: Any?): Boolean {
+        if (this === other) {
+            return true
+        }
+
         if (other !is ContinuousListItem) {
             return false;
         }
@@ -94,5 +98,16 @@ class ContinuousListIntegrator {
         val start = Math.min(listItems.size - 1, Math.max(0, topOffset + startOffset))
         val count = Math.min(n, Math.max(0, listItems.size - (topOffset + startOffset)))
         return listItems.slice(start until start + count).toTypedArray()
+    }
+
+    fun suggestClassQueryOffset(className: String): Int {
+        val currentItems = listItems.filter { it.className == className }
+
+        val selected = currentItems.minByOrNull { Math.abs(it.orderNumber - topOffset) }
+        if (selected == null) {
+            return 0
+        }
+
+        return currentItems.indexOf(selected)
     }
 }

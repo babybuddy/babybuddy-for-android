@@ -190,4 +190,20 @@ class ListIntegratorTest {
         Assert.assertEquals(10, tested.classElementCount("A"))
         Assert.assertEquals(15, tested.classElementCount("B"))
     }
+
+    @Test
+    fun suggestedClassQueries() {
+        val tested = ContinuousListIntegrator()
+        Assert.assertEquals(0, tested.suggestClassQueryOffset("A"))
+
+        val aItems = createItemList("A", 5, 0, 1000, 1)
+        val bItems = createItemList("B", 10, 200, 1000, 1)
+        tested.updateItems(10, aItems)
+        tested.updateItems(10, bItems)
+
+        tested.top = aItems[3]
+        Assert.assertEquals(13, tested.suggestClassQueryOffset("A"))
+        Assert.assertEquals(13, tested.suggestClassQueryOffset("B"))
+        Assert.assertEquals(0, tested.suggestClassQueryOffset("C"))
+    }
 }
