@@ -318,7 +318,6 @@ public class ChildEventHistoryLoader {
         for (TimelineEntry e : visualTimelineEntries) {
             View v = e.getView();
             container.addView(v, params);
-
         }
     }
 

@@ -2,6 +2,7 @@ package eu.pkgsoftware.babybuddywidgets.logic
 
 class ContinuousListItem(val orderNumber: Long, val className: String, val id: String?) {
     var dirty = false
+    var userdata: Any? = null
 
     override fun equals(other: Any?): Boolean {
         if (this === other) {
