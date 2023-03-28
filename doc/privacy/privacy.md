@@ -1,6 +1,6 @@
 ---
 title: Baby Buddy for Android - Privacy Policy
-subtitle: Version 1.1
+subtitle: Version $DOC_VERSION
 author:
 - Paul Konstantin Gerke
 date: 2023-03-27

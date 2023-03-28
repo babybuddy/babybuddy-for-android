@@ -1,5 +1,7 @@
 *
 !*.css
+!*.html
+!*.pdf
 !*.md
 !/.gitignore
 !/Makefile
