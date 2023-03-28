@@ -1,4 +1,5 @@
 *
+!*.css
 !*.md
 !/.gitignore
 !/Makefile

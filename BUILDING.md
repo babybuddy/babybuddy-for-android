@@ -44,6 +44,7 @@ In addition the following Linux software packages are required:
    - Specifically the commands: convert, composite
  - python >=3.8
    - pipenv installed 
+ - pandoc >= 3.1.1
 
 ## Building
 
