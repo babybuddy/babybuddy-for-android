@@ -183,13 +183,13 @@ public class TimelineEntry {
         } else {
             binding.getRoot().setVisibility(View.VISIBLE);
 
-            if ("tummy-time".equals(entry.type)) {
+            if (BabyBuddyClient.ACTIVITIES.TUMMY_TIME.equals(entry.type)) {
                 configureTummyTime();
-            } else if ("change".equals(entry.type)) {
+            } else if (BabyBuddyClient.EVENTS.CHANGE.equals(entry.type)) {
                 configureChange();
-            } else if ("sleep".equals(entry.type)) {
+            } else if (BabyBuddyClient.ACTIVITIES.SLEEP.equals(entry.type)) {
                 configureSleep();
-            } else if ("feeding".equals(entry.type)) {
+            } else if (BabyBuddyClient.ACTIVITIES.FEEDING.equals(entry.type)) {
                 configureFeeding();
             } else {
                 configureDefaultView();

@@ -63,6 +63,25 @@ public class BabyBuddyClient extends StreamReader {
         }
     }
 
+    public static class EVENTS {
+        public static final String CHANGE = "changes";
+
+        public static final String[] ALL = new String[1];
+
+        static {
+            ALL[0] = CHANGE;
+        }
+
+        public static int index(String s) {
+            for (int i = 0; i < ALL.length; i++) {
+                if (Objects.equals(ALL[i], s)) {
+                    return i;
+                }
+            }
+            return -1;
+        }
+    }
+
     private static Date parseNullOrDate(JSONObject o, String field) throws JSONException, ParseException {
         if (o.isNull(field)) {
             return null;
@@ -923,7 +942,7 @@ public class BabyBuddyClient extends StreamReader {
             o -> {
                 String notes = o.optString("notes");
                 return new TimeEntry(
-                    "sleep",
+                    ACTIVITIES.SLEEP,
                     o.getInt("id"),
                     parseNullOrDate(o, "start"),
                     parseNullOrDate(o, "end"),
@@ -958,7 +977,7 @@ public class BabyBuddyClient extends StreamReader {
                 }
 
                 return new FeedingEntry(
-                    "feeding",
+                    ACTIVITIES.FEEDING,
                     o.getInt("id"),
                     parseNullOrDate(o, "start"),
                     parseNullOrDate(o, "end"),
@@ -980,7 +999,7 @@ public class BabyBuddyClient extends StreamReader {
             o -> {
                 String notes = o.optString("notes");
                 return new TimeEntry(
-                    "tummy-time",
+                    ACTIVITIES.TUMMY_TIME,
                     o.getInt("id"),
                     parseNullOrDate(o, "start"),
                     parseNullOrDate(o, "end"),
@@ -992,7 +1011,7 @@ public class BabyBuddyClient extends StreamReader {
 
     public void listChangeEntries(int child_id, int offset, int count, RequestCallback<ChangeEntry[]> callback) {
         new GenericTimelineRequest<ChangeEntry>(ChangeEntry.class).genericTimelineRequest(
-            "changes",
+            EVENTS.CHANGE,
             child_id,
             offset,
             count,
@@ -1000,7 +1019,7 @@ public class BabyBuddyClient extends StreamReader {
             o -> {
                 String notes = o.optString("notes");
                 return new ChangeEntry(
-                    "change",
+                    EVENTS.CHANGE,
                     o.getInt("id"),
                     parseNullOrDate(o, "time"),
                     parseNullOrDate(o, "time"),

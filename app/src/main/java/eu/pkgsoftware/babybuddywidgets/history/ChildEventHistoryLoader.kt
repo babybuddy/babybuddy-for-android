@@ -4,6 +4,8 @@ import android.view.ViewGroup
 import android.widget.LinearLayout
 import eu.pkgsoftware.babybuddywidgets.BaseFragment
 import eu.pkgsoftware.babybuddywidgets.VisibilityCheck
+import eu.pkgsoftware.babybuddywidgets.networking.BabyBuddyClient.ACTIVITIES
+import eu.pkgsoftware.babybuddywidgets.networking.BabyBuddyClient.EVENTS
 import eu.pkgsoftware.babybuddywidgets.networking.BabyBuddyClient.TimeEntry
 import eu.pkgsoftware.babybuddywidgets.networking.ChildrenStateTracker
 import eu.pkgsoftware.babybuddywidgets.networking.ChildrenStateTracker.TimelineListener
@@ -19,23 +21,24 @@ class ChildEventHistoryLoader(
     private var timelineObserver: TimelineObserver? = null
     private val timeEntries: MutableList<TimeEntry> = ArrayList(100)
     private val visualTimelineEntries: MutableList<TimelineEntry> = ArrayList(100)
+
     fun createTimelineObserver(stateTracker: ChildrenStateTracker) {
         close()
         timelineObserver = stateTracker.TimelineObserver(childId, object : TimelineListener {
             override fun sleepRecordsObtained(entries: Array<TimeEntry>) {
-                addTimelineItems("sleep", entries)
+                addTimelineItems(ACTIVITIES.SLEEP, entries)
             }
 
             override fun tummyTimeRecordsObtained(entries: Array<TimeEntry>) {
-                addTimelineItems("tummy-time", entries)
+                addTimelineItems(ACTIVITIES.TUMMY_TIME, entries)
             }
 
             override fun feedingRecordsObtained(entries: Array<TimeEntry>) {
-                addTimelineItems("feeding", entries)
+                addTimelineItems(ACTIVITIES.FEEDING, entries)
             }
 
             override fun changeRecordsObtained(entries: Array<TimeEntry>) {
-                addTimelineItems("change", entries)
+                addTimelineItems(EVENTS.CHANGE, entries)
             }
         })
     }
@@ -93,10 +96,8 @@ class ChildEventHistoryLoader(
     }
 
     fun close() {
-        if (timelineObserver != null) {
-            timelineObserver!!.close()
-            timelineObserver = null
-        }
+        timelineObserver?.close()
+        timelineObserver = null
         timeEntries.clear()
         updateTimelineList()
     }

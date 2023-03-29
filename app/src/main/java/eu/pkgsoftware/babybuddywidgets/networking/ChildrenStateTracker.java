@@ -3,9 +3,13 @@ package eu.pkgsoftware.babybuddywidgets.networking;
 import android.os.Handler;
 import android.os.Looper;
 
+import org.jetbrains.annotations.NotNull;
+
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collections;
+import java.util.HashMap;
+import java.util.Map;
 import java.util.function.Consumer;
 
 import androidx.annotation.NonNull;
@@ -372,33 +376,63 @@ public class ChildrenStateTracker {
         private boolean closed = false;
         private int requeueGate = 0;
 
+        public Map<String, Integer> queryOffsets = new HashMap<>();
+
         public TimelineObserver(int childId, TimelineListener listener) {
             super(INTERVAL);
             this.childId = childId;
             this.listener = listener;
         }
 
+        private int offsetByName(String name) {
+            Integer result = queryOffsets.getOrDefault(BabyBuddyClient.ACTIVITIES.SLEEP, null);
+            if (result == null) {
+                return 0;
+            }
+            return result;
+        }
+
         private class BoundSleepRecordsCallback {
             public void call(BabyBuddyClient.RequestCallback<BabyBuddyClient.TimeEntry[]> callback) {
-                client.listSleepEntries(childId, 0, COUNT, callback);
+                client.listSleepEntries(
+                    childId,
+                    offsetByName(BabyBuddyClient.ACTIVITIES.SLEEP),
+                    COUNT,
+                    callback
+                );
             }
         }
 
         private class BoundFeedingRecordsCallback {
             public void call(BabyBuddyClient.RequestCallback<BabyBuddyClient.FeedingEntry[]> callback) {
-                client.listFeedingsEntries(childId, 0, COUNT, callback);
+                client.listFeedingsEntries(
+                    childId,
+                    offsetByName(BabyBuddyClient.ACTIVITIES.FEEDING),
+                    COUNT,
+                    callback
+                );
             }
         }
 
         private class BoundTummyTimeRecordsCallback {
             public void call(BabyBuddyClient.RequestCallback<BabyBuddyClient.TimeEntry[]> callback) {
-                client.listTummyTimeEntries(childId, 0, COUNT, callback);
+                client.listTummyTimeEntries(
+                    childId,
+                    offsetByName(BabyBuddyClient.ACTIVITIES.TUMMY_TIME),
+                    COUNT,
+                    callback
+                );
             }
         }
 
         private class BoundChangeRecordsCallback {
             public void call(BabyBuddyClient.RequestCallback<BabyBuddyClient.ChangeEntry[]> callback) {
-                client.listChangeEntries(childId, 0, COUNT, callback);
+                client.listChangeEntries(
+                    childId,
+                    offsetByName(BabyBuddyClient.EVENTS.CHANGE),
+                    COUNT,
+                    callback
+                );
             }
         }
 
