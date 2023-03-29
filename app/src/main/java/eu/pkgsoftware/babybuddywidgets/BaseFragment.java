@@ -31,27 +31,27 @@ public class BaseFragment extends Fragment {
     private AlertDialog dialog = null;
     protected ProgressDialog progressDialog;
 
-    protected AlertDialog showError(boolean override, String title, String errorMessage) {
+    public AlertDialog showError(boolean override, String title, String errorMessage) {
         return showError(override, title, errorMessage, aBoolean -> {
         });
     }
 
-    protected AlertDialog showError(boolean override, int title, String errorMessage) {
+    public AlertDialog showError(boolean override, int title, String errorMessage) {
         return showError(override, getString(title), errorMessage, aBoolean -> {
         });
     }
 
-    protected AlertDialog showError(boolean override, String title, int errorMessage) {
+    public AlertDialog showError(boolean override, String title, int errorMessage) {
         return showError(override, title, getString(errorMessage), aBoolean -> {
         });
     }
 
-    protected AlertDialog showError(boolean override, int title, int errorMessage) {
+    public AlertDialog showError(boolean override, int title, int errorMessage) {
         return showError(override, getString(title), getString(errorMessage), aBoolean -> {
         });
     }
 
-    protected AlertDialog showError(boolean override, String title, String errorMessage, DialogCallback callback) {
+    public AlertDialog showError(boolean override, String title, String errorMessage, DialogCallback callback) {
         if (override) {
             hideError();
         } else {
@@ -77,7 +77,7 @@ public class BaseFragment extends Fragment {
         return dialog;
     }
 
-    protected AlertDialog showQuestion(boolean override, String title, String question, String positiveMessage, String negativeMessage, DialogCallback callback) {
+    public AlertDialog showQuestion(boolean override, String title, String question, String positiveMessage, String negativeMessage, DialogCallback callback) {
         if (override) {
             hideError();
         } else {
@@ -105,14 +105,14 @@ public class BaseFragment extends Fragment {
         return dialog;
     }
 
-    protected void hideError() {
+    public void hideError() {
         if (dialog != null) {
             dialog.cancel();
             dialog = null;
         }
     }
 
-    protected void hideKeyboard() {
+    public void hideKeyboard() {
         // Modified from https://stackoverflow.com/questions/1109022/how-do-you-close-hide-the-android-soft-keyboard-programmatically
         Activity activity = getActivity();
         InputMethodManager imm = (InputMethodManager) activity.getSystemService(Activity.INPUT_METHOD_SERVICE);
@@ -160,7 +160,7 @@ public class BaseFragment extends Fragment {
         }
     }
 
-    protected MainActivity getMainActivity() {
+    public MainActivity getMainActivity() {
         return (MainActivity) getActivity();
     }
 

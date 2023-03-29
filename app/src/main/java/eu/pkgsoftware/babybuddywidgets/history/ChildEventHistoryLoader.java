@@ -1,4 +1,4 @@
-package eu.pkgsoftware.babybuddywidgets;
+package eu.pkgsoftware.babybuddywidgets.history;
 
 import android.content.Context;
 import android.view.View;
@@ -16,6 +16,9 @@ import java.util.Date;
 import java.util.HashSet;
 import java.util.List;
 
+import eu.pkgsoftware.babybuddywidgets.BaseFragment;
+import eu.pkgsoftware.babybuddywidgets.R;
+import eu.pkgsoftware.babybuddywidgets.VisibilityCheck;
 import eu.pkgsoftware.babybuddywidgets.databinding.TimelineItemBinding;
 import eu.pkgsoftware.babybuddywidgets.networking.BabyBuddyClient;
 import eu.pkgsoftware.babybuddywidgets.networking.ChildrenStateTracker;
