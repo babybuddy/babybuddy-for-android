@@ -137,6 +137,7 @@ public class TimelineEntry {
         if (entry == null) {
             return;
         }
+        final BabyBuddyClient.TimeEntry thisEntry = entry;
 
         fragment.showQuestion(
             true,
@@ -151,7 +152,7 @@ public class TimelineEntry {
                     return;
                 }
                 BabyBuddyClient client = fragment.getMainActivity().getClient();
-                client.removeTimelineEntry(entry, new BabyBuddyClient.RequestCallback<Boolean>() {
+                client.removeTimelineEntry(thisEntry, new BabyBuddyClient.RequestCallback<Boolean>() {
                     @Override
                     public void error(Exception error) {
                     }
@@ -179,7 +180,7 @@ public class TimelineEntry {
         this.entry = entry;
 
         if (entry == null) {
-            binding.getRoot().setVisibility(View.GONE);
+            binding.getRoot().setVisibility(View.INVISIBLE);
         } else {
             binding.getRoot().setVisibility(View.VISIBLE);
 

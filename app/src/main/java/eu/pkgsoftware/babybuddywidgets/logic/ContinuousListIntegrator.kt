@@ -26,7 +26,7 @@ class ContinuousListItem(val orderNumber: Long, val className: String, val id: S
 }
 
 class ContinuousListIntegrator {
-    private var topOffset = 0L
+    private var topOffset = Long.MIN_VALUE
     private val listItems = mutableListOf<ContinuousListItem>()
 
     val items get() = listItems.toTypedArray()
@@ -35,7 +35,7 @@ class ContinuousListIntegrator {
         get() = nonDirtyItems.minByOrNull { Math.abs(it.orderNumber - topOffset) }
         set(v) {
             if (v == null) {
-                selectTop(0L)
+                selectTop(Long.MIN_VALUE)
             } else {
                 selectTop(v.orderNumber)
             }
@@ -45,14 +45,28 @@ class ContinuousListIntegrator {
         topOffset = orderNumber
     }
 
-    fun updateItems(listOffset: Int, items: Array<ContinuousListItem>) {
-        val currentItems = listItems.filter { it.className == items[0].className }
-        val foundOffset = currentItems.indexOf(items[0])
+    fun updateItems(listOffset: Int, className: String, items: Array<ContinuousListItem>) {
+        val currentItems = listItems.filter { it.className == className }
+        val foundOffset =
+            if (items.size > 0) {
+                currentItems.indexOf(items[0])
+            } else {
+                -1
+            };
         if (foundOffset < 0) {
             // We have nothing to go off, we need to trust the listOffset itself and pad everything with dummy values
+            val initialOrderNumber =
+                if (items.size > 0) {
+                    items[0].orderNumber
+                } else if (listItems.size > 0) {
+                    listItems[0].orderNumber
+                } else {
+                    0L
+                };
+
             listItems.removeAll(currentItems)
             listItems.addAll((0 until listOffset).map {
-                val dummy = ContinuousListItem(items[0].orderNumber, items[0].className, null)
+                val dummy = ContinuousListItem(initialOrderNumber, className, null)
                 dummy.dirty = true
                 dummy
             })

@@ -15,7 +15,10 @@ import java.util.function.Consumer;
 import androidx.annotation.NonNull;
 
 public class ChildrenStateTracker {
-    public static class CancelledException extends Exception {};
+    public static class CancelledException extends Exception {
+    }
+
+    ;
 
     public interface ConnectionStateListener {
         void connectionStateChanged(boolean connected, long disconnectedFor);
@@ -35,8 +38,11 @@ public class ChildrenStateTracker {
         }
 
         public abstract void cancel();
+
         public abstract void doRequest();
-    };
+    }
+
+    ;
 
     private static final int DEFER_BASE_TIMEOUT = 500;
     private static final int MAX_DEFERRED_TIMEOUT = 20000;
@@ -74,7 +80,9 @@ public class ChildrenStateTracker {
         }
 
         public abstract void runIfNotCancelled();
-    };
+    }
+
+    ;
 
     public ChildrenStateTracker(BabyBuddyClient client, Looper looper) {
         this.client = client;
@@ -121,7 +129,7 @@ public class ChildrenStateTracker {
         if (disconnectRetryCounter > 0) {
             exponentialBackoff = Math.min(
                 MAX_DEFERRED_TIMEOUT,
-                (long) Math.pow(1.5, disconnectRetryCounter - 1)* DEFER_BASE_TIMEOUT
+                (long) Math.pow(1.5, disconnectRetryCounter - 1) * DEFER_BASE_TIMEOUT
             );
         }
 
@@ -133,8 +141,8 @@ public class ChildrenStateTracker {
 
     private class QueueRequest<R> {
         public void queue(
-                Consumer<BabyBuddyClient.RequestCallback<R>> request,
-                BabyBuddyClient.RequestCallback<R> responseCallback) {
+            Consumer<BabyBuddyClient.RequestCallback<R>> request,
+            BabyBuddyClient.RequestCallback<R> responseCallback) {
             requestQueue.add(new DeferredRequest() {
                 @Override
                 public void cancel() {
@@ -143,7 +151,7 @@ public class ChildrenStateTracker {
 
                 @Override
                 public void doRequest() {
-                    BabyBuddyClient.RequestCallback<R> local = new BabyBuddyClient.RequestCallback<R>(){
+                    BabyBuddyClient.RequestCallback<R> local = new BabyBuddyClient.RequestCallback<R>() {
                         @Override
                         public void error(Exception error) {
                             setDisconnected();
@@ -252,8 +260,14 @@ public class ChildrenStateTracker {
                 return;
             }
             requeued = false;
-            queueHandler.postDelayed(() -> update(), requestInterval);
+            queueHandler.postDelayed(this::update, requestInterval);
             queueRequests();
+        }
+
+        protected void forceUpdate() {
+            if (isClosed()) return;
+            requeued = true;
+            queueHandler.postDelayed(this::update, 0);
         }
 
         protected void requeue() {
@@ -308,6 +322,7 @@ public class ChildrenStateTracker {
     /* Child listener */
     public interface ChildListener {
         void childValidUpdated(boolean valid);
+
         void timersUpdated(BabyBuddyClient.Timer[] timers);
     }
 
@@ -362,8 +377,11 @@ public class ChildrenStateTracker {
     /* Timeline listener */
     public interface TimelineListener {
         void sleepRecordsObtained(BabyBuddyClient.TimeEntry[] entries);
+
         void tummyTimeRecordsObtained(BabyBuddyClient.TimeEntry[] entries);
+
         void feedingRecordsObtained(BabyBuddyClient.TimeEntry[] entries);
+
         void changeRecordsObtained(BabyBuddyClient.TimeEntry[] entries);
     }
 
@@ -384,7 +402,7 @@ public class ChildrenStateTracker {
             this.listener = listener;
         }
 
-        private int offsetByName(String name) {
+        public int offsetByName(String name) {
             Integer result = queryOffsets.getOrDefault(BabyBuddyClient.ACTIVITIES.SLEEP, null);
             if (result == null) {
                 return 0;
@@ -434,6 +452,10 @@ public class ChildrenStateTracker {
                     callback
                 );
             }
+        }
+
+        public void forceUpdate() {
+            super.forceUpdate();
         }
 
         @Override

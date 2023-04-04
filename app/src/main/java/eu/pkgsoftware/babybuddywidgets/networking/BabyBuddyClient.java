@@ -342,32 +342,22 @@ public class BabyBuddyClient extends StreamReader {
 
         public String getUserPath() {
             switch (this.type) {
-                case "feeding":
+                case ACTIVITIES.FEEDING:
                     return "/feedings/" + this.typeId + "/";
-                case "change":
+                case EVENTS.CHANGE:
                     return "/changes/" + this.typeId + "/";
-                case "tummy-time":
+                case ACTIVITIES.TUMMY_TIME:
                     return "/tummy-time/" + this.typeId + "/";
-                case "sleep":
+                case ACTIVITIES.SLEEP:
                     return "/sleep/" + this.typeId + "/";
-
+                default:
+                    System.err.println("WARNING! getUserPath not implemented for type: " + this.type);
             }
             return null;
         }
 
         public String getApiPath() {
-            switch (this.type) {
-                case "feeding":
-                    return "/api/feedings/" + this.typeId + "/";
-                case "change":
-                    return "/api/changes/" + this.typeId + "/";
-                case "tummy-time":
-                    return "/api/tummy-times/" + this.typeId + "/";
-                case "sleep":
-                    return "/api/sleep/" + this.typeId + "/";
-
-            }
-            return null;
+            return "/api/" + this.type + "/" + this.typeId + "/";
         }
     }
 
@@ -997,7 +987,7 @@ public class BabyBuddyClient extends StreamReader {
             count,
             callback,
             o -> {
-                String notes = o.optString("notes");
+                String notes = o.optString("milestone");
                 return new TimeEntry(
                     ACTIVITIES.TUMMY_TIME,
                     o.getInt("id"),

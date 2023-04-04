@@ -1,9 +1,10 @@
 package eu.pkgsoftware.babybuddywidgets.history
 
-import android.view.ViewGroup
 import android.widget.LinearLayout
 import eu.pkgsoftware.babybuddywidgets.BaseFragment
 import eu.pkgsoftware.babybuddywidgets.VisibilityCheck
+import eu.pkgsoftware.babybuddywidgets.logic.ContinuousListIntegrator
+import eu.pkgsoftware.babybuddywidgets.logic.ContinuousListItem
 import eu.pkgsoftware.babybuddywidgets.networking.BabyBuddyClient.ACTIVITIES
 import eu.pkgsoftware.babybuddywidgets.networking.BabyBuddyClient.EVENTS
 import eu.pkgsoftware.babybuddywidgets.networking.BabyBuddyClient.TimeEntry
@@ -19,8 +20,10 @@ class ChildEventHistoryLoader(
     private val visibilityCheck: VisibilityCheck
 ) {
     private var timelineObserver: TimelineObserver? = null
-    private val timeEntries: MutableList<TimeEntry> = ArrayList(100)
-    private val visualTimelineEntries: MutableList<TimelineEntry> = ArrayList(100)
+    private val timeEntryLookup = mutableMapOf<ContinuousListItem, TimeEntry>()
+    private val listIntegrator = ContinuousListIntegrator()
+    private val currentList = mutableListOf<TimelineEntry>()
+    private val removedViews = mutableListOf<TimelineEntry>()
 
     fun createTimelineObserver(stateTracker: ChildrenStateTracker) {
         close()
@@ -43,62 +46,82 @@ class ChildEventHistoryLoader(
         })
     }
 
+    private fun newTimelineEntry(e: TimeEntry?): TimelineEntry {
+        val result = if (removedViews.size > 0) {
+                removedViews.removeLast()
+            } else {
+                TimelineEntry(fragment, e)
+            };
+        result.timeEntry = e
+        container.addView(result.view)
+        currentList.add(result)
+        return result
+    }
+
+    private fun timeEntryToContinuousListItem(e: TimeEntry): ContinuousListItem {
+        val result = ContinuousListItem(
+            -e.start.time,
+            e.type,
+            e.typeId.toString()
+        )
+        timeEntryLookup.put(result, e)
+        return result
+    }
+
     private fun addTimelineItems(type: String, _entries: Array<TimeEntry>) {
-        val entries = HashSet(Arrays.asList(*_entries))
-        val newItems: MutableList<TimeEntry> = ArrayList(entries.size)
-        val removedItems: MutableList<TimeEntry> = ArrayList(entries.size)
-        for (e in timeEntries) {
-            if (!entries.contains(e) && type == e.type) {
-                removedItems.add(e)
-            }
+        val to = timelineObserver
+        if (to == null) {
+            return
         }
-        for (e in entries) {
-            if (!timeEntries.contains(e)) {
-                newItems.add(e)
-            }
+
+        val offset = to.offsetByName(type)
+        listIntegrator.updateItems(
+            offset,
+            type,
+            _entries.map { timeEntryToContinuousListItem(it) }.toTypedArray()
+        )
+
+        val newOffset = listIntegrator.suggestClassQueryOffset(type)
+        to.queryOffsets[type] = newOffset
+        if (newOffset != offset) {
+            //to.forceUpdate()
         }
-        timeEntries.removeAll(removedItems)
-        timeEntries.addAll(newItems)
-        if (newItems.size + removedItems.size > 0) {
-            updateTimelineList()
-        }
+
+        updateTimelineList()
     }
 
     private fun updateTimelineList() {
-        while (visualTimelineEntries.size > timeEntries.size) {
-            val v = visualTimelineEntries.removeAt(visualTimelineEntries.size - 1).view
-            container.removeView(v)
+        val items = listIntegrator.items
+        var i = 0
+
+        items.forEach {
+            val entry = timeEntryLookup[it]
+            val listItem: TimelineEntry =
+                if (i < currentList.size) {
+                    currentList[i]
+                } else {
+                    newTimelineEntry(entry)
+                };
+            if (it.dirty) {
+                listItem.timeEntry = null
+            } else {
+                listItem.timeEntry = entry
+            }
+            i++
         }
-        for (i in visualTimelineEntries.indices) {
-            visualTimelineEntries[i].timeEntry = timeEntries[i]
-        }
-        while (visualTimelineEntries.size < timeEntries.size) {
-            val e = TimelineEntry(
-                fragment,
-                timeEntries[visualTimelineEntries.size]
-            )
-            visualTimelineEntries.add(e)
-        }
-        visualTimelineEntries.sortWith { a, b ->
-            b.date.compareTo(
-                a.date
-            )
-        };
-        container.removeAllViews()
-        val params = LinearLayout.LayoutParams(
-            ViewGroup.LayoutParams.MATCH_PARENT, ViewGroup.LayoutParams.WRAP_CONTENT
-        )
-        params.setMargins(0, fragment.dpToPx(4f), 0, fragment.dpToPx(4f))
-        for (e in visualTimelineEntries) {
-            val v = e.view
-            container.addView(v, params)
+        while (currentList.size > items.size) {
+            val removed = currentList.removeLast()
+            removedViews.add(removed)
+            container.removeView(removed.view)
         }
     }
 
     fun close() {
         timelineObserver?.close()
         timelineObserver = null
-        timeEntries.clear()
+        listIntegrator.clear()
+        removedViews.clear()
         updateTimelineList()
+        timeEntryLookup.clear()
     }
 }

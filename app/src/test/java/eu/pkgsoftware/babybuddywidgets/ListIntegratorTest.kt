@@ -45,22 +45,22 @@ class ListIntegratorTest {
         }
         combined.addAll(classAItems2)
 
-        tested.updateItems(0, classAItems1)
+        tested.updateItems(0, "classA", classAItems1)
         assertArrayEqualsWithDirty(classAItems1, tested.items)
-        tested.updateItems(5, classAItems2)
+        tested.updateItems(5, "classA", classAItems2)
         assertArrayEqualsWithDirty(combined.toTypedArray(), tested.items)
 
         // Reapplying an already existing and equal range will do nothing
-        tested.updateItems(5, classAItems2)
+        tested.updateItems(5, "classA", classAItems2)
         assertArrayEqualsWithDirty(combined.toTypedArray(), tested.items)
 
         // Applying a list with fewer items than the total list will truncate the list
-        tested.updateItems(0, classAItems1)
+        tested.updateItems(0, "classA", classAItems1)
         assertArrayEqualsWithDirty(classAItems1, tested.items)
 
         // Shifting the list up even by a single item will make the upper list "dirty"
         // and truncate the list below
-        tested.updateItems(3, arrayOf(classAItems1[4]))
+        tested.updateItems(3, "classA", arrayOf(classAItems1[4]))
         Assert.assertArrayEquals(
             arrayOf(true, true, true, false),
             tested.items.map { it.dirty }.toTypedArray()
@@ -70,7 +70,7 @@ class ListIntegratorTest {
         val classANewItems = createItemList(
             "classA", 3, 0, 1000, 10
         )
-        tested.updateItems(2, classANewItems)
+        tested.updateItems(2, "classA", classANewItems)
         Assert.assertArrayEquals(
             arrayOf(true, true, false, false, false),
             tested.items.map { it.dirty }.toTypedArray()
@@ -87,7 +87,7 @@ class ListIntegratorTest {
         val testItems = createItemList("test", 10, 0, 1000, 1)
         val tested = ContinuousListIntegrator()
 
-        tested.updateItems(0, testItems)
+        tested.updateItems(0, "test", testItems)
         Assert.assertArrayEquals(testItems, tested.items)
 
         val modTested = testItems.toMutableList()
@@ -102,7 +102,7 @@ class ListIntegratorTest {
         val shouldBe = modTested.toTypedArray()
         modTested.removeAt(0)
 
-        tested.updateItems(1, modTested.toTypedArray())
+        tested.updateItems(1, "test", modTested.toTypedArray())
         Assert.assertArrayEquals(shouldBe, tested.items)
     }
 
@@ -112,8 +112,8 @@ class ListIntegratorTest {
         val bItems = createItemList("B", 10, 500, 1000, 1)
         val tested = ContinuousListIntegrator()
 
-        tested.updateItems(0, aItems)
-        tested.updateItems(0, bItems)
+        tested.updateItems(0, "A", aItems)
+        tested.updateItems(0, "B", bItems)
 
         Assert.assertEquals(20, tested.items.size)
         Assert.assertArrayEquals(
@@ -123,7 +123,7 @@ class ListIntegratorTest {
 
         // Test padding
         val cItems = createItemList("C", 10, 250, 1000, 1)
-        tested.updateItems(3, cItems)
+        tested.updateItems(3, "C", cItems)
 
         Assert.assertArrayEquals(
             arrayOf("A", "C", "C", "C", "C", "B", "A", "C", "B", "A", "C", "B"),
@@ -140,8 +140,8 @@ class ListIntegratorTest {
         val aItems = createItemList("A", 10, 0, 1000, 1)
         val bItems = createItemList("B", 10, 500, 1000, 1)
         val tested = ContinuousListIntegrator()
-        tested.updateItems(0, aItems)
-        tested.updateItems(0, bItems)
+        tested.updateItems(0, "A", aItems)
+        tested.updateItems(0, "B", bItems)
 
         Assert.assertEquals(tested.top, aItems[0])
         Assert.assertArrayEquals(
@@ -184,8 +184,8 @@ class ListIntegratorTest {
         val bItems = createItemList("B", 10, 500, 1000, 1)
 
         val tested = ContinuousListIntegrator()
-        tested.updateItems(5, aItems)
-        tested.updateItems(5, bItems)
+        tested.updateItems(5, "A", aItems)
+        tested.updateItems(5, "B", bItems)
 
         Assert.assertEquals(10, tested.classElementCount("A"))
         Assert.assertEquals(15, tested.classElementCount("B"))
@@ -198,8 +198,8 @@ class ListIntegratorTest {
 
         val aItems = createItemList("A", 5, 0, 1000, 1)
         val bItems = createItemList("B", 10, 200, 1000, 1)
-        tested.updateItems(10, aItems)
-        tested.updateItems(10, bItems)
+        tested.updateItems(10, "A", aItems)
+        tested.updateItems(10, "B", bItems)
 
         tested.top = aItems[3]
         Assert.assertEquals(13, tested.suggestClassQueryOffset("A"))
