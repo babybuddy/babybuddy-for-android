@@ -84,6 +84,7 @@ class ChildEventHistoryLoader(
         val newOffset = listIntegrator.suggestClassQueryOffset(type)
         to.queryOffsets[type] = newOffset
         if (newOffset != offset) {
+            // TODO: Fix!
             //to.forceUpdate()
         }
 
@@ -123,5 +124,17 @@ class ChildEventHistoryLoader(
         removedViews.clear()
         updateTimelineList()
         timeEntryLookup.clear()
+    }
+
+    fun updateTop() {
+        var i = 0
+        for (item in currentList) {
+            if (visibilityCheck.checkPartiallyVisible(item.view)) {
+                listIntegrator.top = listIntegrator.items[i]
+                return
+            }
+            i++
+        }
+        listIntegrator.top = null
     }
 }

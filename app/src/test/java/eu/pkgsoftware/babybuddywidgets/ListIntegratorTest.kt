@@ -206,4 +206,45 @@ class ListIntegratorTest {
         Assert.assertEquals(13, tested.suggestClassQueryOffset("B"))
         Assert.assertEquals(0, tested.suggestClassQueryOffset("C"))
     }
+
+    @Test
+    fun shiftedListOffsetBehindTotalItemCount() {
+        val tested = ContinuousListIntegrator()
+
+        val aItems = createItemList("A", 5, 0, 1000, 1)
+        tested.updateItems(0, "A", aItems)
+        tested.updateItems(10, "A", aItems)
+
+        Assert.assertEquals(15, tested.items.size)
+        Assert.assertTrue(tested.items[0].dirty)
+        Assert.assertTrue(tested.items[9].dirty)
+        Assert.assertFalse(tested.items[10].dirty)
+    }
+
+    @Test
+    fun integratingEmptyList() {
+        val tested = ContinuousListIntegrator()
+
+        val aItems = createItemList("A", 5, 0, 1000, 1)
+        tested.updateItems(0, "A", aItems)
+
+        assertArrayEqualsWithDirty(aItems, tested.items)
+
+        tested.updateItems(0, "A", arrayOf())
+        assertArrayEqualsWithDirty(aItems, tested.items)
+
+        tested.updateItems(5, "A", arrayOf())
+        assertArrayEqualsWithDirty(aItems, tested.items)
+
+        tested.updateItems(10, "A", arrayOf())
+        assertArrayEqualsWithDirty(aItems, tested.items)
+
+        tested.updateItems(15, "A", arrayOf())
+        assertArrayEqualsWithDirty(aItems, tested.items.sliceArray(0 until 10))
+        Assert.assertArrayEquals(
+            arrayOf(true, true, true, true, true),
+            tested.items.sliceArray(10 until 15).map { it.dirty }.toTypedArray()
+        )
+    }
+
 }

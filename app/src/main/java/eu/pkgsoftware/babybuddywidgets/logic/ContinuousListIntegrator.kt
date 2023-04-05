@@ -45,30 +45,33 @@ class ContinuousListIntegrator {
         topOffset = orderNumber
     }
 
+    private fun newDummy(order: Long, className: String): ContinuousListItem {
+        val dummy = ContinuousListItem(order, className, null)
+        dummy.dirty = true
+        return dummy
+    }
+
     fun updateItems(listOffset: Int, className: String, items: Array<ContinuousListItem>) {
         val currentItems = listItems.filter { it.className == className }
         val foundOffset =
-            if (items.size > 0) {
+            if (currentItems.isNotEmpty()) {
                 currentItems.indexOf(items[0])
             } else {
                 -1
             };
+        val initialOrderNumber =
+            if (items.isNotEmpty()) {
+                items[0].orderNumber
+            } else if (listItems.size > 0) {
+                listItems[0].orderNumber
+            } else {
+                0L
+            };
         if (foundOffset < 0) {
             // We have nothing to go off, we need to trust the listOffset itself and pad everything with dummy values
-            val initialOrderNumber =
-                if (items.size > 0) {
-                    items[0].orderNumber
-                } else if (listItems.size > 0) {
-                    listItems[0].orderNumber
-                } else {
-                    0L
-                };
-
             listItems.removeAll(currentItems)
             listItems.addAll((0 until listOffset).map {
-                val dummy = ContinuousListItem(initialOrderNumber, className, null)
-                dummy.dirty = true
-                dummy
+                newDummy(initialOrderNumber, className)
             })
             listItems.addAll(items)
         } else if (foundOffset == listOffset) {
@@ -87,9 +90,11 @@ class ContinuousListIntegrator {
             )
             listItems.addAll(items.slice(equalLen until items.size))
         } else {
-            currentItems.slice(0 until listOffset).forEach { it.dirty = true }
-            listItems.removeAll(currentItems.slice(listOffset until currentItems.size))
-            listItems.addAll(items.slice(0 until items.size))
+            listItems.removeAll(currentItems)
+            listItems.addAll((0 until listOffset).map {
+                newDummy(initialOrderNumber, className)
+            })
+            listItems.addAll(items)
         }
 
         listItems.sortBy { it.orderNumber }

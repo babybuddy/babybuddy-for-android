@@ -177,6 +177,12 @@ public class BabyLayoutHolder extends RecyclerView.ViewHolder {
             false
         );
         notesSwitch.addStateListener((b, userInduced) -> notesEditor.setVisible(b));
+
+        binding.mainScrollView.setOnScrollChangeListener((v, scrollX, scrollY, oldScrollX, oldScrollY) -> {
+            if (childHistoryLoader != null) {
+                childHistoryLoader.updateTop();
+            }
+        });
     }
 
     public BabyBuddyClient.Child getChild() {
