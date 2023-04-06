@@ -53,6 +53,42 @@ class ContinuousListIntegrator {
 
     fun updateItems(listOffset: Int, className: String, items: Array<ContinuousListItem>) {
         val currentItems = listItems.filter { it.className == className }
+        if (items.size > 0) {
+            integrateListWithItems(currentItems, items, listOffset, className)
+        } else {
+            integrateEmptyList(currentItems, listOffset, className)
+        }
+        listItems.sortBy { it.orderNumber }
+    }
+
+    private fun integrateEmptyList(
+        currentItems: List<ContinuousListItem>,
+        listOffset: Int,
+        className: String
+    ) {
+        val lastOrderNumbers =
+            if (currentItems.isNotEmpty()) {
+                currentItems.last().orderNumber
+            } else if (listItems.isNotEmpty()) {
+                listItems.last().orderNumber
+            } else {
+                Long.MIN_VALUE
+            };
+        if (listOffset > currentItems.size) {
+            listItems.addAll((0 until listOffset - currentItems.size).map {
+                newDummy(lastOrderNumbers, className)
+            })
+        } else if (listOffset < currentItems.size) {
+            listItems.removeAll(currentItems.slice(listOffset until currentItems.size))
+        }
+    }
+
+    private fun integrateListWithItems(
+        currentItems: List<ContinuousListItem>,
+        items: Array<ContinuousListItem>,
+        listOffset: Int,
+        className: String
+    ) {
         val foundOffset =
             if (currentItems.isNotEmpty()) {
                 currentItems.indexOf(items[0])
@@ -65,7 +101,7 @@ class ContinuousListIntegrator {
             } else if (listItems.size > 0) {
                 listItems[0].orderNumber
             } else {
-                0L
+                Long.MIN_VALUE
             };
         if (foundOffset < 0) {
             // We have nothing to go off, we need to trust the listOffset itself and pad everything with dummy values
@@ -96,8 +132,6 @@ class ContinuousListIntegrator {
             })
             listItems.addAll(items)
         }
-
-        listItems.sortBy { it.orderNumber }
     }
 
     fun clear() {

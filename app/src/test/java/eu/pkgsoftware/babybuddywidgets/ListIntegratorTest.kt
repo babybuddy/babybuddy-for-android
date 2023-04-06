@@ -225,20 +225,23 @@ class ListIntegratorTest {
     fun integratingEmptyList() {
         val tested = ContinuousListIntegrator()
 
-        val aItems = createItemList("A", 5, 0, 1000, 1)
+        val aItems = createItemList("A", 10, 0, 1000, 1)
         tested.updateItems(0, "A", aItems)
 
         assertArrayEqualsWithDirty(aItems, tested.items)
 
         tested.updateItems(0, "A", arrayOf())
-        assertArrayEqualsWithDirty(aItems, tested.items)
+        assertArrayEqualsWithDirty(aItems.sliceArray(0 until 0), tested.items)
 
+        tested.updateItems(0, "A", aItems)
         tested.updateItems(5, "A", arrayOf())
-        assertArrayEqualsWithDirty(aItems, tested.items)
+        assertArrayEqualsWithDirty(aItems.sliceArray(0 until 5), tested.items)
 
+        tested.updateItems(0, "A", aItems)
         tested.updateItems(10, "A", arrayOf())
-        assertArrayEqualsWithDirty(aItems, tested.items)
+        assertArrayEqualsWithDirty(aItems.sliceArray(0 until 10), tested.items)
 
+        tested.updateItems(0, "A", aItems)
         tested.updateItems(15, "A", arrayOf())
         assertArrayEqualsWithDirty(aItems, tested.items.sliceArray(0 until 10))
         Assert.assertArrayEquals(
