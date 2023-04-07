@@ -28,30 +28,30 @@ class ChildEventHistoryLoader(
     fun createTimelineObserver(stateTracker: ChildrenStateTracker) {
         close()
         timelineObserver = stateTracker.TimelineObserver(childId, object : TimelineListener {
-            override fun sleepRecordsObtained(entries: Array<TimeEntry>) {
-                addTimelineItems(ACTIVITIES.SLEEP, entries)
+            override fun sleepRecordsObtained(offset: Int, entries: Array<TimeEntry>) {
+                addTimelineItems(offset, ACTIVITIES.SLEEP, entries)
             }
 
-            override fun tummyTimeRecordsObtained(entries: Array<TimeEntry>) {
-                addTimelineItems(ACTIVITIES.TUMMY_TIME, entries)
+            override fun tummyTimeRecordsObtained(offset: Int, entries: Array<TimeEntry>) {
+                addTimelineItems(offset, ACTIVITIES.TUMMY_TIME, entries)
             }
 
-            override fun feedingRecordsObtained(entries: Array<TimeEntry>) {
-                addTimelineItems(ACTIVITIES.FEEDING, entries)
+            override fun feedingRecordsObtained(offset: Int, entries: Array<TimeEntry>) {
+                addTimelineItems(offset, ACTIVITIES.FEEDING, entries)
             }
 
-            override fun changeRecordsObtained(entries: Array<TimeEntry>) {
-                addTimelineItems(EVENTS.CHANGE, entries)
+            override fun changeRecordsObtained(offset: Int, entries: Array<TimeEntry>) {
+                addTimelineItems(offset, EVENTS.CHANGE, entries)
             }
         })
     }
 
     private fun newTimelineEntry(e: TimeEntry?): TimelineEntry {
         val result = if (removedViews.size > 0) {
-                removedViews.removeLast()
-            } else {
-                TimelineEntry(fragment, e)
-            };
+            removedViews.removeLast()
+        } else {
+            TimelineEntry(fragment, e)
+        };
         result.timeEntry = e
         container.addView(result.view)
         currentList.add(result)
@@ -68,13 +68,11 @@ class ChildEventHistoryLoader(
         return result
     }
 
-    private fun addTimelineItems(type: String, _entries: Array<TimeEntry>) {
-        val to = timelineObserver
-        if (to == null) {
-            return
-        }
+    private fun addTimelineItems(offset: Int, type: String, _entries: Array<TimeEntry>) {
+        val to = timelineObserver ?: return
 
-        val offset = to.offsetByName(type)
+        System.out.println("new timeline entries: ${type}  o:${offset} c:${_entries.size}")
+
         listIntegrator.updateItems(
             offset,
             type,
@@ -128,13 +126,25 @@ class ChildEventHistoryLoader(
 
     fun updateTop() {
         var i = 0
+        listIntegrator.top = null
         for (item in currentList) {
             if (visibilityCheck.checkPartiallyVisible(item.view)) {
                 listIntegrator.top = listIntegrator.items[i]
-                return
+                break
             }
             i++
         }
-        listIntegrator.top = null
+        System.out.println("top-item updated: ${listIntegrator.top}")
+
+        val to = timelineObserver ?: return
+
+        for (clsName in ACTIVITIES.ALL) {
+            to.queryOffsets[clsName] = listIntegrator.suggestClassQueryOffset(clsName)
+            System.out.println("Suggested: ${clsName}  ${to.queryOffsets[clsName]}")
+        }
+        for (clsName in EVENTS.ALL) {
+            to.queryOffsets[clsName] = listIntegrator.suggestClassQueryOffset(clsName)
+            System.out.println("Suggested: ${clsName}  ${to.queryOffsets[clsName]}")
+        }
     }
 }

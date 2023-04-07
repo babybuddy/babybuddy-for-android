@@ -2,6 +2,7 @@ package eu.pkgsoftware.babybuddywidgets.networking;
 
 import android.os.Handler;
 import android.os.Looper;
+import android.util.ArrayMap;
 
 import org.jetbrains.annotations.NotNull;
 
@@ -376,13 +377,13 @@ public class ChildrenStateTracker {
 
     /* Timeline listener */
     public interface TimelineListener {
-        void sleepRecordsObtained(BabyBuddyClient.TimeEntry[] entries);
+        void sleepRecordsObtained(int offset, BabyBuddyClient.TimeEntry[] entries);
 
-        void tummyTimeRecordsObtained(BabyBuddyClient.TimeEntry[] entries);
+        void tummyTimeRecordsObtained(int offset, BabyBuddyClient.TimeEntry[] entries);
 
-        void feedingRecordsObtained(BabyBuddyClient.TimeEntry[] entries);
+        void feedingRecordsObtained(int offset, BabyBuddyClient.TimeEntry[] entries);
 
-        void changeRecordsObtained(BabyBuddyClient.TimeEntry[] entries);
+        void changeRecordsObtained(int offset, BabyBuddyClient.TimeEntry[] entries);
     }
 
     public class TimelineObserver extends StateObserver {
@@ -403,51 +404,75 @@ public class ChildrenStateTracker {
         }
 
         public int offsetByName(String name) {
-            Integer result = queryOffsets.getOrDefault(BabyBuddyClient.ACTIVITIES.SLEEP, null);
+            Integer result = queryOffsets.getOrDefault(name, null);
             if (result == null) {
                 return 0;
             }
             return result;
         }
 
-        private class BoundSleepRecordsCallback {
+        private class WithOffset {
+            protected final int offset;
+
+            WithOffset(int offset) {
+                this.offset = offset;
+            }
+        }
+
+        private class BoundSleepRecordsCallback extends WithOffset {
+            BoundSleepRecordsCallback(int offset) {
+                super(offset);
+            }
+
             public void call(BabyBuddyClient.RequestCallback<BabyBuddyClient.TimeEntry[]> callback) {
                 client.listSleepEntries(
                     childId,
-                    offsetByName(BabyBuddyClient.ACTIVITIES.SLEEP),
+                    offset,
                     COUNT,
                     callback
                 );
             }
         }
 
-        private class BoundFeedingRecordsCallback {
+        private class BoundFeedingRecordsCallback extends WithOffset {
+            BoundFeedingRecordsCallback(int offset) {
+                super(offset);
+            }
+
             public void call(BabyBuddyClient.RequestCallback<BabyBuddyClient.FeedingEntry[]> callback) {
                 client.listFeedingsEntries(
                     childId,
-                    offsetByName(BabyBuddyClient.ACTIVITIES.FEEDING),
+                    offset,
                     COUNT,
                     callback
                 );
             }
         }
 
-        private class BoundTummyTimeRecordsCallback {
+        private class BoundTummyTimeRecordsCallback extends WithOffset {
+            BoundTummyTimeRecordsCallback(int offset) {
+                super(offset);
+            }
+
             public void call(BabyBuddyClient.RequestCallback<BabyBuddyClient.TimeEntry[]> callback) {
                 client.listTummyTimeEntries(
                     childId,
-                    offsetByName(BabyBuddyClient.ACTIVITIES.TUMMY_TIME),
+                    offset,
                     COUNT,
                     callback
                 );
             }
         }
 
-        private class BoundChangeRecordsCallback {
+        private class BoundChangeRecordsCallback extends WithOffset {
+            BoundChangeRecordsCallback(int offset) {
+                super(offset);
+            }
+
             public void call(BabyBuddyClient.RequestCallback<BabyBuddyClient.ChangeEntry[]> callback) {
                 client.listChangeEntries(
                     childId,
-                    offsetByName(BabyBuddyClient.EVENTS.CHANGE),
+                    offset,
                     COUNT,
                     callback
                 );
@@ -468,8 +493,19 @@ public class ChildrenStateTracker {
 
         protected void queueRequests() {
             requeueGate = 4;
+            final Map<String, Integer> queuedOffsets = new ArrayMap<>();
+            final String[] CLASS_NAMES = {
+                BabyBuddyClient.ACTIVITIES.FEEDING,
+                BabyBuddyClient.ACTIVITIES.SLEEP,
+                BabyBuddyClient.ACTIVITIES.TUMMY_TIME,
+                BabyBuddyClient.EVENTS.CHANGE
+            };
+            for (String name : CLASS_NAMES) {
+                queuedOffsets.put(name, offsetByName(name));
+            }
+
             new QueueRequest<BabyBuddyClient.TimeEntry[]>().queue(
-                new BoundSleepRecordsCallback()::call,
+                new BoundSleepRecordsCallback(queuedOffsets.get(BabyBuddyClient.ACTIVITIES.SLEEP))::call,
                 new BabyBuddyClient.RequestCallback<BabyBuddyClient.TimeEntry[]>() {
                     @Override
                     public void error(Exception error) {
@@ -482,12 +518,14 @@ public class ChildrenStateTracker {
                         if (isClosed()) {
                             return;
                         }
-                        listener.sleepRecordsObtained(response);
+                        listener.sleepRecordsObtained(
+                            queuedOffsets.get(BabyBuddyClient.ACTIVITIES.SLEEP), response
+                        );
                     }
                 }
             );
             new QueueRequest<BabyBuddyClient.FeedingEntry[]>().queue(
-                new BoundFeedingRecordsCallback()::call,
+                new BoundFeedingRecordsCallback(queuedOffsets.get(BabyBuddyClient.ACTIVITIES.FEEDING))::call,
                 new BabyBuddyClient.RequestCallback<BabyBuddyClient.FeedingEntry[]>() {
                     @Override
                     public void error(Exception error) {
@@ -500,12 +538,14 @@ public class ChildrenStateTracker {
                         if (isClosed()) {
                             return;
                         }
-                        listener.feedingRecordsObtained(response);
+                        listener.feedingRecordsObtained(
+                            queuedOffsets.get(BabyBuddyClient.ACTIVITIES.FEEDING), response
+                        );
                     }
                 }
             );
             new QueueRequest<BabyBuddyClient.TimeEntry[]>().queue(
-                new BoundTummyTimeRecordsCallback()::call,
+                new BoundTummyTimeRecordsCallback(queuedOffsets.get(BabyBuddyClient.ACTIVITIES.TUMMY_TIME))::call,
                 new BabyBuddyClient.RequestCallback<BabyBuddyClient.TimeEntry[]>() {
                     @Override
                     public void error(Exception error) {
@@ -518,12 +558,14 @@ public class ChildrenStateTracker {
                         if (isClosed()) {
                             return;
                         }
-                        listener.tummyTimeRecordsObtained(response);
+                        listener.tummyTimeRecordsObtained(
+                            queuedOffsets.get(BabyBuddyClient.ACTIVITIES.TUMMY_TIME), response
+                        );
                     }
                 }
             );
             new QueueRequest<BabyBuddyClient.ChangeEntry[]>().queue(
-                new BoundChangeRecordsCallback()::call,
+                new BoundChangeRecordsCallback(queuedOffsets.get(BabyBuddyClient.EVENTS.CHANGE))::call,
                 new BabyBuddyClient.RequestCallback<BabyBuddyClient.ChangeEntry[]>() {
                     @Override
                     public void error(Exception error) {
@@ -536,7 +578,9 @@ public class ChildrenStateTracker {
                         if (isClosed()) {
                             return;
                         }
-                        listener.changeRecordsObtained(response);
+                        listener.changeRecordsObtained(
+                            queuedOffsets.get(BabyBuddyClient.EVENTS.CHANGE), response
+                        );
                     }
                 }
             );

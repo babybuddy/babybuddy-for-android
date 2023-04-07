@@ -250,4 +250,9 @@ class ListIntegratorTest {
         )
     }
 
+    @Test
+    fun suggestNewClass() {
+        val tested = ContinuousListIntegrator()
+        Assert.assertEquals(0, tested.suggestClassQueryOffset("new"))
+    }
 }

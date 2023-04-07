@@ -23,6 +23,10 @@ class ContinuousListItem(val orderNumber: Long, val className: String, val id: S
     override fun hashCode(): Int {
         return orderNumber.hashCode() * 3 + className.hashCode() * 5 + id.hashCode() * 7
     }
+
+    override fun toString(): String {
+        return "<ContinuousListItem on=${orderNumber} class=${className} id=${id}>"
+    }
 }
 
 class ContinuousListIntegrator {
