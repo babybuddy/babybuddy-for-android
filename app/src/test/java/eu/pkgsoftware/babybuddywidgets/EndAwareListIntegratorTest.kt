@@ -34,7 +34,7 @@ class EndAwareListIntegratorTest {
         val tested = EndAwareContinuousListIntegrator()
 
         Assert.assertEquals(0, tested.computeValidCount())
-        tested.updateItemsWithCount(100, 0, "A", arrayOf())
+        tested.updateItemsWithCount(0, 100, "A", arrayOf())
         Assert.assertEquals(0, tested.computeValidCount())
     }
 
@@ -43,7 +43,7 @@ class EndAwareListIntegratorTest {
         val tested = EndAwareContinuousListIntegrator()
 
         val aItems = createItemList("A", 5, 0, 1000, 0)
-        tested.updateItemsWithCount(10, 0, "A", aItems)
+        tested.updateItemsWithCount(0, 10, "A", aItems)
         tested.updateItemsWithCount(0, 0, "B", arrayOf())
 
         Assert.assertEquals(5, tested.computeValidCount())
@@ -54,15 +54,15 @@ class EndAwareListIntegratorTest {
         val tested = EndAwareContinuousListIntegrator()
 
         val aItems = createItemList("A", 10, 0, 1000, 0)
-        tested.updateItemsWithCount(20, 0, "A", aItems)
+        tested.updateItemsWithCount(0, 20, "A", aItems)
 
         Assert.assertEquals(10, tested.computeValidCount())
 
-        tested.updateItemsWithCount(20, 5, "A", aItems)
+        tested.updateItemsWithCount(5, 20, "A", aItems)
         Assert.assertEquals(15, tested.computeValidCount())
 
         val aItems2 = createItemList("A", 1, 0, 1000, 0)
-        tested.updateItemsWithCount(20, 0, "A", aItems2)
+        tested.updateItemsWithCount(0, 20, "A", aItems2)
         Assert.assertEquals(1, tested.computeValidCount())
     }
 
@@ -75,14 +75,14 @@ class EndAwareListIntegratorTest {
         // Order: A A B A B A A
         //                 ^ Starting here, list should be counted as "invalid" if b is "longer"
 
-        tested.updateItemsWithCount(5, 0, "A", aItems)
-        tested.updateItemsWithCount(10, 0, "B", bItems)
+        tested.updateItemsWithCount(0, 5, "A", aItems)
+        tested.updateItemsWithCount(0, 10, "B", bItems)
 
         Assert.assertEquals(5, tested.computeValidCount())
 
         // Order: A A B A B A A
         //                     ^ Full list should be valid if "totalCount" of B is 2
-        tested.updateItemsWithCount(2, 0, "B", bItems)
+        tested.updateItemsWithCount(0, 2, "B", bItems)
 
         Assert.assertEquals(7, tested.computeValidCount())
     }

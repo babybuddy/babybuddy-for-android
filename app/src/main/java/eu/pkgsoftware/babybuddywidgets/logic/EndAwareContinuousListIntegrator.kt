@@ -3,7 +3,7 @@ package eu.pkgsoftware.babybuddywidgets.logic
 class EndAwareContinuousListIntegrator : ContinuousListIntegrator() {
     private val itemCounts = mutableMapOf<String, Int>()
 
-    fun updateItemsWithCount(totalCount: Int, listOffset: Int, className: String, items: Array<ContinuousListItem>) {
+    fun updateItemsWithCount(listOffset: Int, totalCount: Int, className: String, items: Array<ContinuousListItem>) {
         itemCounts.put(className, totalCount)
         super.updateItems(listOffset, className, items)
     }

@@ -377,13 +377,13 @@ public class ChildrenStateTracker {
 
     /* Timeline listener */
     public interface TimelineListener {
-        void sleepRecordsObtained(int offset, BabyBuddyClient.TimeEntry[] entries);
+        void sleepRecordsObtained(int offset, int totalCount, BabyBuddyClient.TimeEntry[] entries);
 
-        void tummyTimeRecordsObtained(int offset, BabyBuddyClient.TimeEntry[] entries);
+        void tummyTimeRecordsObtained(int offset, int totalCount, BabyBuddyClient.TimeEntry[] entries);
 
-        void feedingRecordsObtained(int offset, BabyBuddyClient.TimeEntry[] entries);
+        void feedingRecordsObtained(int offset, int totalCount, BabyBuddyClient.TimeEntry[] entries);
 
-        void changeRecordsObtained(int offset, BabyBuddyClient.TimeEntry[] entries);
+        void changeRecordsObtained(int offset, int totalCount, BabyBuddyClient.TimeEntry[] entries);
     }
 
     public class TimelineObserver extends StateObserver {
@@ -424,7 +424,7 @@ public class ChildrenStateTracker {
                 super(offset);
             }
 
-            public void call(BabyBuddyClient.RequestCallback<BabyBuddyClient.TimeEntry[]> callback) {
+            public void call(BabyBuddyClient.RequestCallback<BabyBuddyClient.GenericListSubsetResponse<BabyBuddyClient.TimeEntry>> callback) {
                 client.listSleepEntries(
                     childId,
                     offset,
@@ -439,7 +439,7 @@ public class ChildrenStateTracker {
                 super(offset);
             }
 
-            public void call(BabyBuddyClient.RequestCallback<BabyBuddyClient.FeedingEntry[]> callback) {
+            public void call(BabyBuddyClient.RequestCallback<BabyBuddyClient.GenericListSubsetResponse<BabyBuddyClient.FeedingEntry>> callback) {
                 client.listFeedingsEntries(
                     childId,
                     offset,
@@ -454,7 +454,7 @@ public class ChildrenStateTracker {
                 super(offset);
             }
 
-            public void call(BabyBuddyClient.RequestCallback<BabyBuddyClient.TimeEntry[]> callback) {
+            public void call(BabyBuddyClient.RequestCallback<BabyBuddyClient.GenericListSubsetResponse<BabyBuddyClient.TimeEntry>> callback) {
                 client.listTummyTimeEntries(
                     childId,
                     offset,
@@ -469,7 +469,7 @@ public class ChildrenStateTracker {
                 super(offset);
             }
 
-            public void call(BabyBuddyClient.RequestCallback<BabyBuddyClient.ChangeEntry[]> callback) {
+            public void call(BabyBuddyClient.RequestCallback<BabyBuddyClient.GenericListSubsetResponse<BabyBuddyClient.ChangeEntry>> callback) {
                 client.listChangeEntries(
                     childId,
                     offset,
@@ -493,93 +493,83 @@ public class ChildrenStateTracker {
 
         protected void queueRequests() {
             requeueGate = 4;
-            final Map<String, Integer> queuedOffsets = new ArrayMap<>();
-            final String[] CLASS_NAMES = {
-                BabyBuddyClient.ACTIVITIES.FEEDING,
-                BabyBuddyClient.ACTIVITIES.SLEEP,
-                BabyBuddyClient.ACTIVITIES.TUMMY_TIME,
-                BabyBuddyClient.EVENTS.CHANGE
-            };
-            for (String name : CLASS_NAMES) {
-                queuedOffsets.put(name, offsetByName(name));
-            }
 
-            new QueueRequest<BabyBuddyClient.TimeEntry[]>().queue(
-                new BoundSleepRecordsCallback(queuedOffsets.get(BabyBuddyClient.ACTIVITIES.SLEEP))::call,
-                new BabyBuddyClient.RequestCallback<BabyBuddyClient.TimeEntry[]>() {
+            new QueueRequest<BabyBuddyClient.GenericListSubsetResponse<BabyBuddyClient.TimeEntry>>().queue(
+                new BoundSleepRecordsCallback(offsetByName(BabyBuddyClient.ACTIVITIES.SLEEP))::call,
+                new BabyBuddyClient.RequestCallback<BabyBuddyClient.GenericListSubsetResponse<BabyBuddyClient.TimeEntry>>() {
                     @Override
                     public void error(Exception error) {
                         requeue();
                     }
 
                     @Override
-                    public void response(BabyBuddyClient.TimeEntry[] response) {
+                    public void response(BabyBuddyClient.GenericListSubsetResponse<BabyBuddyClient.TimeEntry> response) {
                         requeue();
                         if (isClosed()) {
                             return;
                         }
                         listener.sleepRecordsObtained(
-                            queuedOffsets.get(BabyBuddyClient.ACTIVITIES.SLEEP), response
+                            response.offset, response.totalCount, response.list
                         );
                     }
                 }
             );
-            new QueueRequest<BabyBuddyClient.FeedingEntry[]>().queue(
-                new BoundFeedingRecordsCallback(queuedOffsets.get(BabyBuddyClient.ACTIVITIES.FEEDING))::call,
-                new BabyBuddyClient.RequestCallback<BabyBuddyClient.FeedingEntry[]>() {
+            new QueueRequest<BabyBuddyClient.GenericListSubsetResponse<BabyBuddyClient.FeedingEntry>>().queue(
+                new BoundFeedingRecordsCallback(offsetByName(BabyBuddyClient.ACTIVITIES.FEEDING))::call,
+                new BabyBuddyClient.RequestCallback<BabyBuddyClient.GenericListSubsetResponse<BabyBuddyClient.FeedingEntry>>() {
                     @Override
                     public void error(Exception error) {
                         requeue();
                     }
 
                     @Override
-                    public void response(BabyBuddyClient.FeedingEntry[] response) {
+                    public void response(BabyBuddyClient.GenericListSubsetResponse<BabyBuddyClient.FeedingEntry> response) {
                         requeue();
                         if (isClosed()) {
                             return;
                         }
                         listener.feedingRecordsObtained(
-                            queuedOffsets.get(BabyBuddyClient.ACTIVITIES.FEEDING), response
+                            response.offset, response.totalCount, response.list
                         );
                     }
                 }
             );
-            new QueueRequest<BabyBuddyClient.TimeEntry[]>().queue(
-                new BoundTummyTimeRecordsCallback(queuedOffsets.get(BabyBuddyClient.ACTIVITIES.TUMMY_TIME))::call,
-                new BabyBuddyClient.RequestCallback<BabyBuddyClient.TimeEntry[]>() {
+            new QueueRequest<BabyBuddyClient.GenericListSubsetResponse<BabyBuddyClient.TimeEntry>>().queue(
+                new BoundTummyTimeRecordsCallback(offsetByName(BabyBuddyClient.ACTIVITIES.TUMMY_TIME))::call,
+                new BabyBuddyClient.RequestCallback<BabyBuddyClient.GenericListSubsetResponse<BabyBuddyClient.TimeEntry>>() {
                     @Override
                     public void error(Exception error) {
                         requeue();
                     }
 
                     @Override
-                    public void response(BabyBuddyClient.TimeEntry[] response) {
+                    public void response(BabyBuddyClient.GenericListSubsetResponse<BabyBuddyClient.TimeEntry> response) {
                         requeue();
                         if (isClosed()) {
                             return;
                         }
                         listener.tummyTimeRecordsObtained(
-                            queuedOffsets.get(BabyBuddyClient.ACTIVITIES.TUMMY_TIME), response
+                            response.offset, response.totalCount, response.list
                         );
                     }
                 }
             );
-            new QueueRequest<BabyBuddyClient.ChangeEntry[]>().queue(
-                new BoundChangeRecordsCallback(queuedOffsets.get(BabyBuddyClient.EVENTS.CHANGE))::call,
-                new BabyBuddyClient.RequestCallback<BabyBuddyClient.ChangeEntry[]>() {
+            new QueueRequest<BabyBuddyClient.GenericListSubsetResponse<BabyBuddyClient.ChangeEntry>>().queue(
+                new BoundChangeRecordsCallback(offsetByName(BabyBuddyClient.EVENTS.CHANGE))::call,
+                new BabyBuddyClient.RequestCallback<BabyBuddyClient.GenericListSubsetResponse<BabyBuddyClient.ChangeEntry>>() {
                     @Override
                     public void error(Exception error) {
                         requeue();
                     }
 
                     @Override
-                    public void response(BabyBuddyClient.ChangeEntry[] response) {
+                    public void response(BabyBuddyClient.GenericListSubsetResponse<BabyBuddyClient.ChangeEntry> response) {
                         requeue();
                         if (isClosed()) {
                             return;
                         }
                         listener.changeRecordsObtained(
-                            queuedOffsets.get(BabyBuddyClient.EVENTS.CHANGE), response
+                            response.offset, response.totalCount, response.list
                         );
                     }
                 }

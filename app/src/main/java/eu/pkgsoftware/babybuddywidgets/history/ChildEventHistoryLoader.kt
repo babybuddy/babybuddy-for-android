@@ -3,8 +3,8 @@ package eu.pkgsoftware.babybuddywidgets.history
 import android.widget.LinearLayout
 import eu.pkgsoftware.babybuddywidgets.BaseFragment
 import eu.pkgsoftware.babybuddywidgets.VisibilityCheck
-import eu.pkgsoftware.babybuddywidgets.logic.ContinuousListIntegrator
 import eu.pkgsoftware.babybuddywidgets.logic.ContinuousListItem
+import eu.pkgsoftware.babybuddywidgets.logic.EndAwareContinuousListIntegrator
 import eu.pkgsoftware.babybuddywidgets.networking.BabyBuddyClient.ACTIVITIES
 import eu.pkgsoftware.babybuddywidgets.networking.BabyBuddyClient.EVENTS
 import eu.pkgsoftware.babybuddywidgets.networking.BabyBuddyClient.TimeEntry
@@ -21,27 +21,27 @@ class ChildEventHistoryLoader(
 ) {
     private var timelineObserver: TimelineObserver? = null
     private val timeEntryLookup = mutableMapOf<ContinuousListItem, TimeEntry>()
-    private val listIntegrator = ContinuousListIntegrator()
+    private val listIntegrator = EndAwareContinuousListIntegrator()
     private val currentList = mutableListOf<TimelineEntry>()
     private val removedViews = mutableListOf<TimelineEntry>()
 
     fun createTimelineObserver(stateTracker: ChildrenStateTracker) {
         close()
         timelineObserver = stateTracker.TimelineObserver(childId, object : TimelineListener {
-            override fun sleepRecordsObtained(offset: Int, entries: Array<TimeEntry>) {
-                addTimelineItems(offset, ACTIVITIES.SLEEP, entries)
+            override fun sleepRecordsObtained(offset: Int, totalCount: Int, entries: Array<TimeEntry>) {
+                addTimelineItems(offset, totalCount, ACTIVITIES.SLEEP, entries)
             }
 
-            override fun tummyTimeRecordsObtained(offset: Int, entries: Array<TimeEntry>) {
-                addTimelineItems(offset, ACTIVITIES.TUMMY_TIME, entries)
+            override fun tummyTimeRecordsObtained(offset: Int, totalCount: Int, entries: Array<TimeEntry>) {
+                addTimelineItems(offset, totalCount, ACTIVITIES.TUMMY_TIME, entries)
             }
 
-            override fun feedingRecordsObtained(offset: Int, entries: Array<TimeEntry>) {
-                addTimelineItems(offset, ACTIVITIES.FEEDING, entries)
+            override fun feedingRecordsObtained(offset: Int, totalCount: Int, entries: Array<TimeEntry>) {
+                addTimelineItems(offset, totalCount, ACTIVITIES.FEEDING, entries)
             }
 
-            override fun changeRecordsObtained(offset: Int, entries: Array<TimeEntry>) {
-                addTimelineItems(offset, EVENTS.CHANGE, entries)
+            override fun changeRecordsObtained(offset: Int, totalCount: Int, entries: Array<TimeEntry>) {
+                addTimelineItems(offset, totalCount, EVENTS.CHANGE, entries)
             }
         })
     }
@@ -68,13 +68,12 @@ class ChildEventHistoryLoader(
         return result
     }
 
-    private fun addTimelineItems(offset: Int, type: String, _entries: Array<TimeEntry>) {
+    private fun addTimelineItems(offset: Int, totalCount: Int, type: String, _entries: Array<TimeEntry>) {
         val to = timelineObserver ?: return
 
-        System.out.println("new timeline entries: ${type}  o:${offset} c:${_entries.size}")
-
-        listIntegrator.updateItems(
+        listIntegrator.updateItemsWithCount(
             offset,
+            totalCount,
             type,
             _entries.map { timeEntryToContinuousListItem(it) }.toTypedArray()
         )

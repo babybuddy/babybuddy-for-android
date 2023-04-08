@@ -450,6 +450,30 @@ public class BabyBuddyClient extends StreamReader {
         }
     }
 
+    public class GenericSubsetResponseHeader<T> {
+        public final int offset;
+        public final int totalCount;
+        public final T payload;
+
+        public GenericSubsetResponseHeader(int offset, int totalCount, T payload) {
+            this.offset = offset;
+            this.totalCount = totalCount;
+            this.payload = payload;
+        }
+    }
+
+    public class GenericListSubsetResponse<LT> {
+        public final int offset;
+        public final int totalCount;
+        public final LT[] list;
+
+        public GenericListSubsetResponse(int offset, int totalCount, LT[] list) {
+            this.offset = offset;
+            this.totalCount = totalCount;
+            this.list = list;
+        }
+    }
+
     public interface RequestCallback<R> {
         void error(@NotNull Exception error);
 
@@ -838,11 +862,18 @@ public class BabyBuddyClient extends StreamReader {
         );
     }
 
-    public void listGeneric(String activity, QueryValues queryValues, RequestCallback<JSONArray> callback) {
+    public void listGeneric(
+        String activity,
+        int offset,
+        QueryValues queryValues,
+        RequestCallback<GenericSubsetResponseHeader<JSONArray>> callback
+    ) {
         String path = "api/" + activity + "/";
-        if (queryValues != null) {
-            path = path + "?" + queryValues.toQueryString();
+        if (queryValues == null) {
+            queryValues = new QueryValues();
         }
+        queryValues.add("offset", offset);
+        path = path + "?" + queryValues.toQueryString();
         dispatchQuery("GET", path, null, new RequestCallback<String>() {
             @Override
             public void error(@NonNull Exception error) {
@@ -852,18 +883,16 @@ public class BabyBuddyClient extends StreamReader {
             @Override
             public void response(String response) {
                 JSONArray result = null;
+                int totalCount = 0;
                 try {
                     JSONObject listResponse = new JSONObject(response);
+                    totalCount = listResponse.getInt("count");
                     result = listResponse.getJSONArray("results");
                 } catch (JSONException e) {
                     error(e);
                     return;
                 }
-                if (result == null) {
-                    callback.response(new JSONArray());
-                } else {
-                    callback.response(result);
-                }
+                callback.response(new GenericSubsetResponseHeader<>(offset, totalCount, result));
             }
         });
     }
@@ -888,41 +917,48 @@ public class BabyBuddyClient extends StreamReader {
             int child_id,
             int offset,
             int count,
-            RequestCallback<TE[]> callback,
-            WrapTimelineEntry<TE> wrapper) {
+            RequestCallback<GenericListSubsetResponse<TE>> callback,
+            WrapTimelineEntry<TE> wrapper
+        ) {
 
             listGeneric(
                 target,
+                offset,
                 new QueryValues()
                     .add("child", child_id)
-                    .add("offset", offset)
                     .add("limit", count),
-                new RequestCallback<JSONArray>() {
+                new RequestCallback<GenericSubsetResponseHeader<JSONArray>>() {
                     @Override
                     public void error(@NotNull Exception error) {
                         callback.error(error);
                     }
 
                     @Override
-                    public void response(JSONArray objects) {
+                    public void response(GenericSubsetResponseHeader<JSONArray> response) {
                         List<TE> result = new ArrayList<>();
                         try {
-                            for (int i = 0; i < objects.length(); i++) {
-                                result.add(wrapper.wrap(objects.getJSONObject(i)));
+                            for (int i = 0; i < response.payload.length(); i++) {
+                                result.add(wrapper.wrap(response.payload.getJSONObject(i)));
                             }
                         } catch (JSONException | ParseException e) {
                             error(e);
                             return;
                         }
 
-                        callback.response(result.toArray(emptyArray()));
+                        callback.response(
+                            new GenericListSubsetResponse<TE>(
+                                offset,
+                                response.totalCount,
+                                result.toArray(emptyArray())
+                            )
+                        );
                     }
                 }
             );
         }
     }
 
-    public void listSleepEntries(int child_id, int offset, int count, RequestCallback<TimeEntry[]> callback) {
+    public void listSleepEntries(int child_id, int offset, int count, RequestCallback<GenericListSubsetResponse<TimeEntry>> callback) {
         new GenericTimelineRequest<TimeEntry>(TimeEntry.class).genericTimelineRequest(
             ACTIVITIES.SLEEP,
             child_id,
@@ -942,7 +978,7 @@ public class BabyBuddyClient extends StreamReader {
         );
     }
 
-    public void listFeedingsEntries(int child_id, int offset, int count, RequestCallback<FeedingEntry[]> callback) {
+    public void listFeedingsEntries(int child_id, int offset, int count, RequestCallback<GenericListSubsetResponse<FeedingEntry>> callback) {
         new GenericTimelineRequest<FeedingEntry>(FeedingEntry.class).genericTimelineRequest(
             ACTIVITIES.FEEDING,
             child_id,
@@ -979,7 +1015,7 @@ public class BabyBuddyClient extends StreamReader {
         );
     }
 
-    public void listTummyTimeEntries(int child_id, int offset, int count, RequestCallback<TimeEntry[]> callback) {
+    public void listTummyTimeEntries(int child_id, int offset, int count, RequestCallback<GenericListSubsetResponse<TimeEntry>> callback) {
         new GenericTimelineRequest<TimeEntry>(TimeEntry.class).genericTimelineRequest(
             ACTIVITIES.TUMMY_TIME,
             child_id,
@@ -999,7 +1035,7 @@ public class BabyBuddyClient extends StreamReader {
         );
     }
 
-    public void listChangeEntries(int child_id, int offset, int count, RequestCallback<ChangeEntry[]> callback) {
+    public void listChangeEntries(int child_id, int offset, int count, RequestCallback<GenericListSubsetResponse<ChangeEntry>> callback) {
         new GenericTimelineRequest<ChangeEntry>(ChangeEntry.class).genericTimelineRequest(
             EVENTS.CHANGE,
             child_id,
