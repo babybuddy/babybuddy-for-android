@@ -29,7 +29,7 @@ class ContinuousListItem(val orderNumber: Long, val className: String, val id: S
     }
 }
 
-class ContinuousListIntegrator {
+open class ContinuousListIntegrator {
     private var topOffset = Long.MIN_VALUE
     private val listItems = mutableListOf<ContinuousListItem>()
 
@@ -55,7 +55,7 @@ class ContinuousListIntegrator {
         return dummy
     }
 
-    fun updateItems(listOffset: Int, className: String, items: Array<ContinuousListItem>) {
+    open fun updateItems(listOffset: Int, className: String, items: Array<ContinuousListItem>) {
         val currentItems = listItems.filter { it.className == className }
         if (items.size > 0) {
             integrateListWithItems(currentItems, items, listOffset, className)
@@ -138,7 +138,7 @@ class ContinuousListIntegrator {
         }
     }
 
-    fun clear() {
+    open fun clear() {
         top = null
         listItems.clear()
     }
