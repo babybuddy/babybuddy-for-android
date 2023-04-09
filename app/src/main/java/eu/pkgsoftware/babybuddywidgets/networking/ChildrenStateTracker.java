@@ -388,7 +388,7 @@ public class ChildrenStateTracker {
 
     public class TimelineObserver extends StateObserver {
         public static final long INTERVAL = 5000;
-        public static final int COUNT = 20;
+        public static final int COUNT = 50;
 
         private final int childId;
         private final TimelineListener listener;
