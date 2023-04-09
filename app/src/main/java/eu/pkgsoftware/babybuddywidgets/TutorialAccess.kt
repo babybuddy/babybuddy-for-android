@@ -68,24 +68,6 @@ class TutorialAccess(private val activity: MainActivity) {
         postInitDone = true
     }
 
-    private class AnimStartListener(val startAnim: Animator) : Animator.AnimatorListener {
-        override fun onAnimationStart(p0: Animator?) {
-        }
-
-        override fun onAnimationEnd(p0: Animator?) {
-            if (p0 == null || p0.isPaused) {
-                return;
-            }
-            startAnim.start()
-        }
-
-        override fun onAnimationCancel(p0: Animator?) {
-        }
-
-        override fun onAnimationRepeat(p0: Animator?) {
-        }
-    }
-
     private fun startArrowAnimation() {
         val oldAnimators = runningAnimators
         runningAnimators = arrayOf()
