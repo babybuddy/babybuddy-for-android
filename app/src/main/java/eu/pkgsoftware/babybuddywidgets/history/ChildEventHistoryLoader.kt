@@ -1,6 +1,8 @@
 package eu.pkgsoftware.babybuddywidgets.history
 
+import android.view.View
 import android.widget.LinearLayout
+import android.widget.ProgressBar
 import eu.pkgsoftware.babybuddywidgets.BaseFragment
 import eu.pkgsoftware.babybuddywidgets.VisibilityCheck
 import eu.pkgsoftware.babybuddywidgets.logic.ContinuousListItem
@@ -17,7 +19,8 @@ class ChildEventHistoryLoader(
     private val fragment: BaseFragment,
     private val container: LinearLayout,
     private val childId: Int,
-    private val visibilityCheck: VisibilityCheck
+    private val visibilityCheck: VisibilityCheck,
+    private val progressBar: ProgressBar
 ) {
     private var timelineObserver: TimelineObserver? = null
     private val timeEntryLookup = mutableMapOf<ContinuousListItem, TimeEntry>()
@@ -91,6 +94,7 @@ class ChildEventHistoryLoader(
     private fun updateTimelineList() {
         val items = listIntegrator.items
         var i = 0
+        val visibleCount = listIntegrator.computeValidCount()
 
         items.forEach {
             val entry = timeEntryLookup[it]
@@ -105,8 +109,18 @@ class ChildEventHistoryLoader(
             } else {
                 listItem.timeEntry = entry
             }
+            listItem.view.visibility = if (i < visibleCount) {
+                    View.VISIBLE
+                } else {
+                    View.GONE
+                }
             i++
         }
+        progressBar.visibility = if (visibleCount == items.size) {
+                View.GONE
+            } else {
+                View.VISIBLE
+            }
         while (currentList.size > items.size) {
             val removed = currentList.removeLast()
             removedViews.add(removed)
@@ -133,17 +147,14 @@ class ChildEventHistoryLoader(
             }
             i++
         }
-        System.out.println("top-item updated: ${listIntegrator.top}")
 
         val to = timelineObserver ?: return
 
         for (clsName in ACTIVITIES.ALL) {
             to.queryOffsets[clsName] = listIntegrator.suggestClassQueryOffset(clsName)
-            System.out.println("Suggested: ${clsName}  ${to.queryOffsets[clsName]}")
         }
         for (clsName in EVENTS.ALL) {
             to.queryOffsets[clsName] = listIntegrator.suggestClassQueryOffset(clsName)
-            System.out.println("Suggested: ${clsName}  ${to.queryOffsets[clsName]}")
         }
     }
 }

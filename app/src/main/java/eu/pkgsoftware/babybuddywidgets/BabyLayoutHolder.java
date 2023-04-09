@@ -370,7 +370,6 @@ public class BabyLayoutHolder extends RecyclerView.ViewHolder {
         resetDiaperUi();
 
         if (child != null) {
-            System.out.println("AAA CREATE " + child.slug);
             childObserver = stateTracker.new ChildObserver(child.id, new ChildrenStateTracker.ChildListener() {
                 @Override
                 public void childValidUpdated(boolean valid) {
@@ -384,9 +383,10 @@ public class BabyLayoutHolder extends RecyclerView.ViewHolder {
 
             childHistoryLoader = new ChildEventHistoryLoader(
                 baseFragment,
-                binding.timeline,
+                binding.innerTimeline,
                 child.id,
-                new VisibilityCheck(binding.mainScrollView)
+                new VisibilityCheck(binding.mainScrollView),
+                binding.timelineProgressSpinner
             );
             childHistoryLoader.createTimelineObserver(stateTracker);
         }
@@ -400,7 +400,6 @@ public class BabyLayoutHolder extends RecyclerView.ViewHolder {
 
     private void resetChildObserver() {
         if (childObserver != null) {
-            System.out.println("AAA CLOSE " + child.slug);
             childObserver.close();
             childObserver = null;
         }
