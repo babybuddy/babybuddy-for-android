@@ -6,7 +6,6 @@ import android.util.Log
 import android.view.InputEvent
 import android.view.KeyEvent
 import android.view.MotionEvent
-import android.view.inputmethod.InputMethodManager
 import androidx.appcompat.app.AlertDialog
 import androidx.appcompat.app.AppCompatActivity
 import androidx.fragment.app.FragmentContainerView
@@ -15,6 +14,7 @@ import com.squareup.phrase.Phrase
 import eu.pkgsoftware.babybuddywidgets.databinding.ActivityMainBinding
 import eu.pkgsoftware.babybuddywidgets.networking.BabyBuddyClient
 import eu.pkgsoftware.babybuddywidgets.networking.BabyBuddyClient.Child
+import eu.pkgsoftware.babybuddywidgets.networking.BabyBuddyClient.GenericSubsetResponseHeader
 import kotlinx.coroutines.*
 import org.json.JSONArray
 import java.util.*
@@ -190,10 +190,11 @@ class MainActivity : AppCompatActivity() {
         }
 
         suspend fun listConflicts(): List<BabyBuddyClient.TimeEntry> {
-            val jsonEntries = AsyncClientRequest.call<JSONArray> {
+            val jsonResponse = AsyncClientRequest.call<GenericSubsetResponseHeader<JSONArray>> {
 
                 client.listGeneric(
                     storeInterface.name(),
+                    0,
                     BabyBuddyClient.QueryValues()
                         .add("start_max", timer.computeCurrentServerEndTime(client))
                         .add("end_min", timer.start)
@@ -202,10 +203,10 @@ class MainActivity : AppCompatActivity() {
                 )
             }
             val result = ArrayList<BabyBuddyClient.TimeEntry>()
-            for (i in 0..jsonEntries.length() - 1) {
+            for (i in 0..jsonResponse.payload.length() - 1) {
                 try {
                     val entry = BabyBuddyClient.TimeEntry.fromJsonObject(
-                        jsonEntries.getJSONObject(i), storeInterface.name()
+                        jsonResponse.payload.getJSONObject(i), storeInterface.name()
                     )
                     result.add(entry)
                 } catch (e: Exception) {

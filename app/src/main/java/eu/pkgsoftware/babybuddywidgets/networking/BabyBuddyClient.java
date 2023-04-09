@@ -11,14 +11,17 @@ import org.json.JSONObject;
 import java.io.IOException;
 import java.io.OutputStream;
 import java.io.UnsupportedEncodingException;
+import java.lang.reflect.Array;
 import java.net.HttpURLConnection;
 import java.net.MalformedURLException;
 import java.net.URL;
 import java.net.URLEncoder;
 import java.nio.charset.StandardCharsets;
+import java.sql.Time;
 import java.text.ParseException;
 import java.text.SimpleDateFormat;
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.Comparator;
 import java.util.Date;
 import java.util.HashMap;
@@ -32,7 +35,7 @@ import eu.pkgsoftware.babybuddywidgets.Constants;
 import eu.pkgsoftware.babybuddywidgets.CredStore;
 
 public class BabyBuddyClient extends StreamReader {
-    public final boolean DEBUG = true;
+    public final boolean DEBUG = false;
 
     public static final String DATE_FORMAT_STRING = "yyyy-MM-dd'T'HH:mm:ssX";
     public static final String DATE_QUERY_FORMAT_STRING = "yyyy-MM-dd'T'HH:mm:ss";
@@ -48,6 +51,25 @@ public class BabyBuddyClient extends StreamReader {
             ALL[0] = FEEDING;
             ALL[1] = SLEEP;
             ALL[2] = TUMMY_TIME;
+        }
+
+        public static int index(String s) {
+            for (int i = 0; i < ALL.length; i++) {
+                if (Objects.equals(ALL[i], s)) {
+                    return i;
+                }
+            }
+            return -1;
+        }
+    }
+
+    public static class EVENTS {
+        public static final String CHANGE = "changes";
+
+        public static final String[] ALL = new String[1];
+
+        static {
+            ALL[0] = CHANGE;
         }
 
         public static int index(String s) {
@@ -320,32 +342,22 @@ public class BabyBuddyClient extends StreamReader {
 
         public String getUserPath() {
             switch (this.type) {
-                case "feeding":
+                case ACTIVITIES.FEEDING:
                     return "/feedings/" + this.typeId + "/";
-                case "change":
+                case EVENTS.CHANGE:
                     return "/changes/" + this.typeId + "/";
-                case "tummy-time":
+                case ACTIVITIES.TUMMY_TIME:
                     return "/tummy-time/" + this.typeId + "/";
-                case "sleep":
+                case ACTIVITIES.SLEEP:
                     return "/sleep/" + this.typeId + "/";
-
+                default:
+                    System.err.println("WARNING! getUserPath not implemented for type: " + this.type);
             }
             return null;
         }
 
         public String getApiPath() {
-            switch (this.type) {
-                case "feeding":
-                    return "/api/feedings/" + this.typeId + "/";
-                case "change":
-                    return "/api/changes/" + this.typeId + "/";
-                case "tummy-time":
-                    return "/api/tummy-times/" + this.typeId + "/";
-                case "sleep":
-                    return "/api/sleep/" + this.typeId + "/";
-
-            }
-            return null;
+            return "/api/" + this.type + "/" + this.typeId + "/";
         }
     }
 
@@ -435,6 +447,30 @@ public class BabyBuddyClient extends StreamReader {
 
         public RequestCodeFailure(String response) {
             this.response = response;
+        }
+    }
+
+    public class GenericSubsetResponseHeader<T> {
+        public final int offset;
+        public final int totalCount;
+        public final T payload;
+
+        public GenericSubsetResponseHeader(int offset, int totalCount, T payload) {
+            this.offset = offset;
+            this.totalCount = totalCount;
+            this.payload = payload;
+        }
+    }
+
+    public class GenericListSubsetResponse<LT> {
+        public final int offset;
+        public final int totalCount;
+        public final LT[] list;
+
+        public GenericListSubsetResponse(int offset, int totalCount, LT[] list) {
+            this.offset = offset;
+            this.totalCount = totalCount;
+            this.list = list;
         }
     }
 
@@ -826,11 +862,18 @@ public class BabyBuddyClient extends StreamReader {
         );
     }
 
-    public void listGeneric(String activity, QueryValues queryValues, RequestCallback<JSONArray> callback) {
+    public void listGeneric(
+        String activity,
+        int offset,
+        QueryValues queryValues,
+        RequestCallback<GenericSubsetResponseHeader<JSONArray>> callback
+    ) {
         String path = "api/" + activity + "/";
-        if (queryValues != null) {
-            path = path + "?" + queryValues.toQueryString();
+        if (queryValues == null) {
+            queryValues = new QueryValues();
         }
+        queryValues.add("offset", offset);
+        path = path + "?" + queryValues.toQueryString();
         dispatchQuery("GET", path, null, new RequestCallback<String>() {
             @Override
             public void error(@NonNull Exception error) {
@@ -840,189 +883,176 @@ public class BabyBuddyClient extends StreamReader {
             @Override
             public void response(String response) {
                 JSONArray result = null;
+                int totalCount = 0;
                 try {
                     JSONObject listResponse = new JSONObject(response);
+                    totalCount = listResponse.getInt("count");
                     result = listResponse.getJSONArray("results");
                 } catch (JSONException e) {
                     error(e);
                     return;
                 }
-                if (result == null) {
-                    callback.response(new JSONArray());
-                } else {
-                    callback.response(result);
-                }
+                callback.response(new GenericSubsetResponseHeader<>(offset, totalCount, result));
             }
         });
     }
 
-    public void listSleepEntries(int child_id, int offset, int count, RequestCallback<TimeEntry[]> callback) {
-        listGeneric(
+    private interface WrapTimelineEntry<TE extends TimeEntry> {
+        TE wrap(JSONObject json) throws ParseException, JSONException;
+    }
+
+    private class GenericTimelineRequest<TE extends TimeEntry> {
+        private final Class<TE> runtimeClass;
+
+        public GenericTimelineRequest(Class<TE> cls) {
+            runtimeClass = cls;
+        }
+
+        private TE[] emptyArray() {
+            return (TE[]) Array.newInstance(runtimeClass, 0);
+        }
+
+        private void genericTimelineRequest(
+            String target,
+            int child_id,
+            int offset,
+            int count,
+            RequestCallback<GenericListSubsetResponse<TE>> callback,
+            WrapTimelineEntry<TE> wrapper
+        ) {
+
+            listGeneric(
+                target,
+                offset,
+                new QueryValues()
+                    .add("child", child_id)
+                    .add("limit", count),
+                new RequestCallback<GenericSubsetResponseHeader<JSONArray>>() {
+                    @Override
+                    public void error(@NotNull Exception error) {
+                        callback.error(error);
+                    }
+
+                    @Override
+                    public void response(GenericSubsetResponseHeader<JSONArray> response) {
+                        List<TE> result = new ArrayList<>();
+                        try {
+                            for (int i = 0; i < response.payload.length(); i++) {
+                                result.add(wrapper.wrap(response.payload.getJSONObject(i)));
+                            }
+                        } catch (JSONException | ParseException e) {
+                            error(e);
+                            return;
+                        }
+
+                        callback.response(
+                            new GenericListSubsetResponse<TE>(
+                                offset,
+                                response.totalCount,
+                                result.toArray(emptyArray())
+                            )
+                        );
+                    }
+                }
+            );
+        }
+    }
+
+    public void listSleepEntries(int child_id, int offset, int count, RequestCallback<GenericListSubsetResponse<TimeEntry>> callback) {
+        new GenericTimelineRequest<TimeEntry>(TimeEntry.class).genericTimelineRequest(
             ACTIVITIES.SLEEP,
-            new QueryValues()
-                .add("child", child_id)
-                .add("offset", offset)
-                .add("limit", count),
-            new RequestCallback<JSONArray>() {
-                @Override
-                public void error(@NotNull Exception error) {
-                    callback.error(error);
-                }
-
-                @Override
-                public void response(JSONArray objects) {
-                    List<TimeEntry> result = new ArrayList<>();
-                    try {
-                        for (int i = 0; i < objects.length(); i++) {
-                            JSONObject o = objects.getJSONObject(i);
-                            String notes = o.getString("notes");
-                            result.add(new TimeEntry(
-                                "sleep",
-                                o.getInt("id"),
-                                parseNullOrDate(o, "start"),
-                                parseNullOrDate(o, "end"),
-                                notes == null ? "" : notes
-                            ));
-                        }
-                    } catch (JSONException | ParseException e) {
-                        error(e);
-                        return;
-                    }
-                    callback.response(result.toArray(new TimeEntry[0]));
-                }
+            child_id,
+            offset,
+            count,
+            callback,
+            o -> {
+                String notes = o.optString("notes");
+                return new TimeEntry(
+                    ACTIVITIES.SLEEP,
+                    o.getInt("id"),
+                    parseNullOrDate(o, "start"),
+                    parseNullOrDate(o, "end"),
+                    notes
+                );
             }
         );
     }
 
-    public void listFeedingsEntries(int child_id, int offset, int count, RequestCallback<FeedingEntry[]> callback) {
-        listGeneric(
+    public void listFeedingsEntries(int child_id, int offset, int count, RequestCallback<GenericListSubsetResponse<FeedingEntry>> callback) {
+        new GenericTimelineRequest<FeedingEntry>(FeedingEntry.class).genericTimelineRequest(
             ACTIVITIES.FEEDING,
-            new QueryValues()
-                .add("child", child_id)
-                .add("offset", offset)
-                .add("limit", count),
-            new RequestCallback<JSONArray>() {
-                @Override
-                public void error(@NotNull Exception error) {
-                    callback.error(error);
-                }
+            child_id,
+            offset,
+            count,
+            callback,
+            o -> {
+                String notes = o.optString("notes");
 
-                @Override
-                public void response(JSONArray objects) {
-                    List<FeedingEntry> result = new ArrayList<>();
-                    try {
-                        for (int i = 0; i < objects.length(); i++) {
-                            JSONObject o = objects.getJSONObject(i);
-                            String notes = o.getString("notes");
+                Constants.FeedingMethodEnum feedingMethod = null;
+                Constants.FeedingTypeEnum feedingType = null;
 
-                            Constants.FeedingMethodEnum feedingMethod = null;
-                            Constants.FeedingTypeEnum feedingType = null;
-
-                            for (Constants.FeedingMethodEnum m : Constants.FeedingMethodEnum.values()) {
-                                if (m.post_name.equals(o.getString("method"))) {
-                                    feedingMethod = m;
-                                }
-                            }
-                            for (Constants.FeedingTypeEnum t : Constants.FeedingTypeEnum.values()) {
-                                if (t.post_name.equals(o.getString("type"))) {
-                                    feedingType = t;
-                                }
-                            }
-
-                            result.add(new FeedingEntry(
-                                "feeding",
-                                o.getInt("id"),
-                                parseNullOrDate(o, "start"),
-                                parseNullOrDate(o, "end"),
-                                notes == null ? "" : notes,
-                                feedingMethod,
-                                feedingType
-                            ));
-                        }
-                    } catch (JSONException | ParseException e) {
-                        error(e);
-                        return;
+                for (Constants.FeedingMethodEnum m : Constants.FeedingMethodEnum.values()) {
+                    if (m.post_name.equals(o.getString("method"))) {
+                        feedingMethod = m;
                     }
-                    callback.response(result.toArray(new FeedingEntry[0]));
                 }
+                for (Constants.FeedingTypeEnum t : Constants.FeedingTypeEnum.values()) {
+                    if (t.post_name.equals(o.getString("type"))) {
+                        feedingType = t;
+                    }
+                }
+
+                return new FeedingEntry(
+                    ACTIVITIES.FEEDING,
+                    o.getInt("id"),
+                    parseNullOrDate(o, "start"),
+                    parseNullOrDate(o, "end"),
+                    notes,
+                    feedingMethod,
+                    feedingType
+                );
             }
         );
     }
 
-    public void listTummyTimeEntries(int child_id, int offset, int count, RequestCallback<TimeEntry[]> callback) {
-        listGeneric(
+    public void listTummyTimeEntries(int child_id, int offset, int count, RequestCallback<GenericListSubsetResponse<TimeEntry>> callback) {
+        new GenericTimelineRequest<TimeEntry>(TimeEntry.class).genericTimelineRequest(
             ACTIVITIES.TUMMY_TIME,
-            new QueryValues()
-                .add("child", child_id)
-                .add("offset", offset)
-                .add("limit", count),
-            new RequestCallback<JSONArray>() {
-                @Override
-                public void error(@NotNull Exception error) {
-                    callback.error(error);
-                }
-
-                @Override
-                public void response(JSONArray objects) {
-                    List<TimeEntry> result = new ArrayList<>();
-                    try {
-                        for (int i = 0; i < objects.length(); i++) {
-                            JSONObject o = objects.getJSONObject(i);
-                            String notes = o.getString("milestone");
-                            result.add(new TimeEntry(
-                                "tummy-time",
-                                o.getInt("id"),
-                                parseNullOrDate(o, "start"),
-                                parseNullOrDate(o, "end"),
-                                notes == null ? "" : notes
-                            ));
-                        }
-                    } catch (JSONException | ParseException e) {
-                        error(e);
-                        return;
-                    }
-                    callback.response(result.toArray(new TimeEntry[0]));
-                }
+            child_id,
+            offset,
+            count,
+            callback,
+            o -> {
+                String notes = o.optString("milestone");
+                return new TimeEntry(
+                    ACTIVITIES.TUMMY_TIME,
+                    o.getInt("id"),
+                    parseNullOrDate(o, "start"),
+                    parseNullOrDate(o, "end"),
+                    notes
+                );
             }
         );
     }
 
-    public void listChangeEntries(int child_id, int offset, int count, RequestCallback<ChangeEntry[]> callback) {
-        listGeneric(
-            "changes",
-            new QueryValues()
-                .add("child", child_id)
-                .add("offset", offset)
-                .add("limit", count),
-            new RequestCallback<JSONArray>() {
-                @Override
-                public void error(@NotNull Exception error) {
-                    callback.error(error);
-                }
-
-                @Override
-                public void response(JSONArray objects) {
-                    List<ChangeEntry> result = new ArrayList<>();
-                    try {
-                        for (int i = 0; i < objects.length(); i++) {
-                            JSONObject o = objects.getJSONObject(i);
-                            String notes = o.getString("notes");
-                            result.add(new ChangeEntry(
-                                "change",
-                                o.getInt("id"),
-                                parseNullOrDate(o, "time"),
-                                parseNullOrDate(o, "time"),
-                                notes == null ? "" : notes,
-                                o.getBoolean("wet"),
-                                o.getBoolean("solid")
-                            ));
-                        }
-                    } catch (JSONException | ParseException e) {
-                        error(e);
-                        return;
-                    }
-                    callback.response(result.toArray(new ChangeEntry[0]));
-                }
+    public void listChangeEntries(int child_id, int offset, int count, RequestCallback<GenericListSubsetResponse<ChangeEntry>> callback) {
+        new GenericTimelineRequest<ChangeEntry>(ChangeEntry.class).genericTimelineRequest(
+            EVENTS.CHANGE,
+            child_id,
+            offset,
+            count,
+            callback,
+            o -> {
+                String notes = o.optString("notes");
+                return new ChangeEntry(
+                    EVENTS.CHANGE,
+                    o.getInt("id"),
+                    parseNullOrDate(o, "time"),
+                    parseNullOrDate(o, "time"),
+                    notes,
+                    o.getBoolean("wet"),
+                    o.getBoolean("solid")
+                );
             }
         );
     }

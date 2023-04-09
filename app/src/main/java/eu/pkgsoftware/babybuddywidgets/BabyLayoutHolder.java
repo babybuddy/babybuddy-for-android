@@ -1,16 +1,12 @@
 package eu.pkgsoftware.babybuddywidgets;
 
-import android.os.Looper;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
 
 import java.util.Arrays;
-import java.util.Collections;
 import java.util.LinkedList;
 import java.util.List;
-import java.util.Objects;
-import java.util.Timer;
 
 import androidx.annotation.NonNull;
 import androidx.recyclerview.widget.GridLayoutManager;
@@ -18,6 +14,7 @@ import androidx.recyclerview.widget.RecyclerView;
 import eu.pkgsoftware.babybuddywidgets.databinding.BabyManagerBinding;
 import eu.pkgsoftware.babybuddywidgets.databinding.NotesEditorBinding;
 import eu.pkgsoftware.babybuddywidgets.databinding.QuickTimerEntryBinding;
+import eu.pkgsoftware.babybuddywidgets.history.ChildEventHistoryLoader;
 import eu.pkgsoftware.babybuddywidgets.networking.BabyBuddyClient;
 import eu.pkgsoftware.babybuddywidgets.networking.ChildrenStateTracker;
 import eu.pkgsoftware.babybuddywidgets.widgets.SwitchButtonLogic;
@@ -180,6 +177,12 @@ public class BabyLayoutHolder extends RecyclerView.ViewHolder {
             false
         );
         notesSwitch.addStateListener((b, userInduced) -> notesEditor.setVisible(b));
+
+        binding.mainScrollView.setOnScrollChangeListener((v, scrollX, scrollY, oldScrollX, oldScrollY) -> {
+            if (childHistoryLoader != null) {
+                childHistoryLoader.updateTop();
+            }
+        });
     }
 
     public BabyBuddyClient.Child getChild() {
@@ -367,7 +370,6 @@ public class BabyLayoutHolder extends RecyclerView.ViewHolder {
         resetDiaperUi();
 
         if (child != null) {
-            System.out.println("AAA CREATE " + child.slug);
             childObserver = stateTracker.new ChildObserver(child.id, new ChildrenStateTracker.ChildListener() {
                 @Override
                 public void childValidUpdated(boolean valid) {
@@ -379,7 +381,13 @@ public class BabyLayoutHolder extends RecyclerView.ViewHolder {
                 }
             });
 
-            childHistoryLoader = new ChildEventHistoryLoader(baseFragment, binding.timeline, child.id);
+            childHistoryLoader = new ChildEventHistoryLoader(
+                baseFragment,
+                binding.innerTimeline,
+                child.id,
+                new VisibilityCheck(binding.mainScrollView),
+                binding.timelineProgressSpinner
+            );
             childHistoryLoader.createTimelineObserver(stateTracker);
         }
     }
@@ -392,7 +400,6 @@ public class BabyLayoutHolder extends RecyclerView.ViewHolder {
 
     private void resetChildObserver() {
         if (childObserver != null) {
-            System.out.println("AAA CLOSE " + child.slug);
             childObserver.close();
             childObserver = null;
         }

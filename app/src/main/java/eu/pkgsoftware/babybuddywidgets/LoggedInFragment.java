@@ -61,7 +61,6 @@ public class LoggedInFragment extends BaseFragment {
 
             int childIndex = childIndexBySlug(credStore.getSelectedChild());
             if (childIndex >= 0) {
-                System.out.println("AAA bind " + children[position]);
                 if (Objects.equals(children[position], children[childIndex])) {
                     activeViewChanged(children[position]);
                 }
@@ -71,7 +70,6 @@ public class LoggedInFragment extends BaseFragment {
         @Override
         public void onViewRecycled(@NonNull BabyLayoutHolder holder) {
             holder.clear();
-            System.out.println("AAA recycle " + holder);
         }
 
         @Override
@@ -85,8 +83,6 @@ public class LoggedInFragment extends BaseFragment {
         public void activeViewChanged(BabyBuddyClient.Child c) {
             activeHolder = null;
             for (BabyLayoutHolder h : holders) {
-                System.out.println("AAA active changed " + h.getChild() + "  " + c);
-                System.out.println("AAA " + holders + " - " + h + "  this=" + this);
                 if (Objects.equals(c, h.getChild())) {
                     h.onViewSelected(stateTracker);
                     activeHolder = h;
@@ -97,9 +93,7 @@ public class LoggedInFragment extends BaseFragment {
         }
 
         public void updateChildrenList() {
-            System.out.println("AAA updateChildrenList PRE");
             notifyDataSetChanged();
-            System.out.println("AAA updateChildrenList POST");
         }
 
         public BabyLayoutHolder getActive() {
