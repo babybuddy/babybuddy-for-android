@@ -152,8 +152,14 @@ public class TimerListViewHolder extends RecyclerView.ViewHolder {
         }
 
         @Override
-        public void error(Exception error) {
-            baseFragment.showError(true, "Could not store activity", errorMessage);
+        public void error(@NotNull Exception error) {
+            // TODO: Allow to cancel timer
+
+            baseFragment.showError(
+                true,
+                baseFragment.getString(R.string.activity_store_failure_message),
+                errorMessage
+            );
             updateActiveState();
         }
 

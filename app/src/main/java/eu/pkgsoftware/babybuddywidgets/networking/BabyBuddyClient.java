@@ -442,14 +442,6 @@ public class BabyBuddyClient extends StreamReader {
         }
     }
 
-    public static class RequestCodeFailure extends IOException {
-        public String response;
-
-        public RequestCodeFailure(String response) {
-            this.response = response;
-        }
-    }
-
     public class GenericSubsetResponseHeader<T> {
         public final int offset;
         public final int totalCount;
@@ -562,7 +554,7 @@ public class BabyBuddyClient extends StreamReader {
                     }
                     if ((responseCode < 200) || (responseCode >= 300)) {
                         String message = query.getResponseMessage();
-                        throw new RequestCodeFailure(message);
+                        throw new RequestCodeFailure(message, loadHttpData(query.getErrorStream()));
                     }
 
 

@@ -59,6 +59,7 @@
     <string name="error_storing_activity_failed_title">Could not store activity</string>
     <string name="error_storing_activity_unsupported">Unsupported activity</string>
     <string name="popup_message_storing">Storing {activity} …</string>
+    <string name="activity_store_failure_message">Could not store activity</string>
 
     <!--- Store activities: Conflicts -->
     <string name="conflicting_activity_title">Overlapping time entries</string>
