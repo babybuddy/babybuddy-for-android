@@ -17,11 +17,9 @@ import java.net.MalformedURLException;
 import java.net.URL;
 import java.net.URLEncoder;
 import java.nio.charset.StandardCharsets;
-import java.sql.Time;
 import java.text.ParseException;
 import java.text.SimpleDateFormat;
 import java.util.ArrayList;
-import java.util.Arrays;
 import java.util.Comparator;
 import java.util.Date;
 import java.util.HashMap;
@@ -555,7 +553,11 @@ public class BabyBuddyClient extends StreamReader {
                     }
                     if ((responseCode < 200) || (responseCode >= 300)) {
                         String message = query.getResponseMessage();
-                        throw new RequestCodeFailure(message, loadHttpData(query.getErrorStream()));
+                        throw new RequestCodeFailure(
+                            responseCode,
+                            message,
+                            loadHttpData(query.getErrorStream())
+                        );
                     }
 
 
@@ -575,28 +577,59 @@ public class BabyBuddyClient extends StreamReader {
     }
 
     public void listChildren(RequestCallback<Child[]> callback) {
-        dispatchQuery("GET", "api/children/?limit=1000000", null, new RequestCallback<String>() {
-            @Override
-            public void error(Exception e) {
-                callback.error(e);
-            }
+        listChildren(new QueryValues(), callback);
+    }
 
-            @Override
-            public void response(String response) {
-                try {
-                    JSONObject obj = new JSONObject(response);
-                    JSONArray children = obj.getJSONArray("results");
-                    List<Child> result = new ArrayList<>(children.length());
-                    for (int i = 0; i < children.length(); i++) {
-                        JSONObject c = children.getJSONObject(i);
-                        result.add(Child.fromJSON(c));
+    public void listChildren(@NotNull QueryValues queryValues, RequestCallback<Child[]> callback) {
+        queryValues.add("limit", 1000000);
+        dispatchQuery(
+            "GET",
+            "api/children/?" + queryValues.toQueryString(),
+            null,
+            new RequestCallback<String>() {
+                @Override
+                public void error(Exception e) {
+                    callback.error(e);
+                }
+
+                @Override
+                public void response(String response) {
+                    try {
+                        JSONObject obj = new JSONObject(response);
+                        JSONArray children = obj.getJSONArray("results");
+                        List<Child> result = new ArrayList<>(children.length());
+                        for (int i = 0; i < children.length(); i++) {
+                            JSONObject c = children.getJSONObject(i);
+                            result.add(Child.fromJSON(c));
+                        }
+                        callback.response(result.toArray(new Child[0]));
+                    } catch (JSONException e) {
+                        this.error(e);
                     }
-                    callback.response(result.toArray(new Child[0]));
-                } catch (JSONException e) {
-                    this.error(e);
+                }
+            });
+    }
+
+    public void checkChildExists(int child_id, RequestCallback<Boolean> callback) {
+        listChildren(
+            new QueryValues().add("id", child_id),
+            new RequestCallback<Child[]>() {
+                @Override
+                public void error(@NonNull Exception error) {
+                    callback.error(error);
+                }
+
+                @Override
+                public void response(Child[] response) {
+                    for (Child c : response) {
+                        if (c.id == child_id) {
+                            callback.response(true);
+                        }
+                    }
+                    callback.response(false);
                 }
             }
-        });
+        );
     }
 
     public void listTimers(RequestCallback<Timer[]> callback) {

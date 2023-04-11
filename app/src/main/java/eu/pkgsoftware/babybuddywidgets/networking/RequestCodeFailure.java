@@ -15,13 +15,15 @@ import java.util.List;
  * it contains methods that allow access to embedded server-reported error messages.
  */
 public class RequestCodeFailure extends IOException {
-    public @NotNull String response;
+    public final int code;
+    public final @NotNull String response;
     public String content;
 
     private boolean decodedError = false;
     private JSONObject jsonErrorObject = null;
 
-    public RequestCodeFailure(@NotNull String response, String content) {
+    public RequestCodeFailure(int code, @NotNull String response, String content) {
+        this.code = code;
         this.response = response;
         this.content = content;
     }

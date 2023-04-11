@@ -389,6 +389,8 @@ public class ChildrenStateTracker {
         private boolean closed = false;
         private int requeueGate = 0;
 
+        private boolean childExistsVerificationRunning = false;
+
         public Map<String, Integer> queryOffsets = new HashMap<>();
 
         public TimelineObserver(int childId, TimelineListener listener) {
@@ -483,6 +485,32 @@ public class ChildrenStateTracker {
             if (requeueGate <= 0) {
                 super.requeue();
             }
+        }
+
+        protected void verifyChildExists() {
+            if (isClosed()) {
+                return;
+            }
+            if (childExistsVerificationRunning) {
+                return;
+            }
+            childExistsVerificationRunning = true;
+
+            client.checkChildExists(childId, new BabyBuddyClient.RequestCallback<Boolean>() {
+                @Override
+                public void error(@NonNull Exception error) {
+                    // ... we eat this one
+                    childExistsVerificationRunning = false;
+                }
+
+                @Override
+                public void response(Boolean response) {
+                    childExistsVerificationRunning = false;
+                    if (!response) {
+                        close();
+                    }
+                }
+            });
         }
 
         protected void queueRequests() {
