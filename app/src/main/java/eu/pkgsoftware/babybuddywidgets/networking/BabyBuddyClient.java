@@ -26,6 +26,7 @@ import java.util.Comparator;
 import java.util.Date;
 import java.util.HashMap;
 import java.util.List;
+import java.util.Locale;
 import java.util.Map;
 import java.util.Objects;
 import java.util.TimeZone;
@@ -574,7 +575,7 @@ public class BabyBuddyClient extends StreamReader {
     }
 
     public void listChildren(RequestCallback<Child[]> callback) {
-        dispatchQuery("GET", "api/children/", null, new RequestCallback<String>() {
+        dispatchQuery("GET", "api/children/?limit=1000000", null, new RequestCallback<String>() {
             @Override
             public void error(Exception e) {
                 callback.error(e);
@@ -585,7 +586,7 @@ public class BabyBuddyClient extends StreamReader {
                 try {
                     JSONObject obj = new JSONObject(response);
                     JSONArray children = obj.getJSONArray("results");
-                    List<Child> result = new ArrayList<Child>(children.length());
+                    List<Child> result = new ArrayList<>(children.length());
                     for (int i = 0; i < children.length(); i++) {
                         JSONObject c = children.getJSONObject(i);
                         result.add(Child.fromJSON(c));
@@ -603,8 +604,12 @@ public class BabyBuddyClient extends StreamReader {
     }
 
     public void listTimers(Integer child_id, RequestCallback<Timer[]> callback) {
-        String queryString = "?" + (child_id == null ? "" : ("child=" + child_id));
-        dispatchQuery("GET", "api/timers/" + queryString, null, new RequestCallback<String>() {
+        final QueryValues qv = new QueryValues();
+        if (child_id != null) {
+            qv.add("child", child_id);
+        }
+        qv.add("limit", 1000000);
+        dispatchQuery("GET", "api/timers/" + qv.toQueryString(), null, new RequestCallback<String>() {
             @Override
             public void error(Exception e) {
                 callback.error(e);
@@ -630,17 +635,21 @@ public class BabyBuddyClient extends StreamReader {
     }
 
     public void deleteTimer(int timer_id, RequestCallback<Boolean> callback) {
-        dispatchQuery("DELETE", String.format("api/timers/%d/", timer_id), null, new RequestCallback<String>() {
-            @Override
-            public void error(Exception error) {
-                callback.error(error);
-            }
+        dispatchQuery(
+            "DELETE",
+            String.format(Locale.US, "api/timers/%d/", timer_id),
+            null,
+            new RequestCallback<String>() {
+                @Override
+                public void error(Exception error) {
+                    callback.error(error);
+                }
 
-            @Override
-            public void response(String response) {
-                callback.response(true);
-            }
-        });
+                @Override
+                public void response(String response) {
+                    callback.response(true);
+                }
+            });
     }
 
     private static String urlencode(String s) {

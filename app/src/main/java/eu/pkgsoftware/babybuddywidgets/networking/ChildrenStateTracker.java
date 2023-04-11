@@ -19,8 +19,6 @@ public class ChildrenStateTracker {
     public static class CancelledException extends Exception {
     }
 
-    ;
-
     public interface ConnectionStateListener {
         void connectionStateChanged(boolean connected, long disconnectedFor);
     }
@@ -42,8 +40,6 @@ public class ChildrenStateTracker {
 
         public abstract void doRequest();
     }
-
-    ;
 
     private static final int DEFER_BASE_TIMEOUT = 500;
     private static final int MAX_DEFERRED_TIMEOUT = 20000;
@@ -82,8 +78,6 @@ public class ChildrenStateTracker {
 
         public abstract void runIfNotCancelled();
     }
-
-    ;
 
     public ChildrenStateTracker(BabyBuddyClient client, Looper looper) {
         this.client = client;
