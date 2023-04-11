@@ -16,12 +16,13 @@ import androidx.recyclerview.widget.RecyclerView;
 import eu.pkgsoftware.babybuddywidgets.databinding.NotesEditorBinding;
 import eu.pkgsoftware.babybuddywidgets.databinding.QuickTimerEntryBinding;
 import eu.pkgsoftware.babybuddywidgets.networking.BabyBuddyClient;
+import eu.pkgsoftware.babybuddywidgets.networking.RequestCodeFailure;
 import eu.pkgsoftware.babybuddywidgets.widgets.SwitchButtonLogic;
 
 public class TimerListViewHolder extends RecyclerView.ViewHolder {
     private final QuickTimerEntryBinding binding;
 
-    private final BaseFragment baseFragment;
+    private final @NotNull BaseFragment baseFragment;
     private final CredStore credStore;
     private final BabyBuddyClient client;
     private final Handler timerHandler;
@@ -153,13 +154,48 @@ public class TimerListViewHolder extends RecyclerView.ViewHolder {
 
         @Override
         public void error(@NotNull Exception error) {
-            // TODO: Allow to cancel timer
+            String message = errorMessage;
+            if (error instanceof RequestCodeFailure) {
+                final RequestCodeFailure rcf = (RequestCodeFailure) error;
+                if (rcf.hasJSONMessage()) {
+                    message = Phrase.from(baseFragment.getResources(), R.string.activity_store_failure_server_error)
+                        .put("message", errorMessage)
+                        .put("server_message", String.join(", ", rcf.jsonErrorMessages()))
+                        .format().toString();
+                }
+            }
 
-            baseFragment.showError(
+            baseFragment.showQuestion(
                 true,
                 baseFragment.getString(R.string.activity_store_failure_message),
-                errorMessage
+                message,
+                baseFragment.getString(R.string.activity_store_failure_cancel),
+                baseFragment.getString(R.string.activity_store_failure_stop_timer),
+                b -> {
+                    if (!b) {
+                        client.setTimerActive(timer.id, false, new BabyBuddyClient.RequestCallback<Boolean>() {
+                            @Override
+                            public void error(@NonNull Exception error) {
+                                baseFragment.showError(
+                                    true,
+                                    R.string.activity_store_failure_failed_to_stop_title,
+                                    R.string.activity_store_failure_failed_to_stop_message
+                                );
+                                updateActiveState();
+                            }
+
+                            @Override
+                            public void response(Boolean response) {
+                                updateActiveState();
+                            }
+                        });
+                    } else {
+                        updateActiveState();
+                    }
+                }
             );
+
+
             updateActiveState();
         }
 

@@ -58,7 +58,7 @@ public class RequestCodeFailure extends IOException {
             if (subArray == null) {
                 continue;
             }
-            for (int i = 0; i < subArray.length(); ) {
+            for (int i = 0; i < subArray.length(); i++) {
                 String msg = subArray.optString(i);
                 if (msg != null) {
                     messages.add(msg);

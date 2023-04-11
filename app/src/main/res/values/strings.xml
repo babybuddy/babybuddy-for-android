@@ -59,7 +59,14 @@
     <string name="error_storing_activity_failed_title">Could not store activity</string>
     <string name="error_storing_activity_unsupported">Unsupported activity</string>
     <string name="popup_message_storing">Storing {activity} …</string>
+
+    <!-- Generic store error -->
     <string name="activity_store_failure_message">Could not store activity</string>
+    <string name="activity_store_failure_server_error">{message}\n\nServer reported: {server_message}</string>
+    <string name="activity_store_failure_stop_timer">Stop timer</string>
+    <string name="activity_store_failure_cancel">Cancel</string>
+    <string name="activity_store_failure_failed_to_stop_title">Timer stop</string>
+    <string name="activity_store_failure_failed_to_stop_message">Stopping timer failed</string>
 
     <!--- Store activities: Conflicts -->
     <string name="conflicting_activity_title">Overlapping time entries</string>
