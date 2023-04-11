@@ -609,7 +609,7 @@ public class BabyBuddyClient extends StreamReader {
             qv.add("child", child_id);
         }
         qv.add("limit", 1000000);
-        dispatchQuery("GET", "api/timers/" + qv.toQueryString(), null, new RequestCallback<String>() {
+        dispatchQuery("GET", "api/timers/?" + qv.toQueryString(), null, new RequestCallback<String>() {
             @Override
             public void error(Exception e) {
                 callback.error(e);
