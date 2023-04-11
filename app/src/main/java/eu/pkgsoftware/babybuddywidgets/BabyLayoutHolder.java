@@ -219,6 +219,7 @@ public class BabyLayoutHolder extends RecyclerView.ViewHolder {
                 public void response(Boolean response) {
                     notesEditor.clearText();
                     notesSwitch.setState(false);
+                    childHistoryLoader.forceRefresh();
                 }
             }
         );

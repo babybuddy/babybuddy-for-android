@@ -84,8 +84,8 @@ class ChildEventHistoryLoader(
         val newOffset = listIntegrator.suggestClassQueryOffset(type)
         to.queryOffsets[type] = newOffset
         if (newOffset != offset) {
-            // TODO: Fix!
-            //to.forceUpdate()
+            updateTop()
+            to.forceUpdate()
         }
 
         updateTimelineList()
@@ -156,5 +156,9 @@ class ChildEventHistoryLoader(
         for (clsName in EVENTS.ALL) {
             to.queryOffsets[clsName] = listIntegrator.suggestClassQueryOffset(clsName)
         }
+    }
+
+    fun forceRefresh() {
+        timelineObserver?.forceUpdate()
     }
 }

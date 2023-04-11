@@ -139,7 +139,9 @@ public class ChildrenStateTracker {
     private class QueueRequest<R> {
         private boolean deferErrors = false;
 
-        public QueueRequest() {}
+        public QueueRequest() {
+        }
+
         public QueueRequest(boolean deferErrors) {
             this.deferErrors = deferErrors;
         }
@@ -249,6 +251,7 @@ public class ChildrenStateTracker {
         private long requestInterval;
         private boolean closed = false;
         private boolean requeued = true;
+        private boolean fastRequeued = false;
 
         public StateObserver(long requestInterval) {
             this.requestInterval = requestInterval;
@@ -274,8 +277,14 @@ public class ChildrenStateTracker {
 
         protected void forceUpdate() {
             if (isClosed()) return;
-            requeued = true;
-            queueHandler.postDelayed(this::update, 0);
+            queueHandler.postDelayed(
+                () -> {
+                    if (!isClosed()) {
+                        this.queueRequests();
+                    }
+                },
+                0
+            );
         }
 
         protected void requeue() {
@@ -529,12 +538,13 @@ public class ChildrenStateTracker {
 
             requeueGate--;
             if (requeueGate <= 0) {
+                requeueGate = 0;
                 super.requeue();
             }
         }
 
         protected void queueRequests() {
-            requeueGate = 4;
+            requeueGate += 4;
 
             new QueueRequest<BabyBuddyClient.GenericListSubsetResponse<BabyBuddyClient.TimeEntry>>(true).queue(
                 new BoundSleepRecordsCallback(offsetByName(BabyBuddyClient.ACTIVITIES.SLEEP))::call,
