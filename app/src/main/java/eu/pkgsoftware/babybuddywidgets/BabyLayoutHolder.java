@@ -343,11 +343,26 @@ public class BabyLayoutHolder extends RecyclerView.ViewHolder {
         childHistoryLoader = null;
     }
 
-    public void updateChild(BabyBuddyClient.Child c) {
+    public void updateChild(BabyBuddyClient.Child c, ChildrenStateTracker stateTracker) {
         clear();
         this.child = c;
         notesEditor.setIdentifier("diaper_" + c.slug);
         notesSwitch.setState(notesEditor.isVisible());
+
+        binding.createDefaultTimers.setVisibility(View.GONE);
+
+        if (child != null) {
+            childObserver = stateTracker.new ChildObserver(child.id, this::updateTimerList);
+
+            childHistoryLoader = new ChildEventHistoryLoader(
+                baseFragment,
+                binding.innerTimeline,
+                child.id,
+                new VisibilityCheck(binding.mainScrollView),
+                binding.timelineProgressSpinner
+            );
+            childHistoryLoader.createTimelineObserver(stateTracker);
+        }
     }
 
     public void updateTimerList(BabyBuddyClient.Timer[] timers) {
@@ -360,36 +375,6 @@ public class BabyLayoutHolder extends RecyclerView.ViewHolder {
 
         timerListProvider.updateTimers(timers);
         binding.createDefaultTimers.setVisibility(timers.length == 0 ? View.VISIBLE : View.GONE);
-    }
-
-    public void onViewSelected(ChildrenStateTracker stateTracker) {
-        binding.createDefaultTimers.setVisibility(View.GONE);
-
-        resetChildObserver();
-        resetChildHistoryLoader();
-        resetDiaperUi();
-
-        if (child != null) {
-            childObserver = stateTracker.new ChildObserver(child.id, new ChildrenStateTracker.ChildListener() {
-                @Override
-                public void childValidUpdated(boolean valid) {
-                }
-
-                @Override
-                public void timersUpdated(BabyBuddyClient.Timer[] timers) {
-                    updateTimerList(timers);
-                }
-            });
-
-            childHistoryLoader = new ChildEventHistoryLoader(
-                baseFragment,
-                binding.innerTimeline,
-                child.id,
-                new VisibilityCheck(binding.mainScrollView),
-                binding.timelineProgressSpinner
-            );
-            childHistoryLoader.createTimelineObserver(stateTracker);
-        }
     }
 
     public void onViewDeselected() {

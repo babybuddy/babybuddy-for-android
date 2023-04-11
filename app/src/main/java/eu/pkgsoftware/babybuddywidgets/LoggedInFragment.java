@@ -57,7 +57,7 @@ public class LoggedInFragment extends BaseFragment {
 
         @Override
         public void onBindViewHolder(@NonNull BabyLayoutHolder holder, int position) {
-            holder.updateChild(children[position]);
+            holder.updateChild(children[position], stateTracker);
 
             int childIndex = childIndexBySlug(credStore.getSelectedChild());
             if (childIndex >= 0) {
@@ -84,7 +84,7 @@ public class LoggedInFragment extends BaseFragment {
             activeHolder = null;
             for (BabyLayoutHolder h : holders) {
                 if (Objects.equals(c, h.getChild())) {
-                    h.onViewSelected(stateTracker);
+                    h.updateChild(c, stateTracker);
                     activeHolder = h;
                 } else {
                     h.onViewDeselected();

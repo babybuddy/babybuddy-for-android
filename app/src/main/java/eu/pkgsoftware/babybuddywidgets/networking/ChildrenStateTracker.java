@@ -11,9 +11,11 @@ import java.util.Arrays;
 import java.util.Collections;
 import java.util.HashMap;
 import java.util.Map;
+import java.util.Queue;
 import java.util.function.Consumer;
 
 import androidx.annotation.NonNull;
+import androidx.recyclerview.widget.RecyclerView;
 
 public class ChildrenStateTracker {
     public static class CancelledException extends Exception {
@@ -135,6 +137,13 @@ public class ChildrenStateTracker {
     }
 
     private class QueueRequest<R> {
+        private boolean deferErrors = false;
+
+        public QueueRequest() {}
+        public QueueRequest(boolean deferErrors) {
+            this.deferErrors = deferErrors;
+        }
+
         public void queue(
             Consumer<BabyBuddyClient.RequestCallback<R>> request,
             BabyBuddyClient.RequestCallback<R> responseCallback) {
@@ -148,9 +157,13 @@ public class ChildrenStateTracker {
                 public void doRequest() {
                     BabyBuddyClient.RequestCallback<R> local = new BabyBuddyClient.RequestCallback<R>() {
                         @Override
-                        public void error(Exception error) {
-                            setDisconnected();
-                            retry();
+                        public void error(@NotNull Exception error) {
+                            if (deferErrors) {
+                                responseCallback.error(error);
+                            } else {
+                                setDisconnected();
+                                retry();
+                            }
                         }
 
                         @Override
@@ -314,25 +327,58 @@ public class ChildrenStateTracker {
         }
     }
 
+    /* Generic base to implement classes that should fail when child_id is missing */
+    public abstract class ChildIdStateObserver extends StateObserver {
+        private boolean childExistsVerificationRunning = false;
+        protected final int childId;
+
+        public ChildIdStateObserver(int childId, long requestInterval) {
+            super(requestInterval);
+            this.childId = childId;
+        }
+
+        protected void closeWhenChildIsMissing() {
+            if (isClosed()) {
+                return;
+            }
+            if (childExistsVerificationRunning) {
+                return;
+            }
+            childExistsVerificationRunning = true;
+
+            client.checkChildExists(childId, new BabyBuddyClient.RequestCallback<Boolean>() {
+                @Override
+                public void error(@NonNull Exception error) {
+                    setDisconnected();
+                    childExistsVerificationRunning = false;
+                }
+
+                @Override
+                public void response(Boolean response) {
+                    childExistsVerificationRunning = false;
+                    if (!response) {
+                        close();
+                    }
+                }
+            });
+        }
+
+
+    }
+
     /* Child listener */
     public interface ChildListener {
-        void childValidUpdated(boolean valid);
-
         void timersUpdated(BabyBuddyClient.Timer[] timers);
     }
 
-    public class ChildObserver extends StateObserver {
+    public class ChildObserver extends ChildIdStateObserver {
         public static final long INTERVAL = 1000;
 
-        private final int childId;
         private final ChildListener listener;
-        private boolean closed = false;
         private BabyBuddyClient.Timer[] currentTimerList = null;
 
         public ChildObserver(int childId, ChildListener listener) {
-            super(INTERVAL);
-
-            this.childId = childId;
+            super(childId, INTERVAL);
             this.listener = listener;
         }
 
@@ -343,11 +389,12 @@ public class ChildrenStateTracker {
         }
 
         protected void queueRequests() {
-            new QueueRequest<BabyBuddyClient.Timer[]>().queue(
+            new QueueRequest<BabyBuddyClient.Timer[]>(true).queue(
                 new BoundTimerListCall()::call,
                 new BabyBuddyClient.RequestCallback<BabyBuddyClient.Timer[]>() {
                     @Override
                     public void error(Exception error) {
+                        closeWhenChildIsMissing();
                         requeue();
                     }
 
@@ -380,22 +427,17 @@ public class ChildrenStateTracker {
         void changeRecordsObtained(int offset, int totalCount, BabyBuddyClient.TimeEntry[] entries);
     }
 
-    public class TimelineObserver extends StateObserver {
+    public class TimelineObserver extends ChildIdStateObserver {
         public static final long INTERVAL = 5000;
         public static final int COUNT = 50;
 
-        private final int childId;
         private final TimelineListener listener;
-        private boolean closed = false;
         private int requeueGate = 0;
-
-        private boolean childExistsVerificationRunning = false;
 
         public Map<String, Integer> queryOffsets = new HashMap<>();
 
         public TimelineObserver(int childId, TimelineListener listener) {
-            super(INTERVAL);
-            this.childId = childId;
+            super(childId, INTERVAL);
             this.listener = listener;
         }
 
@@ -481,46 +523,25 @@ public class ChildrenStateTracker {
 
         @Override
         protected void requeue() {
+            if (isClosed()) {
+                return;
+            }
+
             requeueGate--;
             if (requeueGate <= 0) {
                 super.requeue();
             }
         }
 
-        protected void verifyChildExists() {
-            if (isClosed()) {
-                return;
-            }
-            if (childExistsVerificationRunning) {
-                return;
-            }
-            childExistsVerificationRunning = true;
-
-            client.checkChildExists(childId, new BabyBuddyClient.RequestCallback<Boolean>() {
-                @Override
-                public void error(@NonNull Exception error) {
-                    // ... we eat this one
-                    childExistsVerificationRunning = false;
-                }
-
-                @Override
-                public void response(Boolean response) {
-                    childExistsVerificationRunning = false;
-                    if (!response) {
-                        close();
-                    }
-                }
-            });
-        }
-
         protected void queueRequests() {
             requeueGate = 4;
 
-            new QueueRequest<BabyBuddyClient.GenericListSubsetResponse<BabyBuddyClient.TimeEntry>>().queue(
+            new QueueRequest<BabyBuddyClient.GenericListSubsetResponse<BabyBuddyClient.TimeEntry>>(true).queue(
                 new BoundSleepRecordsCallback(offsetByName(BabyBuddyClient.ACTIVITIES.SLEEP))::call,
                 new BabyBuddyClient.RequestCallback<BabyBuddyClient.GenericListSubsetResponse<BabyBuddyClient.TimeEntry>>() {
                     @Override
-                    public void error(Exception error) {
+                    public void error(@NotNull Exception error) {
+                        closeWhenChildIsMissing();
                         requeue();
                     }
 
@@ -536,11 +557,12 @@ public class ChildrenStateTracker {
                     }
                 }
             );
-            new QueueRequest<BabyBuddyClient.GenericListSubsetResponse<BabyBuddyClient.FeedingEntry>>().queue(
+            new QueueRequest<BabyBuddyClient.GenericListSubsetResponse<BabyBuddyClient.FeedingEntry>>(true).queue(
                 new BoundFeedingRecordsCallback(offsetByName(BabyBuddyClient.ACTIVITIES.FEEDING))::call,
                 new BabyBuddyClient.RequestCallback<BabyBuddyClient.GenericListSubsetResponse<BabyBuddyClient.FeedingEntry>>() {
                     @Override
-                    public void error(Exception error) {
+                    public void error(@NotNull Exception error) {
+                        closeWhenChildIsMissing();
                         requeue();
                     }
 
@@ -556,11 +578,12 @@ public class ChildrenStateTracker {
                     }
                 }
             );
-            new QueueRequest<BabyBuddyClient.GenericListSubsetResponse<BabyBuddyClient.TimeEntry>>().queue(
+            new QueueRequest<BabyBuddyClient.GenericListSubsetResponse<BabyBuddyClient.TimeEntry>>(true).queue(
                 new BoundTummyTimeRecordsCallback(offsetByName(BabyBuddyClient.ACTIVITIES.TUMMY_TIME))::call,
                 new BabyBuddyClient.RequestCallback<BabyBuddyClient.GenericListSubsetResponse<BabyBuddyClient.TimeEntry>>() {
                     @Override
-                    public void error(Exception error) {
+                    public void error(@NotNull Exception error) {
+                        closeWhenChildIsMissing();
                         requeue();
                     }
 
@@ -576,11 +599,12 @@ public class ChildrenStateTracker {
                     }
                 }
             );
-            new QueueRequest<BabyBuddyClient.GenericListSubsetResponse<BabyBuddyClient.ChangeEntry>>().queue(
+            new QueueRequest<BabyBuddyClient.GenericListSubsetResponse<BabyBuddyClient.ChangeEntry>>(true).queue(
                 new BoundChangeRecordsCallback(offsetByName(BabyBuddyClient.EVENTS.CHANGE))::call,
                 new BabyBuddyClient.RequestCallback<BabyBuddyClient.GenericListSubsetResponse<BabyBuddyClient.ChangeEntry>>() {
                     @Override
-                    public void error(Exception error) {
+                    public void error(@NotNull Exception error) {
+                        closeWhenChildIsMissing();
                         requeue();
                     }
 
