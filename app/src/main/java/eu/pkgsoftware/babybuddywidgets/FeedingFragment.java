@@ -128,12 +128,7 @@ public class FeedingFragment extends BaseFragment {
         binding = FeedingFragmentBinding.inflate(inflater, container, false);
         View view = binding.getRoot();
 
-        binding.submitButton.setOnClickListener(new View.OnClickListener() {
-            @Override
-            public void onClick(View view) {
-                submitFeeding();
-            }
-        });
+        binding.submitButton.setOnClickListener(view1 -> submitFeeding());
         binding.feedingTypeSpinner.setOnItemSelectedListener(
             new AdapterView.OnItemSelectedListener() {
                 @Override

@@ -20,7 +20,7 @@ import eu.pkgsoftware.babybuddywidgets.networking.ChildrenStateTracker;
 import eu.pkgsoftware.babybuddywidgets.widgets.SwitchButtonLogic;
 
 public class BabyLayoutHolder extends RecyclerView.ViewHolder {
-    private class TimerListProvider extends RecyclerView.Adapter<TimerListViewHolder> {
+    private class TimerListProvider extends RecyclerView.Adapter<TimerListViewHolder> implements TimerListViewHolder.TimerListViewHolderCallback {
         private BabyBuddyClient.Timer[] timers = new BabyBuddyClient.Timer[0];
         private List<TimerListViewHolder> holders = new LinkedList<>();
 
@@ -81,7 +81,7 @@ public class BabyLayoutHolder extends RecyclerView.ViewHolder {
         @Override
         public TimerListViewHolder onCreateViewHolder(ViewGroup parent, int viewType) {
             QuickTimerEntryBinding entryBinding = QuickTimerEntryBinding.inflate(LayoutInflater.from(parent.getContext()));
-            return new TimerListViewHolder(baseFragment, entryBinding);
+            return new TimerListViewHolder(baseFragment, entryBinding, this);
         }
 
         @Override
@@ -109,6 +109,13 @@ public class BabyLayoutHolder extends RecyclerView.ViewHolder {
         public void close() {
             for (TimerListViewHolder h : holders) {
                 h.close();
+            }
+        }
+
+        @Override
+        public void updateActivities() {
+            if (childHistoryLoader != null) {
+                childHistoryLoader.forceRefresh();
             }
         }
     }

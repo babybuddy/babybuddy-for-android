@@ -332,7 +332,7 @@ class MainActivity : AppCompatActivity() {
                         retries--
                         delay(1000)
                     }
-                    storeInterface.error(java.lang.Exception("Failed to correct conflicting"))
+                    storeInterface.error(java.lang.Exception("Failed to correct conflicting time entries"))
                 } else {
                     progressDialog.cancel()
                     storeInterface.cancel()

@@ -56,6 +56,7 @@ class ChildEventHistoryLoader(
             TimelineEntry(fragment, e)
         };
         result.timeEntry = e
+        result.setModifiedCallback { timelineObserver?.forceUpdate() }
         container.addView(result.view)
         currentList.add(result)
         return result
@@ -67,7 +68,7 @@ class ChildEventHistoryLoader(
             e.type,
             e.typeId.toString()
         )
-        timeEntryLookup.put(result, e)
+        timeEntryLookup[result] = e
         return result
     }
 
@@ -123,7 +124,9 @@ class ChildEventHistoryLoader(
             }
         while (currentList.size > items.size) {
             val removed = currentList.removeLast()
-            removedViews.add(removed)
+            if (removedViews.size < 128) {
+                removedViews.add(removed)
+            }
             container.removeView(removed.view)
         }
     }

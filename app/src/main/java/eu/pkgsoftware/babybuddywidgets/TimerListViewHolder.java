@@ -20,7 +20,12 @@ import eu.pkgsoftware.babybuddywidgets.networking.RequestCodeFailure;
 import eu.pkgsoftware.babybuddywidgets.widgets.SwitchButtonLogic;
 
 public class TimerListViewHolder extends RecyclerView.ViewHolder {
-    private final QuickTimerEntryBinding binding;
+    public static interface TimerListViewHolderCallback {
+        void updateActivities();
+    }
+
+    private final @NotNull TimerListViewHolderCallback callbacks;
+    private final @NotNull QuickTimerEntryBinding binding;
 
     private final @NotNull BaseFragment baseFragment;
     private final CredStore credStore;
@@ -76,11 +81,16 @@ public class TimerListViewHolder extends RecyclerView.ViewHolder {
         }
     }
 
-    public TimerListViewHolder(BaseFragment baseFragment, QuickTimerEntryBinding binding) {
+    public TimerListViewHolder(
+        BaseFragment baseFragment,
+        QuickTimerEntryBinding binding,
+        @NotNull TimerListViewHolderCallback callbacks
+    ) {
         super(binding.getRoot());
 
         this.baseFragment = baseFragment;
         this.binding = binding;
+        this.callbacks = callbacks;
 
         credStore = baseFragment.getMainActivity().getCredStore();
         client = baseFragment.getMainActivity().getClient();
@@ -257,6 +267,7 @@ public class TimerListViewHolder extends RecyclerView.ViewHolder {
         public void response(java.lang.Boolean response) {
             sac.response(response);
             updateActiveState();
+            callbacks.updateActivities();
         }
 
         @Override

@@ -4,6 +4,8 @@ import android.view.View;
 
 import com.squareup.phrase.Phrase;
 
+import org.jetbrains.annotations.NotNull;
+
 import java.net.MalformedURLException;
 import java.text.DateFormat;
 import java.util.Date;
@@ -21,6 +23,8 @@ public class TimelineEntry {
     private final TimelineItemBinding binding;
 
     private BabyBuddyClient.TimeEntry entry = null;
+
+    private Runnable modifiedCallback = null;
 
     private void hideAllSubviews() {
         for (int i = 0; i < binding.viewGroup.getChildCount(); i++) {
@@ -154,12 +158,15 @@ public class TimelineEntry {
                 BabyBuddyClient client = fragment.getMainActivity().getClient();
                 client.removeTimelineEntry(thisEntry, new BabyBuddyClient.RequestCallback<Boolean>() {
                     @Override
-                    public void error(Exception error) {
+                    public void error(@NotNull Exception error) {
                     }
 
                     @Override
                     public void response(Boolean response) {
                         setTimeEntry(null);
+                        if (modifiedCallback != null) {
+                            modifiedCallback.run();
+                        }
                     }
                 });
             }
@@ -208,5 +215,9 @@ public class TimelineEntry {
 
     public Date getDate() {
         return entry.end;
+    }
+
+    public void setModifiedCallback(Runnable r) {
+        modifiedCallback = r;
     }
 }
