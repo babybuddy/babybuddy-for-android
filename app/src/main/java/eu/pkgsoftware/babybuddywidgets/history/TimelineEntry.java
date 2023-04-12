@@ -9,6 +9,7 @@ import org.jetbrains.annotations.NotNull;
 import java.net.MalformedURLException;
 import java.text.DateFormat;
 import java.util.Date;
+import java.util.Objects;
 
 import eu.pkgsoftware.babybuddywidgets.BaseFragment;
 import eu.pkgsoftware.babybuddywidgets.R;
@@ -184,6 +185,9 @@ public class TimelineEntry {
     }
 
     public void setTimeEntry(BabyBuddyClient.TimeEntry entry) {
+        if (Objects.equals(this.entry, entry)) {
+            return;
+        }
         this.entry = entry;
 
         if (entry == null) {

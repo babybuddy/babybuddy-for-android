@@ -3,6 +3,7 @@ package eu.pkgsoftware.babybuddywidgets.history
 import android.view.View
 import android.widget.LinearLayout
 import android.widget.ProgressBar
+import androidx.appcompat.app.AppCompatActivity
 import eu.pkgsoftware.babybuddywidgets.BaseFragment
 import eu.pkgsoftware.babybuddywidgets.VisibilityCheck
 import eu.pkgsoftware.babybuddywidgets.logic.ContinuousListItem
@@ -13,6 +14,7 @@ import eu.pkgsoftware.babybuddywidgets.networking.BabyBuddyClient.TimeEntry
 import eu.pkgsoftware.babybuddywidgets.networking.ChildrenStateTracker
 import eu.pkgsoftware.babybuddywidgets.networking.ChildrenStateTracker.TimelineListener
 import eu.pkgsoftware.babybuddywidgets.networking.ChildrenStateTracker.TimelineObserver
+import kotlinx.coroutines.*
 import java.util.*
 
 class ChildEventHistoryLoader(
@@ -22,11 +24,15 @@ class ChildEventHistoryLoader(
     private val visibilityCheck: VisibilityCheck,
     private val progressBar: ProgressBar
 ) {
+    private val initialActivityCollectionGate = (ACTIVITIES.ALL + EVENTS.ALL).toMutableList()
+
     private var timelineObserver: TimelineObserver? = null
     private val timeEntryLookup = mutableMapOf<ContinuousListItem, TimeEntry>()
     private val listIntegrator = EndAwareContinuousListIntegrator()
     private val currentList = mutableListOf<TimelineEntry>()
     private val removedViews = mutableListOf<TimelineEntry>()
+
+    private var updateJob: Job? = null
 
     fun createTimelineObserver(stateTracker: ChildrenStateTracker) {
         close()
@@ -75,6 +81,9 @@ class ChildEventHistoryLoader(
     private fun addTimelineItems(offset: Int, totalCount: Int, type: String, _entries: Array<TimeEntry>) {
         val to = timelineObserver ?: return
 
+        initialActivityCollectionGate.remove(type)
+
+        // Put this in separate thread!
         listIntegrator.updateItemsWithCount(
             offset,
             totalCount,
@@ -84,20 +93,21 @@ class ChildEventHistoryLoader(
 
         val newOffset = listIntegrator.suggestClassQueryOffset(type)
         to.queryOffsets[type] = newOffset
-        if (newOffset != offset) {
-            updateTop()
-            to.forceUpdate()
-        }
 
-        updateTimelineList()
+        val updateJob = this.updateJob
+        if ((updateJob == null) || (!updateJob.isActive)) {
+            if (initialActivityCollectionGate.isEmpty()) {
+                this.updateJob = fragment.mainActivity.scope.launch { deferredUpdate() }
+            }
+        }
     }
 
-    private fun updateTimelineList() {
+    suspend fun deferredUpdate() {
         val items = listIntegrator.items
         var i = 0
         val visibleCount = listIntegrator.computeValidCount()
 
-        items.forEach {
+        for (it in items) {
             val entry = timeEntryLookup[it]
             val listItem: TimelineEntry =
                 if (i < currentList.size) {
@@ -111,17 +121,20 @@ class ChildEventHistoryLoader(
                 listItem.timeEntry = entry
             }
             listItem.view.visibility = if (i < visibleCount) {
-                    View.VISIBLE
-                } else {
-                    View.GONE
-                }
+                View.VISIBLE
+            } else {
+                View.GONE
+            }
             i++
+            if (i % 50 == 0) {
+                delay(50)
+            }
         }
         progressBar.visibility = if (visibleCount == items.size) {
-                View.GONE
-            } else {
-                View.VISIBLE
-            }
+            View.GONE
+        } else {
+            View.VISIBLE
+        }
         while (currentList.size > items.size) {
             val removed = currentList.removeLast()
             if (removedViews.size < 128) {
@@ -129,6 +142,8 @@ class ChildEventHistoryLoader(
             }
             container.removeView(removed.view)
         }
+
+        delay(500)
     }
 
     fun close() {
@@ -136,7 +151,7 @@ class ChildEventHistoryLoader(
         timelineObserver = null
         listIntegrator.clear()
         removedViews.clear()
-        updateTimelineList()
+        container.removeAllViews()
         timeEntryLookup.clear()
     }
 
@@ -162,6 +177,9 @@ class ChildEventHistoryLoader(
     }
 
     fun forceRefresh() {
+        updateJob?.cancel("forceRefresh()")
+        initialActivityCollectionGate.clear()
+        initialActivityCollectionGate.addAll(ACTIVITIES.ALL + EVENTS.ALL)
         timelineObserver?.forceUpdate()
     }
 }

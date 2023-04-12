@@ -248,10 +248,9 @@ public class ChildrenStateTracker {
     }
 
     private abstract class StateObserver {
-        private long requestInterval;
+        private final long requestInterval;
         private boolean closed = false;
         private boolean requeued = true;
-        private boolean fastRequeued = false;
 
         public StateObserver(long requestInterval) {
             this.requestInterval = requestInterval;
@@ -267,24 +266,14 @@ public class ChildrenStateTracker {
         }
 
         private void update() {
-            if (isClosed() || !requeued) {
+            if (isClosed()) {
                 return;
             }
-            requeued = false;
             queueHandler.postDelayed(this::update, requestInterval);
-            queueRequests();
-        }
-
-        protected void forceUpdate() {
-            if (isClosed()) return;
-            queueHandler.postDelayed(
-                () -> {
-                    if (!isClosed()) {
-                        this.queueRequests();
-                    }
-                },
-                0
-            );
+            if (requeued) {
+                requeued = false;
+                queueRequests();
+            }
         }
 
         protected void requeue() {
@@ -442,6 +431,7 @@ public class ChildrenStateTracker {
 
         private final TimelineListener listener;
         private int requeueGate = 0;
+        private boolean instantRequeue = false;
 
         public Map<String, Integer> queryOffsets = new HashMap<>();
 
@@ -527,7 +517,11 @@ public class ChildrenStateTracker {
         }
 
         public void forceUpdate() {
-            super.forceUpdate();
+            if (requeueGate == 0) {
+                queueRequests();
+            } else {
+                instantRequeue = true;
+            }
         }
 
         @Override
@@ -539,7 +533,12 @@ public class ChildrenStateTracker {
             requeueGate--;
             if (requeueGate <= 0) {
                 requeueGate = 0;
-                super.requeue();
+                if (instantRequeue) {
+                    instantRequeue = false;
+                    queueRequests();
+                } else {
+                    super.requeue();
+                }
             }
         }
 
