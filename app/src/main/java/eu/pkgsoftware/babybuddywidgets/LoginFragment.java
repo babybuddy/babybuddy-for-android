@@ -228,7 +228,8 @@ public class LoginFragment extends BaseFragment {
     private void testLogin(Promise<Object, String> promise) {
         CredStore credStore = new CredStore(getContext());
         if (credStore.getAppToken() != null) {
-            BabyBuddyClient client = getMainActivity().getClient();
+            final MainActivity mainActivity = getMainActivity();
+            BabyBuddyClient client = mainActivity.getClient();
             client.listChildren(new BabyBuddyClient.RequestCallback<BabyBuddyClient.Child[]>() {
                 @Override
                 public void error(Exception error) {
@@ -237,7 +238,7 @@ public class LoginFragment extends BaseFragment {
 
                 @Override
                 public void response(BabyBuddyClient.Child[] response) {
-                    getMainActivity().children = response;
+                    mainActivity.children = response;
                     promise.succeeded(new Object());
                 }
             });
