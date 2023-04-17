@@ -130,10 +130,11 @@ public class AboutFragment extends BaseFragment {
     public View onCreateView(
         @NonNull LayoutInflater inflater,
         @Nullable ViewGroup container,
-        @Nullable Bundle savedInstanceState) {
+        @Nullable Bundle savedInstanceState
+    ) {
         binding = AboutFragmentBinding.inflate(inflater);
 
-        boolean isNightmode = (getContext().getResources().getConfiguration().uiMode & Configuration.UI_MODE_NIGHT_MASK) == Configuration.UI_MODE_NIGHT_YES;
+        final boolean isNightmode = (getResources().getConfiguration().uiMode & Configuration.UI_MODE_NIGHT_MASK) == Configuration.UI_MODE_NIGHT_YES;
 
         String[] aboutIconLists = getResources().getStringArray(R.array.autostring_about_icon_iconlists);
         String[] aboutIconTitles = getResources().getStringArray(R.array.autostring_about_icon_titles);
@@ -151,6 +152,10 @@ public class AboutFragment extends BaseFragment {
                 aboutIconLinks[i]
             ));
         }
+
+        final ColorStateList linkColorList = ContextCompat.getColorStateList(
+            getContext(), android.R.color.holo_blue_dark
+        );
 
         for (final IconData iconData : iconDataList) {
             LinearLayout group = new LinearLayout(getContext());
@@ -192,10 +197,6 @@ public class AboutFragment extends BaseFragment {
                 iconsList.addView(iView);
             }
 
-            ColorStateList linkColorList = ContextCompat.getColorStateList(
-                getContext(), android.R.color.holo_blue_dark
-            );
-
             TextView tv = new TextView(getContext());
             tv.setMovementMethod(LinkMovementMethod.getInstance());
             TextViewCompat.setTextAppearance(tv, R.style.TextAppearance_AppCompat_Body1);
@@ -229,7 +230,7 @@ public class AboutFragment extends BaseFragment {
 
             group.addView(tv);
 
-            binding.root.addView(group);
+            binding.media.addView(group);
         }
 
         filterLinksFromTextFields(binding.root);

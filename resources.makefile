@@ -1,4 +1,4 @@
-.PHONY: all info refresh-flaticon-token help
+.PHONY: all info refresh-flaticon-token help licenses
 
 SPACE := $(null) $(null)
 
@@ -59,10 +59,18 @@ ALL_TARGETS = \
     $(DRAWABLE_TARGETS) \
     $(PROGRAM_ICON_TARGETS) \
 
-all: $(ALL_TARGETS) help
+all: $(ALL_TARGETS) help licenses
 
 help:
 	$(MAKE) -f help.makefile all
+
+LINCESES_SOURCE = tools/licenses/
+licenses: app/src/main/res/values/licenses_strings.xml
+
+app/src/main/res/values/licenses_strings.xml: 3RDPARTY.md $(LINCESES_SOURCE)/requirements.txt $(LINCESES_SOURCE)/process-3rdparty-files.py
+	cd $(LINCESES_SOURCE) \
+	&& python3 -m pipenv install -r requirements.txt \
+	&& python3 -m pipenv run python process-3rdparty-files.py $(abspath $<) $(abspath $@)
 
 info:
 	@echo -e -- Targets refreshed by this command: \\n  $(subst $(SPACE)$(SPACE),\\n$(SPACE)$(SPACE),$(ALL_TARGETS))
