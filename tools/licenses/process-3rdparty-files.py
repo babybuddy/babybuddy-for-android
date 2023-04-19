@@ -83,7 +83,9 @@ panflute.run_filter(doc_data.filter, doc=doc)
 def string_el(name: str, content: str) -> ET.Element:
     el = ET.Element("string")
     el.attrib["name"] = name
-    el.text = content.strip("\n").replace("'", "\\'")
+    el.text = '"{}"'.format(
+        content.strip("\n").replace("'", "\\'").replace('"', '\\"')
+    )
     return el
 
 help_xml = ET.fromstring("<resources />")

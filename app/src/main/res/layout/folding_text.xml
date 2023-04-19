@@ -7,13 +7,14 @@
 
     <ImageView
         android:id="@+id/foldingArrow"
-        android:layout_width="20pt"
-        android:layout_height="20pt"
+        android:layout_width="10pt"
+        android:layout_height="10pt"
         android:layout_weight="0"
         android:padding="2pt"
         app:srcCompat="@drawable/fold_arrow" />
 
     <LinearLayout
+        android:id="@+id/textContainer"
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
         android:layout_weight="1"
@@ -24,6 +25,7 @@
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
             android:layout_weight="1"
+            android:fontFamily="monospace"
             android:text="ShortTextPlaceholder" />
 
         <TextView
@@ -31,6 +33,7 @@
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
             android:layout_weight="1"
+            android:fontFamily="monospace"
             android:text="LongTextPlaceholder\nLongTextPlaceholder\nLongTextPlaceholder\nLongTextPlaceholder\nLongTextPlaceholder\n" />
     </LinearLayout>
 
