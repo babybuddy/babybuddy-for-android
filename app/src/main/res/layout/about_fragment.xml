@@ -53,7 +53,8 @@
             android:id="@+id/media"
             android:layout_width="match_parent"
             android:layout_height="match_parent"
-            android:orientation="vertical">
+            android:orientation="vertical"
+            android:paddingLeft="10pt">
 
         </LinearLayout>
 

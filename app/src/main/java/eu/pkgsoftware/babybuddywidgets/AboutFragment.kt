@@ -24,6 +24,7 @@ import androidx.core.widget.ImageViewCompat
 import androidx.core.widget.TextViewCompat
 import com.squareup.phrase.Phrase
 import eu.pkgsoftware.babybuddywidgets.databinding.AboutFragmentBinding
+import eu.pkgsoftware.babybuddywidgets.databinding.AboutLibraryEntryBinding
 import eu.pkgsoftware.babybuddywidgets.widgets.FoldingText
 import java.util.regex.Pattern
 
@@ -36,7 +37,12 @@ class IconData(icons: String, var title: String, var link: String) {
 }
 
 
-data class LibraryData(val title: String, val url: String, val shortText: String, val longText: String) {
+data class LibraryData(
+    val title: String,
+    val url: String,
+    val shortText: String,
+    val longText: String
+) {
 }
 
 class AboutFragment : BaseFragment() {
@@ -91,7 +97,7 @@ class AboutFragment : BaseFragment() {
         savedInstanceState: Bundle?
     ): View? {
         binding = AboutFragmentBinding.inflate(inflater)
-        
+
         val isNightmode =
             resources.configuration.uiMode and Configuration.UI_MODE_NIGHT_MASK == Configuration.UI_MODE_NIGHT_YES
 
@@ -103,7 +109,7 @@ class AboutFragment : BaseFragment() {
     }
 
     private fun getString(r: String): String? {
-        val _id = resources.getIdentifier(r, "string", activity!!.packageName)
+        val _id = resources.getIdentifier(r, "string", requireActivity().packageName)
         if (_id == 0) {
             return null
         }
@@ -127,9 +133,15 @@ class AboutFragment : BaseFragment() {
         }
 
         for (licenseEntry in licenseEntries) {
-            binding!!.libraries.addView(
-                FoldingText(requireActivity(), licenseEntry.shortText, licenseEntry.longText).view
+            val entryBinding = AboutLibraryEntryBinding.inflate(layoutInflater)
+            entryBinding.caption.setText(licenseEntry.title)
+            entryBinding.url.setText(
+                Phrase.from("Source: {url}").put("url", licenseEntry.url).format().toString()
             )
+            val folding =
+                FoldingText(requireActivity(), licenseEntry.shortText, licenseEntry.longText)
+            entryBinding.root.addView(folding.view)
+            binding!!.libraries.addView(entryBinding.root)
         }
     }
 
