@@ -8,7 +8,7 @@ their own 3rd party licenses.
 Source: https://github.com/Kotlin/
 
 ~~~~~.txt
-Copyright 2016-2021 JetBrains s.r.o. Use of this source code is governed by the Apache 2.0 license.
+Copyright 2016-2021 JetBrains s.r.o. Use of the library is governed by the Apache 2.0 license.
 ~~~~~
 
 ~~~~~.txt
@@ -222,19 +222,7 @@ Copyright 2016-2021 JetBrains s.r.o. Use of this source code is governed by the 
 Source: https://github.com/material-components/material-components-android/
 
 ~~~~~.txt
-  Copyright 2017 The Android Open Source Project
-
-  Licensed under the Apache License, Version 2.0 (the "License");
-  you may not use this file except in compliance with the License.
-  You may obtain a copy of the License at
-
-      http://www.apache.org/licenses/LICENSE-2.0
-
-  Unless required by applicable law or agreed to in writing, software
-  distributed under the License is distributed on an "AS IS" BASIS,
-  WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
-  See the License for the specific language governing permissions and
-  limitations under the License.
+Copyright 2017 The Android Open Source Project. Use of the library is governed by the Apache 2.0 license.
 ~~~~~
 
 ~~~~~.txt
@@ -448,19 +436,7 @@ Source: https://github.com/material-components/material-components-android/
 Source: https://github.com/androidx/androidx
 
 ~~~~~.txt
- Copyright 2021 The Android Open Source Project
-
- Licensed under the Apache License, Version 2.0 (the "License");
- you may not use this file except in compliance with the License.
- You may obtain a copy of the License at
-
-      http://www.apache.org/licenses/LICENSE-2.0
-
- Unless required by applicable law or agreed to in writing, software
- distributed under the License is distributed on an "AS IS" BASIS,
- WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
- See the License for the specific language governing permissions and
- limitations under the License.
+Copyright 2021 The Android Open Source Project. Use of the library is governed by the Apache 2.0 license.
 ~~~~~
 
 ~~~~~.txt
@@ -674,19 +650,7 @@ Source: https://github.com/androidx/androidx
 Source: https://github.com/square/phrase/
 
 ~~~~~.txt
-Copyright 2013 Square, Inc.
-
-Licensed under the Apache License, Version 2.0 (the "License");
-you may not use this file except in compliance with the License.
-You may obtain a copy of the License at
-
-   http://www.apache.org/licenses/LICENSE-2.0
-
-Unless required by applicable law or agreed to in writing, software
-distributed under the License is distributed on an "AS IS" BASIS,
-WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
-See the License for the specific language governing permissions and
-limitations under the License.
+Copyright 2013 Square, Inc. Use of the library is governed by the Apache 2.0 license.
 ~~~~~
 
 ~~~~~.txt
