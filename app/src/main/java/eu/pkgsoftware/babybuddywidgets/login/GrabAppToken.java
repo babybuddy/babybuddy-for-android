@@ -1,4 +1,4 @@
-package eu.pkgsoftware.babybuddywidgets.networking;
+package eu.pkgsoftware.babybuddywidgets.login;
 
 /*
 Login protocol in a nutshell:
@@ -28,7 +28,6 @@ text node before that input.
 import org.json.JSONException;
 import org.json.JSONObject;
 
-import java.io.IOError;
 import java.io.IOException;
 import java.io.OutputStream;
 import java.io.UnsupportedEncodingException;
@@ -42,6 +41,9 @@ import java.util.List;
 import java.util.Map;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
+
+import eu.pkgsoftware.babybuddywidgets.networking.StreamReader;
+import eu.pkgsoftware.babybuddywidgets.networking.UserFormInteractions;
 
 public class GrabAppToken extends StreamReader {
     public static class MissingPage extends Exception {

@@ -85,4 +85,10 @@
     </string>
     <string name="history_delete_question_delete_button">Delete</string>
     <string name="history_delete_question_cancel_button">Cancel</string>
+    <!-- TODO: Remove or change this placeholder text -->
+    <string name="hello_blank_fragment">Hello blank fragment</string>
+
+
+    <!-- QR Code Login -->
+
 </resources>

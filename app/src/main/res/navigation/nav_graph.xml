@@ -16,6 +16,9 @@
             app:launchSingleTop="false"
             app:popUpTo="@id/LoginFragment"
             app:popUpToInclusive="true" />
+        <action
+            android:id="@+id/action_LoginFragment_to_QRCodeLoginFragment"
+            app:destination="@id/QRCodeLoginFragment" />
     </fragment>
     <fragment
         android:id="@+id/loggedInFragment2"
@@ -47,4 +50,13 @@
         android:label="help_fragment"
         tools:layout="@layout/help_fragment" />
     <action android:id="@+id/global_showHelp" app:destination="@id/help" />
+    <fragment
+        android:id="@+id/QRCodeLoginFragment"
+        android:name="eu.pkgsoftware.babybuddywidgets.QRCodeLoginFragment"
+        android:label="qr_code_login_fragment"
+        tools:layout="@layout/qr_code_login_fragment" >
+        <action
+            android:id="@+id/action_QRCodeLoginFragment_to_loggedInFragment2"
+            app:destination="@id/loggedInFragment2" />
+    </fragment>
 </navigation>

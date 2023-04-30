@@ -3,7 +3,6 @@ package eu.pkgsoftware.babybuddywidgets;
 import android.annotation.SuppressLint;
 import android.app.AlertDialog;
 import android.content.ContentResolver;
-import android.content.Context;
 import android.graphics.Rect;
 import android.os.Bundle;
 import android.provider.Settings;
@@ -16,22 +15,18 @@ import android.view.MenuInflater;
 import android.view.MenuItem;
 import android.view.View;
 import android.view.ViewGroup;
-import android.view.ViewTreeObserver;
 import android.view.inputmethod.EditorInfo;
 import android.widget.Button;
 import android.widget.EditText;
-import android.widget.TextView;
 
 import java.io.IOException;
-import java.util.Objects;
 
 import androidx.annotation.NonNull;
-import androidx.fragment.app.Fragment;
 import androidx.navigation.NavController;
 import androidx.navigation.Navigation;
 import eu.pkgsoftware.babybuddywidgets.databinding.LoginFragmentBinding;
 import eu.pkgsoftware.babybuddywidgets.networking.BabyBuddyClient;
-import eu.pkgsoftware.babybuddywidgets.networking.GrabAppToken;
+import eu.pkgsoftware.babybuddywidgets.login.GrabAppToken;
 
 public class LoginFragment extends BaseFragment {
     private LoginFragmentBinding binding;
@@ -127,6 +122,11 @@ public class LoginFragment extends BaseFragment {
         });
 
         binding.loginInfoText.setMovementMethod(LinkMovementMethod.getInstance());
+
+        binding.qrCode.setOnClickListener(view1 -> {
+            NavController controller = Navigation.findNavController(getView());
+            controller.navigate(R.id.action_LoginFragment_to_QRCodeLoginFragment);
+        });
 
         updateLoginButton();
 
