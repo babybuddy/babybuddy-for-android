@@ -3,6 +3,7 @@ package eu.pkgsoftware.babybuddywidgets
 import android.Manifest
 import android.content.pm.PackageManager
 import android.os.Bundle
+import android.os.Handler
 import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
@@ -13,10 +14,15 @@ import androidx.navigation.Navigation.findNavController
 import eu.pkgsoftware.babybuddywidgets.databinding.QrCodeLoginFragmentBinding
 import eu.pkgsoftware.babybuddywidgets.login.QRCode
 
+
+const val CLEAR_DELAY_MS = 2000
+
 class QRCodeLoginFragment : BaseFragment() {
     var qrCode: QRCode? = null
-
+    lateinit var handler: Handler
     lateinit var binding: QrCodeLoginFragmentBinding
+
+    var lastClearCodeTime = System.currentTimeMillis()
 
     val permissionRequest = registerForActivityResult(
         ActivityResultContracts.RequestPermission()
@@ -36,6 +42,17 @@ class QRCodeLoginFragment : BaseFragment() {
         return binding.root
     }
 
+    private fun clearQRCodeMessage() {
+        if (view == null) {
+            return
+        }
+        handler.postDelayed({ clearQRCodeMessage() }, CLEAR_DELAY_MS / 10L)
+
+        if (System.currentTimeMillis() - lastClearCodeTime >= CLEAR_DELAY_MS) {
+            binding.status.setText(R.string.login_qrcode_status_no_code)
+        }
+    }
+
     override fun onStart() {
         super.onStart()
 
@@ -53,15 +70,12 @@ class QRCodeLoginFragment : BaseFragment() {
             ) {
                 showQuestion(
                     true,
-                    "Camera access needed",
-                    "In order to us the QR-Code scanner, the app requires access to your " +
-                            "device's camera.\n\nAlternatively, you can choose to use the " +
-                            "login screen and provide server, username, and password manually " +
-                            "instead.",
-                    "Give permission",
-                    "Cancel"
+                    getString(R.string.login_qrcode_camera_access_needed_dialog_title),
+                    getString(R.string.login_qrcode_camera_access_needed_dialog_body),
+                    getString(R.string.login_qrcode_camera_access_needed_dialog_confirm),
+                    getString(R.string.login_qrcode_camera_access_needed_dialog_cancel)
                 ) {
-                    if (true) {
+                    if (it) {
                         permissionRequest.launch(Manifest.permission.CAMERA)
                     } else {
                         navigateBack()
@@ -73,8 +87,34 @@ class QRCodeLoginFragment : BaseFragment() {
         }
     }
 
+    override fun onResume() {
+        super.onResume()
+        handler = Handler(mainActivity.mainLooper)
+        clearQRCodeMessage()
+    }
+
     private fun initQRReader() {
-        qrCode = QRCode(this, binding.preview)
+        val qrCode = QRCode(this, binding.preview)
+        qrCode.codeDetectedCallback = Runnable {
+            if (qrCode.detectedCodes.size > 0) {
+                val code = qrCode.detectedCodes[0]
+                lastClearCodeTime = System.currentTimeMillis()
+                if (isValidLoginQRCode(code)) {
+                    binding.status.setText(R.string.login_qrcode_status_valid_code)
+                } else {
+                    binding.status.setText(R.string.login_qrcode_status_invalid_code)
+                }
+            }
+            qrCode.detectedCodes.clear()
+        }
+        this.qrCode = qrCode
+    }
+
+    private fun isValidLoginQRCode(code: String): Boolean {
+        if (!code.startsWith("BABYBUDDY-LOGIN:")) {
+            return false
+        }
+        return true
     }
 
     private fun navigateBack() {

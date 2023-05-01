@@ -22,7 +22,8 @@ class QRCode(val fragment: BaseFragment, val previewFrame: PreviewView?) {
     var fullyInitialized = false
     var cameraReady = false
 
-    val detectedCodes = mutableSetOf<String>()
+    val detectedCodes = mutableListOf<String>()
+    var codeDetectedCallback: Runnable? = null
 
     private val imageCap = ImageAnalysis.Builder()
         .setImageQueueDepth(1)
@@ -77,8 +78,10 @@ class QRCode(val fragment: BaseFragment, val previewFrame: PreviewView?) {
         ) { image ->
             bcr.read(image)?.let { qrResult ->
                 qrResult.text?.let {
-                    detectedCodes.add(it)
-                    System.out.println("AAA Detected: " + it)
+                    if (!detectedCodes.contains(it)) {
+                        detectedCodes.add(it)
+                        codeDetectedCallback?.run()
+                    }
                 }
             }
         }

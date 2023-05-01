@@ -90,5 +90,18 @@
 
 
     <!-- QR Code Login -->
-
+    <string name="login_qrcode_camera_access_needed_dialog_title">Camera access needed</string>
+    <string name="login_qrcode_camera_access_needed_dialog_body">
+        In order to us the QR-Code scanner, the app requires access to your device\'s camera.
+        \n\n
+        Alternatively, you can choose to use the login screen and provide server, username,
+        and password manually instead.
+    </string>
+    <string name="login_qrcode_camera_access_needed_dialog_confirm">Give permission</string>
+    <string name="login_qrcode_camera_access_needed_dialog_cancel">Cancel</string>
+    <string name="login_qrcode_title">Scan QR Code</string>
+    <string name="login_qrcode_explanation">You find the login QR code by opening the Baby Buddy App website, clicking on your name in the top-right corner and selecting the "Add Device" option.</string>
+    <string name="login_qrcode_status_no_code">[No Code Found]</string>
+    <string name="login_qrcode_status_valid_code">[Login code found]</string>
+    <string name="login_qrcode_status_invalid_code">[Invalid QR Code]</string>
 </resources>
