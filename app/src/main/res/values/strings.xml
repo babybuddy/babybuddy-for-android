@@ -57,9 +57,9 @@
     <string name="logging_in_message">Logging in…</string>
 
     <string name="login_qrcode_info_text_checking_camera">Checking for presence of a camera…</string>
-    <string name="login_qrcode_info_text">Alternatively you may try to login using a Baby&#160;Buddy login QR code:</string>
+    <string name="login_qrcode_info_text">You can also try to login using a Baby&#160;Buddy login QR code:</string>
     <string name="login_qrcode_info_text_no_camera">Your device does not have a camera. You cannot use QR Code logins.</string>
-    <string name="login_qrcode_button_text">QR Code</string>
+    <string name="login_qrcode_button_text">Login with QR Code</string>
 
     <!--- Store activities -->
     <string name="error_storing_activity_failed_title">Could not store activity</string>
