@@ -93,6 +93,12 @@ class QRCodeLoginFragment : BaseFragment() {
         clearQRCodeMessage()
     }
 
+    override fun onStop() {
+        super.onStop()
+        qrCode?.close()
+        qrCode = null
+    }
+
     private fun initQRReader() {
         val qrCode = QRCode(this, binding.preview)
         qrCode.codeDetectedCallback = Runnable {

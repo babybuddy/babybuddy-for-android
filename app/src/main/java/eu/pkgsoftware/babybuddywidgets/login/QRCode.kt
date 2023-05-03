@@ -2,6 +2,8 @@ package eu.pkgsoftware.babybuddywidgets.login
 
 import android.Manifest
 import android.content.pm.PackageManager
+import android.util.Size
+import android.view.Surface
 import androidx.activity.result.contract.ActivityResultContracts
 import androidx.camera.core.AspectRatio
 import androidx.camera.core.Camera
@@ -32,6 +34,7 @@ class QRCode(val fragment: BaseFragment, val previewFrame: PreviewView?) {
         .build()
     private val previewCap = Preview.Builder()
         .setTargetAspectRatio(AspectRatio.RATIO_4_3)
+        .setTargetRotation(Surface.ROTATION_0)
         .build()
 
     private lateinit var camProvider: ProcessCameraProvider
@@ -68,6 +71,7 @@ class QRCode(val fragment: BaseFragment, val previewFrame: PreviewView?) {
             CameraSelector.Builder().requireLensFacing(CameraSelector.LENS_FACING_BACK).build()
 
         cam = camProvider.bindToLifecycle(fragment, selector, imageCap, previewCap)
+        cameraReady = true
 
         previewFrame?.let {
             previewCap.setSurfaceProvider(it.surfaceProvider)
@@ -84,6 +88,13 @@ class QRCode(val fragment: BaseFragment, val previewFrame: PreviewView?) {
                     }
                 }
             }
+        }
+    }
+
+    fun close() {
+        if (cameraReady) {
+            cameraReady = false
+            camProvider.unbindAll()
         }
     }
 }

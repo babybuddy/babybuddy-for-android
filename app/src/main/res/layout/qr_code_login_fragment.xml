@@ -7,7 +7,7 @@
     tools:context=".QRCodeLoginFragment">
 
     <ScrollView
-        android:id="@+id/scrollView2"
+        android:id="@+id/scrollArea"
         android:layout_width="match_parent"
         android:layout_height="match_parent"
         app:layout_constraintBottom_toBottomOf="parent"
@@ -33,10 +33,20 @@
                 android:text="@string/login_qrcode_title"
                 android:textAppearance="@style/TextAppearance.AppCompat.Display1" />
 
-            <androidx.camera.view.PreviewView
-                android:id="@+id/preview"
+            <androidx.constraintlayout.widget.ConstraintLayout
                 android:layout_width="match_parent"
-                android:layout_height="wrap_content" />
+                android:layout_height="match_parent">
+
+                <androidx.camera.view.PreviewView
+                    android:id="@+id/preview"
+                    android:layout_width="0dp"
+                    android:layout_height="0dp"
+                    app:layout_constraintBottom_toBottomOf="parent"
+                    app:layout_constraintDimensionRatio="h,4:3"
+                    app:layout_constraintEnd_toEndOf="parent"
+                    app:layout_constraintStart_toStartOf="parent"
+                    app:layout_constraintTop_toTopOf="parent" />
+            </androidx.constraintlayout.widget.ConstraintLayout>
 
             <TextView
                 android:id="@+id/status"
