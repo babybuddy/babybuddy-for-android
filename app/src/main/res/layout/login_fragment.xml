@@ -2,84 +2,89 @@
 <androidx.constraintlayout.widget.ConstraintLayout xmlns:android="http://schemas.android.com/apk/res/android"
     xmlns:app="http://schemas.android.com/apk/res-auto"
     xmlns:tools="http://schemas.android.com/tools"
-    android:id="@+id/qrCodeButton"
     android:layout_width="match_parent"
     android:layout_height="match_parent"
-    tools:context=".LoginFragment">
+    tools:context=".LoginFragment"
+    android:layout_marginBottom="16dp"
+    android:layout_marginLeft="32dp"
+    android:layout_marginRight="32dp"
+    android:layout_marginTop="16dp">
 
-    <androidx.constraintlayout.widget.ConstraintLayout
+    <TextView
+        android:id="@+id/loginInfoText"
         android:layout_width="match_parent"
-        android:layout_height="match_parent"
-        android:layout_marginBottom="16dp"
-        android:layout_marginLeft="32dp"
-        android:layout_marginRight="32dp"
-        android:layout_marginTop="16dp">
+        android:layout_height="wrap_content"
+        android:text="@string/login_explanation"
+        android:textColor="?android:attr/textColorPrimary"
+        app:layout_constraintEnd_toEndOf="parent"
+        app:layout_constraintHorizontal_bias="0.5"
+        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintTop_toTopOf="parent" />
 
-        <Button
-            android:id="@+id/loginButton"
-            android:layout_width="wrap_content"
-            android:layout_height="wrap_content"
-            android:layout_marginTop="28dp"
-            android:text="@string/login_button"
-            app:layout_constraintEnd_toEndOf="@+id/passwordEdit"
-            app:layout_constraintStart_toStartOf="@+id/passwordEdit"
-            app:layout_constraintTop_toBottomOf="@+id/passwordEdit" />
+    <EditText
+        android:id="@+id/serverAddressEdit"
+        android:layout_width="match_parent"
+        android:layout_height="48dp"
+        android:ems="10"
+        android:hint="@string/server_address_hint"
+        android:importantForAutofill="no"
+        android:inputType="textUri"
+        app:layout_constraintStart_toStartOf="@id/loginInfoText"
+        app:layout_constraintTop_toBottomOf="@+id/loginInfoText" />
 
-        <Button
-            android:id="@+id/qrCode"
-            android:layout_width="wrap_content"
-            android:layout_height="wrap_content"
-            android:text="QR Code"
-            app:layout_constraintEnd_toEndOf="parent"
-            app:layout_constraintStart_toStartOf="parent"
-            app:layout_constraintTop_toBottomOf="@+id/loginButton" />
+    <EditText
+        android:id="@+id/loginNameEdit"
+        android:layout_width="match_parent"
+        android:layout_height="48dp"
+        android:layout_marginTop="8dp"
+        android:autofillHints="username"
+        android:ems="10"
+        android:hint="@string/login_text_hint"
+        android:inputType="textPersonName"
+        app:layout_constraintStart_toStartOf="@+id/serverAddressEdit"
+        app:layout_constraintTop_toBottomOf="@+id/serverAddressEdit" />
 
-        <EditText
-            android:id="@+id/passwordEdit"
-            android:layout_width="match_parent"
-            android:layout_height="48dp"
-            android:layout_marginTop="4dp"
-            android:autofillHints="password"
-            android:ems="10"
-            android:hint="@string/login_password_hint"
-            android:imeOptions="actionGo"
-            android:inputType="textPassword"
-            app:layout_constraintStart_toStartOf="@+id/loginNameEdit"
-            app:layout_constraintTop_toBottomOf="@+id/loginNameEdit" />
+    <EditText
+        android:id="@+id/passwordEdit"
+        android:layout_width="match_parent"
+        android:layout_height="48dp"
+        android:layout_marginTop="4dp"
+        android:autofillHints="password"
+        android:ems="10"
+        android:hint="@string/login_password_hint"
+        android:imeOptions="actionGo"
+        android:inputType="textPassword"
+        app:layout_constraintStart_toStartOf="@+id/loginNameEdit"
+        app:layout_constraintTop_toBottomOf="@+id/loginNameEdit" />
 
-        <EditText
-            android:id="@+id/serverAddressEdit"
-            android:layout_width="match_parent"
-            android:layout_height="48dp"
-            android:layout_marginTop="16dp"
-            android:ems="10"
-            android:hint="@string/server_address_hint"
-            android:importantForAutofill="no"
-            android:inputType="textUri"
-            app:layout_constraintStart_toStartOf="@id/loginInfoText"
-            app:layout_constraintTop_toBottomOf="@id/loginInfoText" />
+    <Button
+        android:id="@+id/loginButton"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_marginTop="28dp"
+        android:text="@string/login_button"
+        app:layout_constraintEnd_toEndOf="@+id/passwordEdit"
+        app:layout_constraintStart_toStartOf="@+id/passwordEdit"
+        app:layout_constraintTop_toBottomOf="@+id/passwordEdit" />
 
-        <EditText
-            android:id="@+id/loginNameEdit"
-            android:layout_width="match_parent"
-            android:layout_height="48dp"
-            android:layout_marginTop="8dp"
-            android:autofillHints="username"
-            android:ems="10"
-            android:hint="@string/login_text_hint"
-            android:inputType="textPersonName"
-            app:layout_constraintStart_toStartOf="@+id/serverAddressEdit"
-            app:layout_constraintTop_toBottomOf="@+id/serverAddressEdit" />
+    <TextView
+        android:id="@+id/qrCodeInfoText"
+        android:layout_width="0dp"
+        android:layout_height="wrap_content"
+        android:layout_marginTop="24dp"
+        android:text="@string/login_qrcode_info_text_checking_camera"
+        app:layout_constraintEnd_toEndOf="parent"
+        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintTop_toBottomOf="@+id/loginButton" />
 
-        <TextView
-            android:id="@+id/loginInfoText"
-            android:layout_width="match_parent"
-            android:layout_height="wrap_content"
-            android:text="@string/login_explanation"
-            android:textColor="?android:attr/textColorPrimary"
-            app:layout_constraintEnd_toEndOf="parent"
-            app:layout_constraintHorizontal_bias="0.5"
-            app:layout_constraintStart_toStartOf="parent"
-            app:layout_constraintTop_toTopOf="parent" />
-    </androidx.constraintlayout.widget.ConstraintLayout>
+    <Button
+        android:id="@+id/qrCode"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_marginTop="8dp"
+        android:text="QR Code"
+        app:layout_constraintEnd_toEndOf="parent"
+        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintTop_toBottomOf="@+id/qrCodeInfoText" />
+
 </androidx.constraintlayout.widget.ConstraintLayout>

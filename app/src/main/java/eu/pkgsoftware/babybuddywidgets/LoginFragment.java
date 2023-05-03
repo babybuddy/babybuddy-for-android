@@ -25,6 +25,7 @@ import androidx.annotation.NonNull;
 import androidx.navigation.NavController;
 import androidx.navigation.Navigation;
 import eu.pkgsoftware.babybuddywidgets.databinding.LoginFragmentBinding;
+import eu.pkgsoftware.babybuddywidgets.login.QRCode;
 import eu.pkgsoftware.babybuddywidgets.networking.BabyBuddyClient;
 import eu.pkgsoftware.babybuddywidgets.login.GrabAppToken;
 
@@ -127,6 +128,7 @@ public class LoginFragment extends BaseFragment {
             NavController controller = Navigation.findNavController(getView());
             controller.navigate(R.id.action_LoginFragment_to_QRCodeLoginFragment);
         });
+        binding.qrCode.setEnabled(false);
 
         updateLoginButton();
 
@@ -213,6 +215,16 @@ public class LoginFragment extends BaseFragment {
         super.onResume();
         getMainActivity().setTitle("Login to Baby Buddy");
 
+        final QRCode qrCode = new QRCode(this, null, true);
+        qrCode.setCameraOnInitialized(() -> {
+            binding.qrCode.setEnabled(qrCode.getHasCamera());
+            if (qrCode.getHasCamera()) {
+                binding.qrCodeInfoText.setText(R.string.login_qrcode_info_text);
+            } else {
+                binding.qrCodeInfoText.setText(R.string.login_qrcode_info_text_no_camera);
+            }
+        });
+
         if (getMainActivity().getCredStore().getAppToken() != null) {
             progressDialog.hide();
             moveToLoggedIn();
@@ -230,7 +242,7 @@ public class LoginFragment extends BaseFragment {
         if (credStore.getAppToken() != null) {
             final MainActivity mainActivity = getMainActivity();
             BabyBuddyClient client = mainActivity.getClient();
-            client.listChildren(new BabyBuddyClient.RequestCallback<BabyBuddyClient.Child[]>() {
+            client.listChildren(new BabyBuddyClient.RequestCallback<>() {
                 @Override
                 public void error(Exception error) {
                     promise.failed(error.getMessage());

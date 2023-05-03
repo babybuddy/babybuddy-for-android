@@ -56,6 +56,11 @@
 
     <string name="logging_in_message">Logging in…</string>
 
+    <string name="login_qrcode_info_text_checking_camera">Checking for presence of a camera…</string>
+    <string name="login_qrcode_info_text">Alternatively you may try to login using a Baby&#160;Buddy login QR code:</string>
+    <string name="login_qrcode_info_text_no_camera">Your device does not have a camera. You cannot use QR Code logins.</string>
+    <string name="login_qrcode_button_text">QR Code</string>
+
     <!--- Store activities -->
     <string name="error_storing_activity_failed_title">Could not store activity</string>
     <string name="error_storing_activity_unsupported">Unsupported activity</string>
@@ -92,9 +97,8 @@
     <!-- QR Code Login -->
     <string name="login_qrcode_camera_access_needed_dialog_title">Camera access needed</string>
     <string name="login_qrcode_camera_access_needed_dialog_body">
-        In order to us the QR-Code scanner, the app requires access to your device\'s camera.
-        \n\n
-        Alternatively, you can choose to use the login screen and provide server, username,
+        In order to use the QR-Code scanner, the app requires access to your device\'s camera.
+        \n\nAlternatively, you can choose to use the login screen and provide server, username,
         and password manually instead.
     </string>
     <string name="login_qrcode_camera_access_needed_dialog_confirm">Give permission</string>

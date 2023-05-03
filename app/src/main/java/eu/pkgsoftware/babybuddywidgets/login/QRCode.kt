@@ -1,10 +1,6 @@
 package eu.pkgsoftware.babybuddywidgets.login
 
-import android.Manifest
-import android.content.pm.PackageManager
-import android.util.Size
 import android.view.Surface
-import androidx.activity.result.contract.ActivityResultContracts
 import androidx.camera.core.AspectRatio
 import androidx.camera.core.Camera
 import androidx.camera.core.CameraSelector
@@ -12,21 +8,28 @@ import androidx.camera.core.ImageAnalysis
 import androidx.camera.core.Preview
 import androidx.camera.lifecycle.ProcessCameraProvider
 import androidx.camera.view.PreviewView
-import androidx.core.app.ActivityCompat
 import androidx.core.content.ContextCompat
 import com.zxingcpp.BarcodeReader
 import eu.pkgsoftware.babybuddywidgets.BaseFragment
 import java.lang.Exception
 
-class QRCode(val fragment: BaseFragment, val previewFrame: PreviewView?) {
+class QRCode(
+    val fragment: BaseFragment,
+    private val previewFrame: PreviewView?,
+    private val checkOnly: Boolean = false
+) {
     val bcr = BarcodeReader()
 
-    var fullyInitialized = false
+    var hasCamera = false
     var cameraReady = false
+    var cameraOnInitialized: Runnable? = null
 
     val detectedCodes = mutableListOf<String>()
     var codeDetectedCallback: Runnable? = null
 
+    private val selector = CameraSelector.Builder()
+        .requireLensFacing(CameraSelector.LENS_FACING_BACK)
+        .build()
     private val imageCap = ImageAnalysis.Builder()
         .setImageQueueDepth(1)
         .setBackpressureStrategy(ImageAnalysis.STRATEGY_KEEP_ONLY_LATEST)
@@ -58,20 +61,27 @@ class QRCode(val fragment: BaseFragment, val previewFrame: PreviewView?) {
             try {
                 camProvider = futureCamProvider.get()
             } catch (e: Exception) {
-                fullyInitialized = true
+                cameraOnInitialized?.run()
                 e.printStackTrace()
                 return@Runnable
             }
-            initCamera()
+            if (camProvider.hasCamera(selector)) {
+                hasCamera = true
+                initCamera()
+            } else {
+                cameraOnInitialized?.run()
+            }
         }, ContextCompat.getMainExecutor(fragment.requireContext()))
     }
 
     private fun initCamera() {
-        val selector =
-            CameraSelector.Builder().requireLensFacing(CameraSelector.LENS_FACING_BACK).build()
-
         cam = camProvider.bindToLifecycle(fragment, selector, imageCap, previewCap)
         cameraReady = true
+        cameraOnInitialized?.run()
+        if (checkOnly) {
+            close()
+            return
+        }
 
         previewFrame?.let {
             previewCap.setSurfaceProvider(it.surfaceProvider)
@@ -89,6 +99,8 @@ class QRCode(val fragment: BaseFragment, val previewFrame: PreviewView?) {
                 }
             }
         }
+
+        cameraOnInitialized?.run()
     }
 
     fun close() {
