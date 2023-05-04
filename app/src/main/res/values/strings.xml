@@ -108,4 +108,7 @@
     <string name="login_qrcode_status_no_code">[No Code Found]</string>
     <string name="login_qrcode_status_valid_code">[Login code found]</string>
     <string name="login_qrcode_status_invalid_code">[Invalid QR Code]</string>
+    <string name="login_qrcode_feedback_template">Found login code for Baby Buddy website on:\n<a href="{url}">{url}</a></string>
+    <string name="login_qrcode_login_button">Login now</string>
+    <string name="login_qrcode_cancel_button">Cancel</string>
 </resources>

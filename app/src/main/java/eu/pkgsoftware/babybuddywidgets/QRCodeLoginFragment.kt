@@ -10,8 +10,13 @@ import android.view.ViewGroup
 import androidx.activity.result.contract.ActivityResultContracts
 import androidx.core.app.ActivityCompat
 import androidx.core.content.ContextCompat
+import androidx.core.text.toSpannable
+import androidx.core.text.toSpanned
 import androidx.navigation.Navigation.findNavController
+import com.squareup.phrase.Phrase
 import eu.pkgsoftware.babybuddywidgets.databinding.QrCodeLoginFragmentBinding
+import eu.pkgsoftware.babybuddywidgets.login.InvalidQRCodeException
+import eu.pkgsoftware.babybuddywidgets.login.LoginData
 import eu.pkgsoftware.babybuddywidgets.login.QRCode
 
 
@@ -34,11 +39,14 @@ class QRCodeLoginFragment : BaseFragment() {
         }
     }
 
+    var heldLoginData: LoginData? = null
+
     override fun onCreateView(
         inflater: LayoutInflater, container: ViewGroup?,
         savedInstanceState: Bundle?
     ): View {
         binding = QrCodeLoginFragmentBinding.inflate(inflater)
+        binding.foundLoginCodeGroup.visibility = View.GONE
         return binding.root
     }
 
@@ -105,7 +113,7 @@ class QRCodeLoginFragment : BaseFragment() {
             if (qrCode.detectedCodes.size > 0) {
                 val code = qrCode.detectedCodes[0]
                 lastClearCodeTime = System.currentTimeMillis()
-                if (isValidLoginQRCode(code)) {
+                if (selectValidQRCode(code)) {
                     binding.status.setText(R.string.login_qrcode_status_valid_code)
                 } else {
                     binding.status.setText(R.string.login_qrcode_status_invalid_code)
@@ -116,10 +124,25 @@ class QRCodeLoginFragment : BaseFragment() {
         this.qrCode = qrCode
     }
 
-    private fun isValidLoginQRCode(code: String): Boolean {
-        if (!code.startsWith("BABYBUDDY-LOGIN:")) {
+    private fun selectValidQRCode(code: String): Boolean {
+        val loginData: LoginData
+        try {
+            loginData = LoginData.fromQrcodeJSON(code)
+        } catch (e: InvalidQRCodeException) {
             return false
         }
+
+        if (heldLoginData == null) {
+            heldLoginData = loginData
+            binding.status.visibility = View.GONE
+            binding.foundLoginCodeFeedback.setText(
+                Phrase.from(this.mainActivity, R.string.login_qrcode_feedback_template)
+                    .put("url", loginData.url)
+                    .format().to
+            )
+            binding.foundLoginCodeGroup.visibility = View.VISIBLE
+        }
+
         return true
     }
 
