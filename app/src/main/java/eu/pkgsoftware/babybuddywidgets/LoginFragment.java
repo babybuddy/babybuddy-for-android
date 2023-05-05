@@ -28,6 +28,7 @@ import eu.pkgsoftware.babybuddywidgets.databinding.LoginFragmentBinding;
 import eu.pkgsoftware.babybuddywidgets.login.QRCode;
 import eu.pkgsoftware.babybuddywidgets.networking.BabyBuddyClient;
 import eu.pkgsoftware.babybuddywidgets.login.GrabAppToken;
+import eu.pkgsoftware.babybuddywidgets.utils.RunOnceAfterLayoutUpdate;
 
 public class LoginFragment extends BaseFragment {
     private LoginFragmentBinding binding;

@@ -7,7 +7,6 @@ import android.graphics.PorterDuff
 import android.graphics.drawable.Drawable
 import android.os.Bundle
 import android.text.SpannableString
-import android.text.SpannableStringBuilder
 import android.text.Spanned
 import android.text.TextPaint
 import android.text.method.LinkMovementMethod
@@ -25,8 +24,9 @@ import androidx.core.widget.TextViewCompat
 import com.squareup.phrase.Phrase
 import eu.pkgsoftware.babybuddywidgets.databinding.AboutFragmentBinding
 import eu.pkgsoftware.babybuddywidgets.databinding.AboutLibraryEntryBinding
+import eu.pkgsoftware.babybuddywidgets.utils.ClickHandler
+import eu.pkgsoftware.babybuddywidgets.utils.SpannableUtils
 import eu.pkgsoftware.babybuddywidgets.widgets.FoldingText
-import java.util.regex.Pattern
 
 class IconData(icons: String, var title: String, var link: String) {
     var icons: Array<String>
@@ -46,50 +46,7 @@ data class LibraryData(
 }
 
 class AboutFragment : BaseFragment() {
-    private inner class ClickableLinkSpan(private val url: String) : ClickableSpan() {
-        override fun onClick(view: View) {
-            showUrlInBrowser(url)
-        }
-
-        override fun updateDrawState(ds: TextPaint) {
-            ds.isUnderlineText = true
-            ds.color = Color.BLUE
-        }
-    }
-
     private var binding: AboutFragmentBinding? = null
-    private fun filterLinksFromTextFields(root: ViewGroup) {
-        for (i in 0 until root.childCount) {
-            val v = root.getChildAt(i) as? TextView ?: continue
-            val tv = v
-            val orgText = tv.text.toString()
-            val matcher = HREF_DETECTOR_PATTERN.matcher(orgText)
-            var builder: SpannableStringBuilder? = null
-            var prevMatchEnd = 0
-            while (matcher.find()) {
-                if (builder == null) {
-                    builder = SpannableStringBuilder()
-                }
-                builder.append(orgText.substring(prevMatchEnd, matcher.start()))
-                val linkUrl = matcher.group(1)
-                val linkText = matcher.group(2)
-                val startSpanIndex = builder.length
-                builder.append(linkText)
-                builder.setSpan(
-                    ClickableLinkSpan(linkUrl),
-                    startSpanIndex,
-                    builder.length,
-                    Spanned.SPAN_EXCLUSIVE_EXCLUSIVE
-                )
-                prevMatchEnd = matcher.end()
-            }
-            if (builder != null) {
-                builder.append(orgText.substring(prevMatchEnd))
-                tv.movementMethod = LinkMovementMethod.getInstance()
-                tv.text = builder
-            }
-        }
-    }
 
     override fun onCreateView(
         inflater: LayoutInflater,
@@ -104,7 +61,11 @@ class AboutFragment : BaseFragment() {
         addLibraryEntries(isNightmode)
         addIconEntries(isNightmode)
 
-        filterLinksFromTextFields(binding!!.root)
+        SpannableUtils.filterLinksFromTextFields(binding!!.root, object : ClickHandler {
+            override fun linkClicked(url: String) {
+                showUrlInBrowser(url)
+            }
+        })
         return binding!!.getRoot()
     }
 
@@ -243,10 +204,5 @@ class AboutFragment : BaseFragment() {
         super.onResume()
         mainActivity.setTitle(resources.getString(R.string.about_page_title))
         mainActivity.enableBackNavigationButton(true)
-    }
-
-    companion object {
-        private val HREF_DETECTOR_PATTERN =
-            Pattern.compile("<a .*href=[\"']([^\"']+)[\"'][^>]*>([^<]*)</a>")
     }
 }
