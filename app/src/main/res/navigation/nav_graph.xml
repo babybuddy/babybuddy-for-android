@@ -57,6 +57,8 @@
         tools:layout="@layout/qr_code_login_fragment" >
         <action
             android:id="@+id/action_QRCodeLoginFragment_to_loggedInFragment2"
-            app:destination="@id/loggedInFragment2" />
+            app:destination="@id/loggedInFragment2"
+            app:popUpTo="@id/LoginFragment"
+            app:popUpToInclusive="true" />
     </fragment>
 </navigation>

@@ -25,6 +25,7 @@ import androidx.annotation.NonNull;
 import androidx.navigation.NavController;
 import androidx.navigation.Navigation;
 import eu.pkgsoftware.babybuddywidgets.databinding.LoginFragmentBinding;
+import eu.pkgsoftware.babybuddywidgets.login.LoginTest;
 import eu.pkgsoftware.babybuddywidgets.login.QRCode;
 import eu.pkgsoftware.babybuddywidgets.networking.BabyBuddyClient;
 import eu.pkgsoftware.babybuddywidgets.login.GrabAppToken;
@@ -216,19 +217,19 @@ public class LoginFragment extends BaseFragment {
         super.onResume();
         getMainActivity().setTitle("Login to Baby Buddy");
 
-        final QRCode qrCode = new QRCode(this, null, true);
-        qrCode.setCameraOnInitialized(() -> {
-            binding.qrCode.setEnabled(qrCode.getHasCamera());
-            if (qrCode.getHasCamera()) {
-                binding.qrCodeInfoText.setText(R.string.login_qrcode_info_text);
-            } else {
-                binding.qrCodeInfoText.setText(R.string.login_qrcode_info_text_no_camera);
-            }
-        });
-
         if (getMainActivity().getCredStore().getAppToken() != null) {
             progressDialog.hide();
             moveToLoggedIn();
+        } else {
+            final QRCode qrCode = new QRCode(this, null, true);
+            qrCode.setCameraOnInitialized(() -> {
+                binding.qrCode.setEnabled(qrCode.getHasCamera());
+                if (qrCode.getHasCamera()) {
+                    binding.qrCodeInfoText.setText(R.string.login_qrcode_info_text);
+                } else {
+                    binding.qrCodeInfoText.setText(R.string.login_qrcode_info_text_no_camera);
+                }
+            });
         }
     }
 
@@ -238,32 +239,10 @@ public class LoginFragment extends BaseFragment {
         binding = null;
     }
 
-    private void testLogin(Promise<Object, String> promise) {
-        CredStore credStore = new CredStore(getContext());
-        if (credStore.getAppToken() != null) {
-            final MainActivity mainActivity = getMainActivity();
-            BabyBuddyClient client = mainActivity.getClient();
-            client.listChildren(new BabyBuddyClient.RequestCallback<>() {
-                @Override
-                public void error(Exception error) {
-                    promise.failed(error.getMessage());
-                }
-
-                @Override
-                public void response(BabyBuddyClient.Child[] response) {
-                    mainActivity.children = response;
-                    promise.succeeded(new Object());
-                }
-            });
-        } else {
-            promise.failed("No app token found.");
-        }
-    }
-
     private void performLogin() {
         showProgress();
 
-        CredStore credStore = getMainActivity().getCredStore();
+        final CredStore credStore = getMainActivity().getCredStore();
         credStore.storeServerUrl(addressEdit.getText().toString());
         String token = null;
         try {
@@ -282,19 +261,22 @@ public class LoginFragment extends BaseFragment {
         }
         credStore.storeAppToken(token);
 
-        testLogin(new Promise<Object, String>() {
-            @Override
-            public void succeeded(Object o) {
-                progressDialog.hide();
-                moveToLoggedIn();
-            }
+        new LoginTest(getMainActivity()).test(
+            new Promise<Object, String>() {
+                @Override
+                public void succeeded(Object o) {
+                    progressDialog.hide();
+                    moveToLoggedIn();
+                }
 
-            @Override
-            public void failed(String s) {
-                progressDialog.hide();
-                showError(true, "Login failed", s);
+                @Override
+                public void failed(String s) {
+                    progressDialog.hide();
+                    credStore.storeAppToken(null);
+                    showError(true, "Login failed", s);
+                }
             }
-        });
+        );
     }
 
     private void moveToLoggedIn() {

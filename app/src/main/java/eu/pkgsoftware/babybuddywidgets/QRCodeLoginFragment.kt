@@ -15,12 +15,12 @@ import androidx.core.content.ContextCompat
 import androidx.core.text.clearSpans
 import androidx.core.text.set
 import androidx.core.text.toSpannable
-import androidx.core.text.toSpanned
 import androidx.navigation.Navigation.findNavController
 import com.squareup.phrase.Phrase
 import eu.pkgsoftware.babybuddywidgets.databinding.QrCodeLoginFragmentBinding
 import eu.pkgsoftware.babybuddywidgets.login.InvalidQRCodeException
 import eu.pkgsoftware.babybuddywidgets.login.LoginData
+import eu.pkgsoftware.babybuddywidgets.login.LoginTest
 import eu.pkgsoftware.babybuddywidgets.login.QRCode
 
 
@@ -55,6 +55,13 @@ class QRCodeLoginFragment : BaseFragment() {
             heldLoginData = null
             binding.status.visibility = View.VISIBLE
             binding.foundLoginCodeGroup.visibility = View.GONE
+        }
+        binding.qrcodeLoginButton.setOnClickListener {
+            heldLoginData?.also {
+                performLogin(it)
+            }  ?: {
+                binding.qrcodeCancelButton.performClick()
+            }
         }
         return binding.root
     }
@@ -108,6 +115,10 @@ class QRCodeLoginFragment : BaseFragment() {
         super.onResume()
         handler = Handler(mainActivity.mainLooper)
         clearQRCodeMessage()
+
+        hideKeyboard()
+        mainActivity.setTitle(getString(R.string.login_qrcode_title))
+        mainActivity.enableBackNavigationButton(true)
     }
 
     override fun onStop() {
@@ -181,8 +192,30 @@ class QRCodeLoginFragment : BaseFragment() {
         findNavController(requireView()).navigateUp()
     }
 
-    companion object {
-        @JvmStatic
-        fun newInstance() = QRCodeLoginFragment()
+    private fun performLogin(loginData: LoginData) {
+        showProgress(getString(R.string.logging_in_message))
+
+        val credStore = mainActivity.credStore;
+        credStore.storeServerUrl(loginData.url)
+        credStore.storeAppToken(loginData.token)
+
+        LoginTest(mainActivity).test(object : Promise<Any, String> {
+            override fun succeeded(s: Any?) {
+                progressDialog.hide()
+                moveToLoggedIn()
+            }
+
+            override fun failed(s: String) {
+                progressDialog.hide()
+                credStore.storeAppToken(null)
+                binding.qrcodeCancelButton.performClick()
+                showError(true, "Login failed", s)
+            }
+        });
+    }
+
+    private fun moveToLoggedIn() {
+        val controller = findNavController(requireView())
+        controller.navigate(R.id.action_QRCodeLoginFragment_to_loggedInFragment2)
     }
 }
