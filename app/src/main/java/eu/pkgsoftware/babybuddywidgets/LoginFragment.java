@@ -217,6 +217,16 @@ public class LoginFragment extends BaseFragment {
         super.onResume();
         getMainActivity().setTitle("Login to Baby Buddy");
 
+        Bundle b = getArguments();
+        if (b != null) {
+            if (b.getBoolean("noCameraAccess", false)) {
+                binding.errorBubble.flashMessage(
+                    R.string.login_qrcode_camera_access_was_disabled_message,
+                    5000
+                );
+            }
+        }
+
         if (getMainActivity().getCredStore().getAppToken() != null) {
             progressDialog.hide();
             moveToLoggedIn();
@@ -262,7 +272,7 @@ public class LoginFragment extends BaseFragment {
         credStore.storeAppToken(token);
 
         new LoginTest(getMainActivity()).test(
-            new Promise<Object, String>() {
+            new Promise<>() {
                 @Override
                 public void succeeded(Object o) {
                     progressDialog.hide();

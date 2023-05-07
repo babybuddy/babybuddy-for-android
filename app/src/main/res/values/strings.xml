@@ -111,4 +111,5 @@
     <string name="login_qrcode_feedback_template">Found login code for Baby Buddy website on:\n<a href="{url}">{url}</a></string>
     <string name="login_qrcode_login_button">Login now</string>
     <string name="login_qrcode_cancel_button">Cancel</string>
+    <string name="login_qrcode_camera_access_was_disabled_message">Camera access was disabled.\nPlease enable camera access the settings menu and try again.</string>
 </resources>

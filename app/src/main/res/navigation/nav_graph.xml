@@ -60,5 +60,14 @@
             app:destination="@id/loggedInFragment2"
             app:popUpTo="@id/LoginFragment"
             app:popUpToInclusive="true" />
+        <action
+            android:id="@+id/action_QRCodeLoginFragment_to_LoginFragment_onFailure"
+            app:destination="@id/LoginFragment"
+            app:popUpTo="@id/LoginFragment"
+            app:popUpToInclusive="true" />
+        <argument
+            android:name="noCameraAccess"
+            app:argType="boolean"
+            android:defaultValue="false" />
     </fragment>
 </navigation>

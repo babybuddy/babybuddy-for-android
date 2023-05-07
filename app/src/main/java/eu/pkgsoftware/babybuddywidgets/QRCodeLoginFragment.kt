@@ -39,7 +39,7 @@ class QRCodeLoginFragment : BaseFragment() {
         if (isGranted) {
             initQRReader()
         } else {
-            navigateBack()
+            navigateBack(noCamAccess = true)
         }
     }
 
@@ -188,8 +188,15 @@ class QRCodeLoginFragment : BaseFragment() {
         return true
     }
 
-    private fun navigateBack() {
-        findNavController(requireView()).navigateUp()
+    private fun navigateBack(noCamAccess: Boolean? = null) {
+        val controller = findNavController(requireView())
+        if (noCamAccess == null) {
+            controller.navigateUp()
+        } else {
+            val b = Bundle()
+            b.putBoolean("noCameraAccess", noCamAccess)
+            controller.navigate(R.id.action_QRCodeLoginFragment_to_LoginFragment_onFailure, b)
+        }
     }
 
     private fun performLogin(loginData: LoginData) {
