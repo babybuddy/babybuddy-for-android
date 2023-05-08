@@ -7,7 +7,7 @@
 
     <fragment
         android:id="@+id/LoginFragment"
-        android:name="eu.pkgsoftware.babybuddywidgets.LoginFragment"
+        android:name="eu.pkgsoftware.babybuddywidgets.login.LoginFragment"
         android:label="@string/first_fragment_label"
         tools:layout="@layout/login_fragment" >
         <action
@@ -52,7 +52,7 @@
     <action android:id="@+id/global_showHelp" app:destination="@id/help" />
     <fragment
         android:id="@+id/QRCodeLoginFragment"
-        android:name="eu.pkgsoftware.babybuddywidgets.QRCodeLoginFragment"
+        android:name="eu.pkgsoftware.babybuddywidgets.login.QRCodeLoginFragment"
         android:label="qr_code_login_fragment"
         tools:layout="@layout/qr_code_login_fragment" >
         <action

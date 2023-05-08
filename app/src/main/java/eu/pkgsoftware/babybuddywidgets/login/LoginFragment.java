@@ -1,4 +1,4 @@
-package eu.pkgsoftware.babybuddywidgets;
+package eu.pkgsoftware.babybuddywidgets.login;
 
 import android.annotation.SuppressLint;
 import android.app.AlertDialog;
@@ -24,11 +24,12 @@ import java.io.IOException;
 import androidx.annotation.NonNull;
 import androidx.navigation.NavController;
 import androidx.navigation.Navigation;
+import eu.pkgsoftware.babybuddywidgets.BaseFragment;
+import eu.pkgsoftware.babybuddywidgets.CredStore;
+import eu.pkgsoftware.babybuddywidgets.MainActivity;
+import eu.pkgsoftware.babybuddywidgets.R;
+import eu.pkgsoftware.babybuddywidgets.TutorialAccess;
 import eu.pkgsoftware.babybuddywidgets.databinding.LoginFragmentBinding;
-import eu.pkgsoftware.babybuddywidgets.login.LoginTest;
-import eu.pkgsoftware.babybuddywidgets.login.QRCode;
-import eu.pkgsoftware.babybuddywidgets.networking.BabyBuddyClient;
-import eu.pkgsoftware.babybuddywidgets.login.GrabAppToken;
 import eu.pkgsoftware.babybuddywidgets.utils.RunOnceAfterLayoutUpdate;
 
 public class LoginFragment extends BaseFragment {
@@ -36,6 +37,8 @@ public class LoginFragment extends BaseFragment {
 
     private Button loginButton;
     private EditText addressEdit, loginNameEdit, loginPasswordEdit;
+
+    private final LoggedOutMenu menu = new LoggedOutMenu(this);
 
     private void updateLoginButton() {
         loginButton.setEnabled(
@@ -47,25 +50,7 @@ public class LoginFragment extends BaseFragment {
     @Override
     public void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
-        setHasOptionsMenu(true);
         setRetainInstance(true);
-    }
-
-    @Override
-    public void onCreateOptionsMenu(@NonNull Menu menu, MenuInflater inflater) {
-        inflater.inflate(R.menu.loggedout_menu, menu);
-    }
-
-    @Override
-    public boolean onOptionsItemSelected(@NonNull MenuItem item) {
-        if (item.getItemId() == R.id.aboutPageMenuItem) {
-            Navigation.findNavController(getView()).navigate(R.id.global_aboutFragment);
-        }
-        if (item.getItemId() == R.id.showHelpMenuButton) {
-            getMainActivity().getCredStore().setTutorialParameter("help_hint", 10);
-            Navigation.findNavController(getView()).navigate(R.id.global_showHelp);
-        }
-        return false;
     }
 
     @Override
@@ -217,6 +202,8 @@ public class LoginFragment extends BaseFragment {
         super.onResume();
         getMainActivity().setTitle("Login to Baby Buddy");
 
+        getMainActivity().addMenuProvider(menu);
+
         Bundle b = getArguments();
         if (b != null) {
             if (b.getBoolean("noCameraAccess", false)) {
@@ -241,6 +228,12 @@ public class LoginFragment extends BaseFragment {
                 }
             });
         }
+    }
+
+    @Override
+    public void onPause() {
+        super.onPause();
+        getMainActivity().removeMenuProvider(menu);
     }
 
     @Override

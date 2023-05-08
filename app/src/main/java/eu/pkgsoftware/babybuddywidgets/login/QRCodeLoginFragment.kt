@@ -1,4 +1,4 @@
-package eu.pkgsoftware.babybuddywidgets
+package eu.pkgsoftware.babybuddywidgets.login
 
 import android.Manifest
 import android.content.pm.PackageManager
@@ -7,6 +7,9 @@ import android.os.Handler
 import android.text.method.LinkMovementMethod
 import android.text.style.URLSpan
 import android.view.LayoutInflater
+import android.view.Menu
+import android.view.MenuInflater
+import android.view.MenuItem
 import android.view.View
 import android.view.ViewGroup
 import androidx.activity.result.contract.ActivityResultContracts
@@ -15,13 +18,12 @@ import androidx.core.content.ContextCompat
 import androidx.core.text.clearSpans
 import androidx.core.text.set
 import androidx.core.text.toSpannable
+import androidx.core.view.MenuProvider
 import androidx.navigation.Navigation.findNavController
 import com.squareup.phrase.Phrase
+import eu.pkgsoftware.babybuddywidgets.BaseFragment
+import eu.pkgsoftware.babybuddywidgets.R
 import eu.pkgsoftware.babybuddywidgets.databinding.QrCodeLoginFragmentBinding
-import eu.pkgsoftware.babybuddywidgets.login.InvalidQRCodeException
-import eu.pkgsoftware.babybuddywidgets.login.LoginData
-import eu.pkgsoftware.babybuddywidgets.login.LoginTest
-import eu.pkgsoftware.babybuddywidgets.login.QRCode
 
 
 const val CLEAR_DELAY_MS = 2000
@@ -30,6 +32,8 @@ class QRCodeLoginFragment : BaseFragment() {
     var qrCode: QRCode? = null
     lateinit var handler: Handler
     lateinit var binding: QrCodeLoginFragmentBinding
+
+    val menu = LoggedOutMenu(this)
 
     var lastClearCodeTime = System.currentTimeMillis()
 
@@ -119,6 +123,13 @@ class QRCodeLoginFragment : BaseFragment() {
         hideKeyboard()
         mainActivity.setTitle(getString(R.string.login_qrcode_title))
         mainActivity.enableBackNavigationButton(true)
+
+        requireActivity().addMenuProvider(menu)
+    }
+
+    override fun onPause() {
+        super.onPause()
+        requireActivity().removeMenuProvider(menu)
     }
 
     override fun onStop() {
