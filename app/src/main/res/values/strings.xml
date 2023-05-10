@@ -54,6 +54,14 @@
     <string name="login_text_hint">Login Name</string>
     <string name="login_password_hint">Login Password</string>
 
+    <string name="login_http_warning_title">Insecure connection</string>
+    <string name="login_http_warning_message">
+        This server URL does not start with \'https\'. This means that the password
+        you entered can be intercepted and stolen!
+    </string>
+    <string name="login_http_warning_cancel">Cancel (advised)</string>
+    <string name="login_http_warning_continue_login">Continue anyway</string>
+
     <string name="logging_in_message">Logging in…</string>
 
     <string name="login_qrcode_info_text_checking_camera">Checking for presence of a camera…</string>

@@ -7,9 +7,6 @@ import android.os.Handler
 import android.text.method.LinkMovementMethod
 import android.text.style.URLSpan
 import android.view.LayoutInflater
-import android.view.Menu
-import android.view.MenuInflater
-import android.view.MenuItem
 import android.view.View
 import android.view.ViewGroup
 import androidx.activity.result.contract.ActivityResultContracts
@@ -18,7 +15,6 @@ import androidx.core.content.ContextCompat
 import androidx.core.text.clearSpans
 import androidx.core.text.set
 import androidx.core.text.toSpannable
-import androidx.core.view.MenuProvider
 import androidx.navigation.Navigation.findNavController
 import com.squareup.phrase.Phrase
 import eu.pkgsoftware.babybuddywidgets.BaseFragment
@@ -63,7 +59,7 @@ class QRCodeLoginFragment : BaseFragment() {
         binding.qrcodeLoginButton.setOnClickListener {
             heldLoginData?.also {
                 performLogin(it)
-            }  ?: {
+            } ?: {
                 binding.qrcodeCancelButton.performClick()
             }
         }
@@ -211,25 +207,33 @@ class QRCodeLoginFragment : BaseFragment() {
     }
 
     private fun performLogin(loginData: LoginData) {
-        showProgress(getString(R.string.logging_in_message))
+        Utils(mainActivity).httpCleaner(loginData.url, object : Promise<String, Any> {
+            override fun succeeded(s: String?) {
+                showProgress(getString(R.string.logging_in_message))
 
-        val credStore = mainActivity.credStore;
-        credStore.storeServerUrl(loginData.url)
-        credStore.storeAppToken(loginData.token)
+                val credStore = mainActivity.credStore;
+                credStore.storeServerUrl(loginData.url)
+                credStore.storeAppToken(loginData.token)
 
-        LoginTest(mainActivity).test(object : Promise<Any, String> {
-            override fun succeeded(s: Any?) {
-                progressDialog.hide()
-                moveToLoggedIn()
+                Utils(mainActivity).testLoginToken(object : Promise<Any, String> {
+                    override fun succeeded(s: Any?) {
+                        progressDialog.hide()
+                        moveToLoggedIn()
+                    }
+
+                    override fun failed(s: String) {
+                        progressDialog.hide()
+                        credStore.storeAppToken(null)
+                        binding.qrcodeCancelButton.performClick()
+                        showError(true, "Login failed", s)
+                    }
+                })
             }
 
-            override fun failed(s: String) {
-                progressDialog.hide()
-                credStore.storeAppToken(null)
+            override fun failed(f: Any?) {
                 binding.qrcodeCancelButton.performClick()
-                showError(true, "Login failed", s)
             }
-        });
+        })
     }
 
     private fun moveToLoggedIn() {

@@ -10,9 +10,6 @@ import android.text.Editable;
 import android.text.TextWatcher;
 import android.text.method.LinkMovementMethod;
 import android.view.LayoutInflater;
-import android.view.Menu;
-import android.view.MenuInflater;
-import android.view.MenuItem;
 import android.view.View;
 import android.view.ViewGroup;
 import android.view.inputmethod.EditorInfo;
@@ -21,7 +18,6 @@ import android.widget.EditText;
 
 import java.io.IOException;
 
-import androidx.annotation.NonNull;
 import androidx.navigation.NavController;
 import androidx.navigation.Navigation;
 import eu.pkgsoftware.babybuddywidgets.BaseFragment;
@@ -152,27 +148,20 @@ public class LoginFragment extends BaseFragment {
     private void uiStartLogin() {
         hideKeyboard();
 
-        String cleanedAddress = ("" + addressEdit.getText()).trim();
-        if (cleanedAddress.toLowerCase().startsWith("http:")) {
-            new AlertDialog.Builder(getContext())
-                .setTitle("Insecure connection")
-                .setMessage(
-                    "You have entered a URL  that does not start with 'https'. This means " +
-                        "that the password you entered can be intercepted and stolen!")
-                .setPositiveButton(
-                    "Cancel (advised)",
-                    (dialogInterface, i) -> dialogInterface.dismiss()
-                )
-                .setNegativeButton(
-                    "Continue anyway",
-                    (dialogInterface, i) -> performLogin()
-                ).show();
-        } else {
-            if (!cleanedAddress.toLowerCase().startsWith("https:")) {
-                addressEdit.setText("https://" + addressEdit.getText());
+        new Utils(getMainActivity()).httpCleaner(
+            addressEdit.getText().toString(),
+            new Promise<>() {
+                @Override
+                public void succeeded(String s) {
+                    addressEdit.setText(s);
+                    performLogin();
+                }
+
+                @Override
+                public void failed(Object o) {
+                }
             }
-            performLogin();
-        }
+        );
     }
 
     /**
@@ -264,7 +253,7 @@ public class LoginFragment extends BaseFragment {
         }
         credStore.storeAppToken(token);
 
-        new LoginTest(getMainActivity()).test(
+        new Utils(getMainActivity()).testLoginToken(
             new Promise<>() {
                 @Override
                 public void succeeded(Object o) {
