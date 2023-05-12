@@ -224,7 +224,8 @@ public class BabyBuddyClient extends StreamReader {
             t.name = obj.isNull("name") ? null : obj.getString("name");
             t.start = parseNullOrDate(obj, "start");
             t.end = parseNullOrDate(obj, "end");
-            t.active = obj.getBoolean("active");
+            // Starting at v2.0 of baby buddy, the active-field is gone. Timers are always active when present!
+            t.active = obj.optBoolean("active", true);
             t.user_id = obj.getInt("user");
             return t;
         }
