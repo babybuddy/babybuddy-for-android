@@ -1,4 +1,4 @@
-package eu.pkgsoftware.babybuddywidgets;
+package eu.pkgsoftware.babybuddywidgets.timers;
 
 import android.os.Handler;
 import android.view.View;
@@ -13,6 +13,12 @@ import java.util.Date;
 import androidx.annotation.NonNull;
 import androidx.navigation.Navigation;
 import androidx.recyclerview.widget.RecyclerView;
+import eu.pkgsoftware.babybuddywidgets.BaseFragment;
+import eu.pkgsoftware.babybuddywidgets.CredStore;
+import eu.pkgsoftware.babybuddywidgets.MainActivity;
+import eu.pkgsoftware.babybuddywidgets.NotesEditorLogic;
+import eu.pkgsoftware.babybuddywidgets.R;
+import eu.pkgsoftware.babybuddywidgets.StoreFunction;
 import eu.pkgsoftware.babybuddywidgets.databinding.NotesEditorBinding;
 import eu.pkgsoftware.babybuddywidgets.databinding.QuickTimerEntryBinding;
 import eu.pkgsoftware.babybuddywidgets.networking.BabyBuddyClient;
