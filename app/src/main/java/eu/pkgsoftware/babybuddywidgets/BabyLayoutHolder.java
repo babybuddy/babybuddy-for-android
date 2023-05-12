@@ -18,10 +18,11 @@ import eu.pkgsoftware.babybuddywidgets.history.ChildEventHistoryLoader;
 import eu.pkgsoftware.babybuddywidgets.networking.BabyBuddyClient;
 import eu.pkgsoftware.babybuddywidgets.networking.ChildrenStateTracker;
 import eu.pkgsoftware.babybuddywidgets.timers.TimerListViewHolder;
+import eu.pkgsoftware.babybuddywidgets.timers.TimerListViewHolderCallback;
 import eu.pkgsoftware.babybuddywidgets.widgets.SwitchButtonLogic;
 
 public class BabyLayoutHolder extends RecyclerView.ViewHolder {
-    private class TimerListProvider extends RecyclerView.Adapter<TimerListViewHolder> implements TimerListViewHolder.TimerListViewHolderCallback {
+    private class TimerListProvider extends RecyclerView.Adapter<TimerListViewHolder> implements TimerListViewHolderCallback {
         private BabyBuddyClient.Timer[] timers = new BabyBuddyClient.Timer[0];
         private List<TimerListViewHolder> holders = new LinkedList<>();
 

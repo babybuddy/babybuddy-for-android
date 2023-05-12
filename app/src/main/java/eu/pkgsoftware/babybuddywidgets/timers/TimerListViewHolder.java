@@ -26,10 +26,6 @@ import eu.pkgsoftware.babybuddywidgets.networking.RequestCodeFailure;
 import eu.pkgsoftware.babybuddywidgets.widgets.SwitchButtonLogic;
 
 public class TimerListViewHolder extends RecyclerView.ViewHolder {
-    public static interface TimerListViewHolderCallback {
-        void updateActivities();
-    }
-
     private final @NotNull TimerListViewHolderCallback callbacks;
     private final @NotNull QuickTimerEntryBinding binding;
 
