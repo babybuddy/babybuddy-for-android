@@ -42,7 +42,11 @@ class Utils(val mainActivity: MainActivity) {
             val client = mainActivity.client
             client.listChildren(object : RequestCallback<Array<Child?>?> {
                 override fun error(error: Exception) {
-                    promise.failed(error.message)
+                    error.message?.let {
+                        promise.failed(it)
+                    } ?: {
+                        promise.failed("Failed")
+                    }
                 }
 
                 override fun response(r: Array<Child?>?) {
