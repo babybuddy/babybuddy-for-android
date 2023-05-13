@@ -55,7 +55,6 @@ public class BabyLayoutHolder extends RecyclerView.ViewHolder {
         binding.wetEnabledButton.setOnClickListener(invertWet);
         binding.wetDisabledButton.setOnClickListener(invertWet);
         binding.sendChangeButton.setOnClickListener(view -> storeDiaperChange());
-        binding.createDefaultTimers.setOnClickListener(view -> createDefaultTimers());
 
         notesSwitch = new SwitchButtonLogic(
             binding.addNoteButton,
@@ -124,103 +123,6 @@ public class BabyLayoutHolder extends RecyclerView.ViewHolder {
         resetDiaperUi();
     }
 
-    public void recreateDefaultTimers() {
-        removeTimers(this::createDefaultTimers);
-    }
-
-    private void removeTimers(final Runnable after) {
-        client.listTimers(child.id, new BabyBuddyClient.RequestCallback<BabyBuddyClient.Timer[]>() {
-            @Override
-            public void error(Exception error) {
-                baseFragment.showError(
-                    true,
-                    "Failed to remove timers",
-                    "Getting timer list failed."
-                );
-            }
-
-            @Override
-            public void response(final BabyBuddyClient.Timer[] response) {
-                Boolean[] removed = new Boolean[response.length];
-
-                for (int i = 0; i < response.length; i++) {
-                    final BabyBuddyClient.Timer t = response[i];
-                    final int _i = i;
-                    client.deleteTimer(t.id, new BabyBuddyClient.RequestCallback<Boolean>() {
-                        public boolean allRemoved() {
-                            for (Boolean r : removed) {
-                                if ((r == null) || !r) {
-                                    return false;
-                                }
-                            }
-                            return true;
-                        }
-
-                        public boolean anyFailed() {
-                            for (Boolean r : removed) {
-                                if ((r != null) && !r) {
-                                    return true;
-                                }
-                            }
-                            return false;
-                        }
-
-                        @Override
-                        public void error(Exception error) {
-                            if (!anyFailed()) {
-                                baseFragment.showError(
-                                    true,
-                                    "Failed to remove timers",
-                                    "Timer could not be deleted"
-                                );
-                            }
-                            removed[_i] = false;
-                        }
-
-                        @Override
-                        public void response(Boolean response) {
-                            removed[_i] = true;
-
-                            if (allRemoved()) {
-                                requeueImmediateTimerListRefresh();
-                                after.run();
-                            }
-                        }
-                    });
-                }
-            }
-        });
-    }
-
-    private void createDefaultTimers() {
-        int i = 0;
-        for (String timerTypeName : baseFragment.getResources().getStringArray(R.array.timerTypes)) {
-            final int finalI = i;
-            client.createTimer(child, timerTypeName, new BabyBuddyClient.RequestCallback<BabyBuddyClient.Timer>() {
-                @Override
-                public void error(Exception error) {
-                }
-
-                @Override
-                public void response(BabyBuddyClient.Timer response) {
-                    credStore.setTimerDefaultSelection(response.id, finalI);
-                    client.setTimerActive(response.id, false, new BabyBuddyClient.RequestCallback<Boolean>() {
-                        @Override
-                        public void error(Exception error) {
-                            requeueImmediateTimerListRefresh();
-                        }
-
-                        @Override
-                        public void response(Boolean response) {
-                            requeueImmediateTimerListRefresh();
-                        }
-                    });
-                }
-            });
-            i++;
-        }
-    }
-
     private void requeueImmediateTimerListRefresh() {
         client.listTimers(child.id, new BabyBuddyClient.RequestCallback<BabyBuddyClient.Timer[]>() {
             @Override
@@ -248,8 +150,6 @@ public class BabyLayoutHolder extends RecyclerView.ViewHolder {
         notesEditor.setIdentifier("diaper_" + c.slug);
         notesSwitch.setState(notesEditor.isVisible());
 
-        binding.createDefaultTimers.setVisibility(View.GONE);
-
         if (child != null) {
             childObserver = stateTracker.new ChildObserver(child.id, this::updateTimerList);
 
@@ -275,7 +175,6 @@ public class BabyLayoutHolder extends RecyclerView.ViewHolder {
         }
 
         timerListProvider.updateTimers(timers);
-        binding.createDefaultTimers.setVisibility(timers.length == 0 ? View.VISIBLE : View.GONE);
     }
 
     public void onViewDeselected() {

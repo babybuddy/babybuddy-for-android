@@ -235,12 +235,6 @@ class MainActivity : AppCompatActivity() {
             }
         }
 
-        suspend fun stopTimer() {
-            AsyncClientRequest.call<Boolean> {
-                client.setTimerActive(timer.id, false, it)
-            }
-        }
-
         suspend fun patchEntry(
             e: BabyBuddyClient.TimeEntry,
             values: BabyBuddyClient.QueryValues
@@ -316,10 +310,8 @@ class MainActivity : AppCompatActivity() {
                 progressDialog.show()
                 if (resolution == ConflictResolutionOptions.STOP_TIMER) {
                     progressDialog.cancel()
-                    stopTimer()
                     storeInterface.timerStopped()
                 } else if (resolution == ConflictResolutionOptions.RESOLVE) {
-                    stopTimer()
                     var retries = 3
                     while (retries > 0) {
                         resolve(conflicts)

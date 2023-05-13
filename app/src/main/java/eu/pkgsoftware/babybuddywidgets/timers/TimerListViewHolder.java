@@ -126,7 +126,7 @@ public class TimerListViewHolder extends RecyclerView.ViewHolder {
                 }
 
                 if (active) {
-                    client.setTimerActive(timer.id, true, new BabyBuddyClient.RequestCallback<Boolean>() {
+                    client.restartTimer(timer.id, new BabyBuddyClient.RequestCallback<>() {
                         @Override
                         public void error(Exception error) {
                         }
@@ -185,7 +185,7 @@ public class TimerListViewHolder extends RecyclerView.ViewHolder {
                 baseFragment.getString(R.string.activity_store_failure_stop_timer),
                 b -> {
                     if (!b) {
-                        client.setTimerActive(timer.id, false, new BabyBuddyClient.RequestCallback<Boolean>() {
+                        client.deleteTimer(timer.id, new BabyBuddyClient.RequestCallback<Boolean>() {
                             @Override
                             public void error(@NonNull Exception error) {
                                 baseFragment.showError(

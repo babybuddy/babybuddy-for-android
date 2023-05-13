@@ -174,14 +174,6 @@ public class LoggedInFragment extends BaseFragment {
         if (item.getItemId() == R.id.aboutPageMenuItem) {
             Navigation.findNavController(getView()).navigate(R.id.global_aboutFragment);
         }
-        if (item.getItemId() == R.id.recreateTimersButton) {
-            if (babyAdapter != null) {
-                BabyLayoutHolder holder = babyAdapter.getActive();
-                if (holder != null) {
-                    holder.recreateDefaultTimers();
-                }
-            }
-        }
         return false;
     }
 
