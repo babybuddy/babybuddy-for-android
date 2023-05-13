@@ -21,11 +21,17 @@ public class TimerListProvider extends RecyclerView.Adapter<TimerListViewHolder>
     private final BaseFragment baseFragment;
     private final ChildEventHistoryLoader childHistoryLoader;
     private final List<TimerListViewHolder> holders = new LinkedList<>();
+    private final TimerControlInterface timerControls;
 
-    public TimerListProvider(@NotNull BaseFragment baseFragment, @NonNull ChildEventHistoryLoader childHistoryLoader) {
+    public TimerListProvider(
+        @NotNull BaseFragment baseFragment,
+        @NonNull ChildEventHistoryLoader childHistoryLoader,
+        @NotNull TimerControlInterface timerControls
+    ) {
         super();
         this.baseFragment = baseFragment;
         this.childHistoryLoader = childHistoryLoader;
+        this.timerControls = timerControls;
     }
 
     private int[] listIds(BabyBuddyClient.Timer[] t) {
@@ -85,7 +91,7 @@ public class TimerListProvider extends RecyclerView.Adapter<TimerListViewHolder>
     @Override
     public TimerListViewHolder onCreateViewHolder(ViewGroup parent, int viewType) {
         eu.pkgsoftware.babybuddywidgets.databinding.QuickTimerEntryBinding entryBinding = eu.pkgsoftware.babybuddywidgets.databinding.QuickTimerEntryBinding.inflate(LayoutInflater.from(parent.getContext()));
-        return new TimerListViewHolder(baseFragment, entryBinding, this);
+        return new TimerListViewHolder(baseFragment, entryBinding, timerControls, this);
     }
 
     @Override

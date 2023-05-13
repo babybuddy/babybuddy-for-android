@@ -2,6 +2,9 @@ package eu.pkgsoftware.babybuddywidgets;
 
 import android.view.View;
 
+import java.util.Date;
+
+import androidx.annotation.NonNull;
 import androidx.recyclerview.widget.GridLayoutManager;
 import androidx.recyclerview.widget.RecyclerView;
 import eu.pkgsoftware.babybuddywidgets.databinding.BabyManagerBinding;
@@ -9,14 +12,14 @@ import eu.pkgsoftware.babybuddywidgets.databinding.NotesEditorBinding;
 import eu.pkgsoftware.babybuddywidgets.history.ChildEventHistoryLoader;
 import eu.pkgsoftware.babybuddywidgets.networking.BabyBuddyClient;
 import eu.pkgsoftware.babybuddywidgets.networking.ChildrenStateTracker;
+import eu.pkgsoftware.babybuddywidgets.timers.TimerControlInterface;
 import eu.pkgsoftware.babybuddywidgets.timers.TimerListProvider;
 import eu.pkgsoftware.babybuddywidgets.widgets.SwitchButtonLogic;
 
-public class BabyLayoutHolder extends RecyclerView.ViewHolder {
+public class BabyLayoutHolder extends RecyclerView.ViewHolder implements TimerControlInterface {
     private final BabyManagerBinding binding;
     private final BaseFragment baseFragment;
     private final BabyBuddyClient client;
-    private final CredStore credStore;
     private TimerListProvider timerListProvider = null;
 
     private BabyBuddyClient.Child child = null;
@@ -35,7 +38,6 @@ public class BabyLayoutHolder extends RecyclerView.ViewHolder {
         binding = bmb;
 
         baseFragment = fragment;
-        credStore = fragment.getMainActivity().getCredStore();
         client = fragment.getMainActivity().getClient();
 
         GridLayoutManager l = new GridLayoutManager(binding.timersList.getContext(), 1);
@@ -161,20 +163,26 @@ public class BabyLayoutHolder extends RecyclerView.ViewHolder {
                 binding.timelineProgressSpinner
             );
             childHistoryLoader.createTimelineObserver(stateTracker);
-            timerListProvider = new TimerListProvider(baseFragment, childHistoryLoader);
+            timerListProvider = new TimerListProvider(baseFragment, childHistoryLoader, this);
             binding.timersList.setAdapter(timerListProvider);
         }
     }
 
     public void updateTimerList(BabyBuddyClient.Timer[] timers) {
+        if (child == null) {
+            timerListProvider.updateTimers(new BabyBuddyClient.Timer[0]);
+            return;
+        }
+
         for (BabyBuddyClient.Timer t : timers) {
-            if ((child == null) || (t.child_id != child.id)) {
-                timerListProvider.updateTimers(new BabyBuddyClient.Timer[0]);
+            if (t.child_id != child.id) {
                 return;
             }
         }
 
-        timerListProvider.updateTimers(timers);
+        if (timerListProvider != null) {
+            timerListProvider.updateTimers(timers);
+        }
     }
 
     public void onViewDeselected() {
@@ -200,6 +208,41 @@ public class BabyLayoutHolder extends RecyclerView.ViewHolder {
     public void close() {
         clear();
         timerListProvider.close();
+    }
+
+    @Override
+    public void startTimer(int timerId, @NonNull BaseFragment.Promise<BabyBuddyClient.Timer, String> p) {
+        client.restartTimer(timerId, new BabyBuddyClient.RequestCallback<>() {
+            @Override
+            public void error(@NonNull Exception error) {
+                p.failed("Start timer failed"); // COLLECT
+            }
+
+            @Override
+            public void response(BabyBuddyClient.Timer timer) {
+                p.succeeded(timer);
+            }
+        });
+    }
+
+    @Override
+    public void stopTimer(int timerId, @NonNull BaseFragment.Promise<Object, String> p) {
+        client.deleteTimer(timerId, new BabyBuddyClient.RequestCallback<>() {
+            @Override
+            public void error(@NonNull Exception error) {
+                p.failed("Stop timer failed"); // COLLECT
+            }
+
+            @Override
+            public void response(Boolean response) {
+                p.succeeded(new Object());
+            }
+        });
+    }
+
+    @Override
+    public void storeActivity(int timerId, @NonNull String activity, @NonNull BaseFragment.Promise<Object, String> p) {
+        // TODO
     }
 }
 

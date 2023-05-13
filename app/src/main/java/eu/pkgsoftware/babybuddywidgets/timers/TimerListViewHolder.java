@@ -33,6 +33,7 @@ public class TimerListViewHolder extends RecyclerView.ViewHolder {
     private final CredStore credStore;
     private final BabyBuddyClient client;
     private final Handler timerHandler;
+    private final TimerControlInterface timerControl;
 
     private final SwitchButtonLogic notesEditorSwitch;
     private final NotesEditorLogic notesEditor;
@@ -86,6 +87,7 @@ public class TimerListViewHolder extends RecyclerView.ViewHolder {
     public TimerListViewHolder(
         BaseFragment baseFragment,
         QuickTimerEntryBinding binding,
+        TimerControlInterface timerControl,
         @NotNull TimerListViewHolderCallback callbacks
     ) {
         super(binding.getRoot());
@@ -93,6 +95,7 @@ public class TimerListViewHolder extends RecyclerView.ViewHolder {
         this.baseFragment = baseFragment;
         this.binding = binding;
         this.callbacks = callbacks;
+        this.timerControl = timerControl;
 
         credStore = baseFragment.getMainActivity().getCredStore();
         client = baseFragment.getMainActivity().getClient();
@@ -126,16 +129,15 @@ public class TimerListViewHolder extends RecyclerView.ViewHolder {
                 }
 
                 if (active) {
-                    client.restartTimer(timer.id, new BabyBuddyClient.RequestCallback<>() {
+                    this.timerControl.startTimer(timer.id, new BaseFragment.Promise<>() {
                         @Override
-                        public void error(Exception error) {
+                        public void succeeded(BabyBuddyClient.Timer t) {
+                            timer = t;
+                            updateActiveState();
                         }
 
                         @Override
-                        public void response(Boolean response) {
-                            timer.active = true;
-                            timer.start = new Date(System.currentTimeMillis() + client.getServerDateOffsetMillis());
-                            updateActiveState();
+                        public void failed(String s) {
                         }
                     });
                 } else {
@@ -185,19 +187,19 @@ public class TimerListViewHolder extends RecyclerView.ViewHolder {
                 baseFragment.getString(R.string.activity_store_failure_stop_timer),
                 b -> {
                     if (!b) {
-                        client.deleteTimer(timer.id, new BabyBuddyClient.RequestCallback<Boolean>() {
+                        timerControl.stopTimer(timer.id, new BaseFragment.Promise<>() {
                             @Override
-                            public void error(@NonNull Exception error) {
+                            public void succeeded(Object o) {
+                                updateActiveState();
+                            }
+
+                            @Override
+                            public void failed(String s) {
                                 baseFragment.showError(
                                     true,
                                     R.string.activity_store_failure_failed_to_stop_title,
                                     R.string.activity_store_failure_failed_to_stop_message
                                 );
-                                updateActiveState();
-                            }
-
-                            @Override
-                            public void response(Boolean response) {
                                 updateActiveState();
                             }
                         });

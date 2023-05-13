@@ -28,6 +28,7 @@ import java.util.Locale;
 import java.util.Map;
 import java.util.Objects;
 import java.util.TimeZone;
+import java.util.Timer;
 
 import androidx.annotation.NonNull;
 import eu.pkgsoftware.babybuddywidgets.Constants;
@@ -717,8 +718,27 @@ public class BabyBuddyClient extends StreamReader {
         }
     }
 
-    public void restartTimer(int timer_id, RequestCallback<Boolean> callback) {
-        simpleCall("PATCH", "api/timers/" + timer_id + "/restart/", null, callback);
+    public void restartTimer(int timer_id, RequestCallback<Timer> callback) {
+        dispatchQuery(
+            "PATCH",
+            "api/timers/" + timer_id + "/restart/",
+            null,
+            new RequestCallback<>() {
+                @Override
+                public void error(Exception e) {
+                    callback.error(e);
+                }
+
+                @Override
+                public void response(String response) {
+                    try {
+                        JSONObject obj = new JSONObject(response);
+                        callback.response(Timer.fromJSON(obj));
+                    } catch (JSONException | ParseException e) {
+                        this.error(e);
+                    }
+                }
+            });
     }
 
     public long getServerDateOffsetMillis() {
