@@ -14,6 +14,7 @@ import eu.pkgsoftware.babybuddywidgets.networking.BabyBuddyClient;
 import eu.pkgsoftware.babybuddywidgets.networking.ChildrenStateTracker;
 import eu.pkgsoftware.babybuddywidgets.timers.TimerControlInterface;
 import eu.pkgsoftware.babybuddywidgets.timers.TimerListProvider;
+import eu.pkgsoftware.babybuddywidgets.utils.Promise;
 import eu.pkgsoftware.babybuddywidgets.widgets.SwitchButtonLogic;
 
 public class BabyLayoutHolder extends RecyclerView.ViewHolder implements TimerControlInterface {
@@ -105,7 +106,7 @@ public class BabyLayoutHolder extends RecyclerView.ViewHolder implements TimerCo
         client.createChangeRecord(child, changeWet, changeSolid, notesEditor.getText(),
             new BabyBuddyClient.RequestCallback<Boolean>() {
                 @Override
-                public void error(Exception error) {
+                public void error(@NonNull Exception error) {
                     baseFragment.showError(
                         true,
                         "Failed to save",
@@ -128,7 +129,7 @@ public class BabyLayoutHolder extends RecyclerView.ViewHolder implements TimerCo
     private void requeueImmediateTimerListRefresh() {
         client.listTimers(child.id, new BabyBuddyClient.RequestCallback<BabyBuddyClient.Timer[]>() {
             @Override
-            public void error(Exception error) {
+            public void error(@NonNull Exception error) {
             }
 
             @Override
@@ -211,11 +212,11 @@ public class BabyLayoutHolder extends RecyclerView.ViewHolder implements TimerCo
     }
 
     @Override
-    public void startTimer(int timerId, @NonNull BaseFragment.Promise<BabyBuddyClient.Timer, String> p) {
+    public void startTimer(int timerId, @NonNull Promise<BabyBuddyClient.Timer, String> p) {
         client.restartTimer(timerId, new BabyBuddyClient.RequestCallback<>() {
             @Override
             public void error(@NonNull Exception error) {
-                p.failed("Start timer failed"); // COLLECT
+                p.failed(baseFragment.getString(R.string.activity_store_failure_start_timer_failed));
             }
 
             @Override
@@ -226,11 +227,11 @@ public class BabyLayoutHolder extends RecyclerView.ViewHolder implements TimerCo
     }
 
     @Override
-    public void stopTimer(int timerId, @NonNull BaseFragment.Promise<Object, String> p) {
+    public void stopTimer(int timerId, @NonNull Promise<Object, String> p) {
         client.deleteTimer(timerId, new BabyBuddyClient.RequestCallback<>() {
             @Override
             public void error(@NonNull Exception error) {
-                p.failed("Stop timer failed"); // COLLECT
+                p.failed(baseFragment.getString(R.string.activity_store_failure_failed_to_stop_message));
             }
 
             @Override
@@ -241,7 +242,7 @@ public class BabyLayoutHolder extends RecyclerView.ViewHolder implements TimerCo
     }
 
     @Override
-    public void storeActivity(int timerId, @NonNull String activity, @NonNull BaseFragment.Promise<Object, String> p) {
+    public void storeActivity(int timerId, @NonNull String activity, @NonNull Promise<Object, String> p) {
         // TODO
     }
 }

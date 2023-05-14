@@ -15,6 +15,7 @@ import eu.pkgsoftware.babybuddywidgets.databinding.ActivityMainBinding
 import eu.pkgsoftware.babybuddywidgets.networking.BabyBuddyClient
 import eu.pkgsoftware.babybuddywidgets.networking.BabyBuddyClient.Child
 import eu.pkgsoftware.babybuddywidgets.networking.BabyBuddyClient.GenericSubsetResponseHeader
+import eu.pkgsoftware.babybuddywidgets.utils.AsyncClientRequest
 import kotlinx.coroutines.*
 import org.json.JSONArray
 import java.util.*
@@ -32,27 +33,6 @@ interface StoreFunction<X> : BabyBuddyClient.RequestCallback<X> {
 
 enum class ConflictResolutionOptions {
     CANCEL, RESOLVE, STOP_TIMER
-}
-
-class AsyncClientRequest() {
-    companion object {
-        suspend inline fun <X> call(crossinline body: (callback: BabyBuddyClient.RequestCallback<X>) -> Unit): X {
-            return withContext(Dispatchers.Default) {
-                suspendCoroutine<X> { continuation ->
-                    val callbacks = object : BabyBuddyClient.RequestCallback<X> {
-                        override fun error(error: Exception) {
-                            continuation.resumeWithException(error)
-                        }
-
-                        override fun response(response: X) {
-                            continuation.resume(response)
-                        }
-                    }
-                    body.invoke(callbacks)
-                }
-            }
-        }
-    }
 }
 
 fun interface InputEventListener {

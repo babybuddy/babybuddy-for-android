@@ -590,7 +590,7 @@ public class BabyBuddyClient extends StreamReader {
             null,
             new RequestCallback<String>() {
                 @Override
-                public void error(Exception e) {
+                public void error(@NonNull Exception e) {
                     callback.error(e);
                 }
 
@@ -652,7 +652,7 @@ public class BabyBuddyClient extends StreamReader {
             data,
             new RequestCallback<String>() {
                 @Override
-                public void error(Exception e) {
+                public void error(@NonNull Exception e) {
                     callback.error(e);
                 }
 
@@ -683,7 +683,7 @@ public class BabyBuddyClient extends StreamReader {
         qv.add("limit", 1000000);
         dispatchQuery("GET", "api/timers/?" + qv.toQueryString(), null, new RequestCallback<String>() {
             @Override
-            public void error(Exception e) {
+            public void error(@NonNull Exception e) {
                 callback.error(e);
             }
 
@@ -725,7 +725,7 @@ public class BabyBuddyClient extends StreamReader {
             null,
             new RequestCallback<>() {
                 @Override
-                public void error(Exception e) {
+                public void error(@NonNull Exception e) {
                     callback.error(e);
                 }
 
@@ -752,7 +752,7 @@ public class BabyBuddyClient extends StreamReader {
             null,
             new RequestCallback<String>() {
                 @Override
-                public void error(Exception e) {
+                public void error(@NonNull Exception e) {
                     callback.error(e);
                 }
 
@@ -786,7 +786,7 @@ public class BabyBuddyClient extends StreamReader {
             data,
             new RequestCallback<String>() {
                 @Override
-                public void error(Exception e) {
+                public void error(@NonNull Exception e) {
                     callback.error(e);
                 }
 
@@ -814,7 +814,7 @@ public class BabyBuddyClient extends StreamReader {
             data,
             new RequestCallback<String>() {
                 @Override
-                public void error(Exception e) {
+                public void error(@NonNull Exception e) {
                     callback.error(e);
                 }
 
@@ -845,7 +845,7 @@ public class BabyBuddyClient extends StreamReader {
             data,
             new RequestCallback<String>() {
                 @Override
-                public void error(Exception e) {
+                public void error(@NonNull Exception e) {
                     callback.error(e);
                 }
 
@@ -878,7 +878,7 @@ public class BabyBuddyClient extends StreamReader {
             data,
             new RequestCallback<String>() {
                 @Override
-                public void error(Exception e) {
+                public void error(@NonNull Exception e) {
                     callback.error(e);
                 }
 
@@ -906,7 +906,7 @@ public class BabyBuddyClient extends StreamReader {
             null,
             new RequestCallback<>() {
                 @Override
-                public void error(Exception e) {
+                public void error(@NonNull Exception e) {
                     callback.error(e);
                 }
 

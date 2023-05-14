@@ -306,7 +306,7 @@ public class ChildrenStateTracker {
                 client::listChildren,
                 new BabyBuddyClient.RequestCallback<BabyBuddyClient.Child[]>() {
                     @Override
-                    public void error(Exception error) {
+                    public void error(@NonNull Exception error) {
                         requeue();
                     }
 
@@ -391,7 +391,7 @@ public class ChildrenStateTracker {
                 new BoundTimerListCall()::call,
                 new BabyBuddyClient.RequestCallback<BabyBuddyClient.Timer[]>() {
                     @Override
-                    public void error(Exception error) {
+                    public void error(@NonNull Exception error) {
                         closeWhenChildIsMissing();
                         requeue();
                     }

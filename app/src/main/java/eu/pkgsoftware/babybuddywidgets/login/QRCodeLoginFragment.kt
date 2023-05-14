@@ -20,6 +20,7 @@ import com.squareup.phrase.Phrase
 import eu.pkgsoftware.babybuddywidgets.BaseFragment
 import eu.pkgsoftware.babybuddywidgets.R
 import eu.pkgsoftware.babybuddywidgets.databinding.QrCodeLoginFragmentBinding
+import eu.pkgsoftware.babybuddywidgets.utils.Promise
 
 
 const val CLEAR_DELAY_MS = 2000

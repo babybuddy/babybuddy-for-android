@@ -1,7 +1,7 @@
 package eu.pkgsoftware.babybuddywidgets.login
 
 import android.app.AlertDialog
-import eu.pkgsoftware.babybuddywidgets.BaseFragment.Promise
+import eu.pkgsoftware.babybuddywidgets.utils.Promise
 import eu.pkgsoftware.babybuddywidgets.CredStore
 import eu.pkgsoftware.babybuddywidgets.MainActivity
 import eu.pkgsoftware.babybuddywidgets.R

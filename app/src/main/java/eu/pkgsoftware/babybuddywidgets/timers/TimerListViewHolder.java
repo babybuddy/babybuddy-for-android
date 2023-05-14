@@ -23,6 +23,7 @@ import eu.pkgsoftware.babybuddywidgets.databinding.NotesEditorBinding;
 import eu.pkgsoftware.babybuddywidgets.databinding.QuickTimerEntryBinding;
 import eu.pkgsoftware.babybuddywidgets.networking.BabyBuddyClient;
 import eu.pkgsoftware.babybuddywidgets.networking.RequestCodeFailure;
+import eu.pkgsoftware.babybuddywidgets.utils.Promise;
 import eu.pkgsoftware.babybuddywidgets.widgets.SwitchButtonLogic;
 
 public class TimerListViewHolder extends RecyclerView.ViewHolder {
@@ -129,7 +130,7 @@ public class TimerListViewHolder extends RecyclerView.ViewHolder {
                 }
 
                 if (active) {
-                    this.timerControl.startTimer(timer.id, new BaseFragment.Promise<>() {
+                    this.timerControl.startTimer(timer.id, new Promise<>() {
                         @Override
                         public void succeeded(BabyBuddyClient.Timer t) {
                             timer = t;
@@ -187,7 +188,7 @@ public class TimerListViewHolder extends RecyclerView.ViewHolder {
                 baseFragment.getString(R.string.activity_store_failure_stop_timer),
                 b -> {
                     if (!b) {
-                        timerControl.stopTimer(timer.id, new BaseFragment.Promise<>() {
+                        timerControl.stopTimer(timer.id, new Promise<>() {
                             @Override
                             public void succeeded(Object o) {
                                 updateActiveState();

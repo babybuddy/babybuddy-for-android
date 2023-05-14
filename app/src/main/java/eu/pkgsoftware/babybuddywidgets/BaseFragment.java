@@ -22,12 +22,6 @@ public class BaseFragment extends Fragment {
         void call(boolean b);
     }
 
-    public interface Promise<S, F> {
-        void succeeded(S s);
-
-        void failed(F f);
-    }
-
     private AlertDialog dialog = null;
     protected ProgressDialog progressDialog;
 

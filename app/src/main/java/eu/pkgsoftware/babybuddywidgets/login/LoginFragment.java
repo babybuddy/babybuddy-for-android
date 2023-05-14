@@ -26,6 +26,7 @@ import eu.pkgsoftware.babybuddywidgets.MainActivity;
 import eu.pkgsoftware.babybuddywidgets.R;
 import eu.pkgsoftware.babybuddywidgets.TutorialAccess;
 import eu.pkgsoftware.babybuddywidgets.databinding.LoginFragmentBinding;
+import eu.pkgsoftware.babybuddywidgets.utils.Promise;
 import eu.pkgsoftware.babybuddywidgets.utils.RunOnceAfterLayoutUpdate;
 
 public class LoginFragment extends BaseFragment {
