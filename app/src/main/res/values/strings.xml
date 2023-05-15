@@ -1,5 +1,5 @@
 <resources>
-    <array name="timerTypes" translatable="false">
+    <array name="timerTypeNames">
         <item>Feeding</item>
         <item>Sleep</item>
         <item>Tummy time</item>
@@ -68,6 +68,9 @@
     <string name="login_qrcode_info_text_no_camera">Your device does not have a camera. You cannot use QR Code logins.</string>
     <string name="login_qrcode_button_text">Login with QR Code</string>
 
+    <!-- Generic logged in -->
+    <string name="logged_in_no_children_found">(No children found)</string>
+
     <!--- Store activities -->
     <string name="error_storing_activity_failed_title">Could not store activity</string>
     <string name="error_storing_activity_unsupported">Unsupported activity</string>
@@ -100,7 +103,6 @@
     <string name="history_delete_question_cancel_button">Cancel</string>
     <!-- TODO: Remove or change this placeholder text -->
     <string name="hello_blank_fragment">Hello blank fragment</string>
-
 
     <!-- QR Code Login -->
     <string name="login_qrcode_camera_access_needed_dialog_title">Camera access needed</string>

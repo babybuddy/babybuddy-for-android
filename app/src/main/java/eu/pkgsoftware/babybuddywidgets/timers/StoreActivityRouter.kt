@@ -1,5 +1,6 @@
 package eu.pkgsoftware.babybuddywidgets.timers
 
+import androidx.navigation.Navigation.findNavController
 import eu.pkgsoftware.babybuddywidgets.MainActivity
 import eu.pkgsoftware.babybuddywidgets.StoreFunction
 import eu.pkgsoftware.babybuddywidgets.networking.BabyBuddyClient.ACTIVITIES
@@ -37,7 +38,7 @@ class StoreActivityRouter(val mainActivity: MainActivity) {
                     suspensionScope.resumeWithException(e)
                     return@launch
                 }
-                suspensionScope.resume(false)
+                suspensionScope.resume(true)
             }
         }
 
@@ -50,7 +51,7 @@ class StoreActivityRouter(val mainActivity: MainActivity) {
         }
 
         override fun response(response: Boolean?) {
-            suspensionScope.resume(response ?: false)
+            suspensionScope.resume(response ?: true)
         }
     }
 
@@ -102,6 +103,10 @@ class StoreActivityRouter(val mainActivity: MainActivity) {
             }
             mainActivity.storeActivity(timer, storeInterface)
         }
+
+        // baseFragment.getMainActivity().selectedTimer = timer
+        // findNavController(baseFragment.getView()).navigate(R.id.action_loggedInFragment2_to_feedingFragment)
+
     }
 
     fun store(

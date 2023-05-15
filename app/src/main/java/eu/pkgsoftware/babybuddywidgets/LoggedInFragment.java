@@ -273,7 +273,7 @@ public class LoggedInFragment extends BaseFragment {
     private void updateTitle() {
         BabyBuddyClient.Child child = selectedChild();
         if (child == null) {
-            getMainActivity().setTitle("(No children found)");
+            getMainActivity().setTitle(R.string.logged_in_no_children_found);
         } else {
             getMainActivity().setTitle(child.first_name + " " + child.last_name);
         }

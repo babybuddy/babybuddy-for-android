@@ -256,7 +256,7 @@ class MainActivity : AppCompatActivity() {
             var readableActivityName = storeInterface.name()
             if (BabyBuddyClient.ACTIVITIES.index(readableActivityName) >= 0) {
                 val i = BabyBuddyClient.ACTIVITIES.index(readableActivityName);
-                readableActivityName = resources.getStringArray(R.array.timerTypes).get(i)
+                readableActivityName = resources.getStringArray(R.array.timerTypeNames).get(i)
             }
 
             val progressDialog = ProgressDialog(this@MainActivity)

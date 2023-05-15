@@ -115,6 +115,18 @@ public class TimerListViewHolder extends RecyclerView.ViewHolder {
             }
         });
 
+        notesEditorSwitch = new SwitchButtonLogic(
+            binding.addNoteButton, binding.removeNoteButton, false
+        );
+        NotesEditorBinding notesBinding = NotesEditorBinding.inflate(
+            baseFragment.getMainActivity().getLayoutInflater()
+        );
+        binding.verticalRoot.addView(notesBinding.getRoot());
+        notesEditor = new NotesEditorLogic(
+            baseFragment.getMainActivity(), notesBinding, false
+        );
+        notesEditorSwitch.addStateListener((v, userTriggered) -> notesEditor.setVisible(v));
+
         startStopLogic = new SwitchButtonLogic(
             binding.appStartTimerButton,
             binding.appStopTimerButton,
@@ -130,7 +142,7 @@ public class TimerListViewHolder extends RecyclerView.ViewHolder {
                 }
 
                 if (active) {
-                    this.timerControl.startTimer(timer.id, new Promise<>() {
+                    this.timerControl.startTimer(timer, new Promise<>() {
                         @Override
                         public void succeeded(BabyBuddyClient.Timer t) {
                             timer = t;
@@ -142,195 +154,78 @@ public class TimerListViewHolder extends RecyclerView.ViewHolder {
                         }
                     });
                 } else {
-                    storeActivity();
+                    final int selectedActivity = (int) binding.appTimerDefaultType.getSelectedItemId();
+                    this.timerControl.storeActivity(
+                        timer,
+                        BabyBuddyClient.ACTIVITIES.ALL[selectedActivity],
+                        notesEditor.getText(),
+                        new Promise<>() {
+                            @Override
+                            public void succeeded(Boolean b) {
+                                if (b == null) {
+                                    b = true;
+                                }
+
+                                if (b) {
+                                    timer.active = false;
+                                    updateActiveState();
+                                }
+                            }
+
+                            @Override
+                            public void failed(Exception e) {
+                                tryResolveStoreError(e);
+                            }
+                        }
+                    );
+                }
+            }
+        );
+    }
+
+    private void tryResolveStoreError(@NotNull Exception error) {
+        String message = "" + error.getMessage();
+        if (error instanceof RequestCodeFailure) {
+            final RequestCodeFailure rcf = (RequestCodeFailure) error;
+            if (rcf.hasJSONMessage()) {
+                message = Phrase.from(baseFragment.getResources(), R.string.activity_store_failure_server_error)
+                    .put("message", "Error while storing activity")
+                    .put("server_message", String.join(", ", rcf.jsonErrorMessages()))
+                    .format().toString();
+            }
+        }
+
+        baseFragment.showQuestion(
+            true,
+            baseFragment.getString(R.string.activity_store_failure_message),
+            message,
+            baseFragment.getString(R.string.activity_store_failure_cancel),
+            baseFragment.getString(R.string.activity_store_failure_stop_timer),
+            b -> {
+                if (!b) {
+                    timerControl.stopTimer(timer, new Promise<>() {
+                        @Override
+                        public void succeeded(Object o) {
+                            updateActiveState();
+                        }
+
+                        @Override
+                        public void failed(String s) {
+                            baseFragment.showError(
+                                true,
+                                R.string.activity_store_failure_failed_to_stop_title,
+                                R.string.activity_store_failure_failed_to_stop_message
+                            );
+                            updateActiveState();
+                        }
+                    });
+                } else {
+                    updateActiveState();
                 }
             }
         );
 
-        notesEditorSwitch = new SwitchButtonLogic(
-            binding.addNoteButton, binding.removeNoteButton, false
-        );
-        NotesEditorBinding notesBinding = NotesEditorBinding.inflate(
-            baseFragment.getMainActivity().getLayoutInflater()
-        );
-        binding.verticalRoot.addView(notesBinding.getRoot());
-        notesEditor = new NotesEditorLogic(
-            baseFragment.getMainActivity(), notesBinding, false
-        );
-        notesEditorSwitch.addStateListener((v, userTriggered) -> notesEditor.setVisible(v));
-    }
-
-    class StoreActivityCallback implements BabyBuddyClient.RequestCallback<Boolean> {
-        private final String errorMessage;
-
-        public StoreActivityCallback(String errorMessage) {
-            this.errorMessage = errorMessage;
-        }
-
-        @Override
-        public void error(@NotNull Exception error) {
-            String message = errorMessage;
-            if (error instanceof RequestCodeFailure) {
-                final RequestCodeFailure rcf = (RequestCodeFailure) error;
-                if (rcf.hasJSONMessage()) {
-                    message = Phrase.from(baseFragment.getResources(), R.string.activity_store_failure_server_error)
-                        .put("message", errorMessage)
-                        .put("server_message", String.join(", ", rcf.jsonErrorMessages()))
-                        .format().toString();
-                }
-            }
-
-            baseFragment.showQuestion(
-                true,
-                baseFragment.getString(R.string.activity_store_failure_message),
-                message,
-                baseFragment.getString(R.string.activity_store_failure_cancel),
-                baseFragment.getString(R.string.activity_store_failure_stop_timer),
-                b -> {
-                    if (!b) {
-                        timerControl.stopTimer(timer.id, new Promise<>() {
-                            @Override
-                            public void succeeded(Object o) {
-                                updateActiveState();
-                            }
-
-                            @Override
-                            public void failed(String s) {
-                                baseFragment.showError(
-                                    true,
-                                    R.string.activity_store_failure_failed_to_stop_title,
-                                    R.string.activity_store_failure_failed_to_stop_message
-                                );
-                                updateActiveState();
-                            }
-                        });
-                    } else {
-                        updateActiveState();
-                    }
-                }
-            );
-
-
-            updateActiveState();
-        }
-
-        @Override
-        public void response(Boolean response) {
-            timer.active = false;
-            updateActiveState();
-
-            notesEditor.clearText();
-            notesEditorSwitch.setState(false);
-        }
-    }
-
-    private interface BareStoreFunction {
-        public void doStore(
-            @NonNull BabyBuddyClient.RequestCallback<Boolean> callback
-        );
-    }
-
-    private class TimerStoreFunction implements StoreFunction<Boolean> {
-        private final int selectedActivity;
-        private final BareStoreFunction bareStoreFunction;
-        private final StoreActivityCallback sac;
-        private final BabyBuddyClient.Timer timer;
-
-        public TimerStoreFunction(
-            StoreActivityCallback _sac,
-            BabyBuddyClient.Timer _timer,
-            int _selectedActivity,
-            BareStoreFunction _bareStoreFunction
-        ) {
-            timer = _timer;
-            selectedActivity = _selectedActivity;
-            bareStoreFunction = _bareStoreFunction;
-            sac = _sac;
-        }
-
-        @Override
-        public void store(
-            @NonNull BabyBuddyClient.Timer _timer,
-            @NonNull BabyBuddyClient.RequestCallback<java.lang.Boolean> callback
-        ) {
-            bareStoreFunction.doStore(callback);
-        }
-
-        @NonNull
-        @Override
-        public String name() {
-            return BabyBuddyClient.ACTIVITIES.ALL[selectedActivity];
-        }
-
-        @Override
-        public void error(@NotNull Exception error) {
-            sac.error(error);
-            updateActiveState();
-        }
-
-        @Override
-        public void response(java.lang.Boolean response) {
-            sac.response(response);
-            updateActiveState();
-            callbacks.updateActivities();
-        }
-
-        @Override
-        public void timerStopped() {
-            updateActiveState();
-        }
-
-        @Override
-        public void cancel() {
-            timer.active = true;
-            updateActiveState();
-        }
-    }
-
-    private void storeActivity() {
-        final int selectedActivity = (int) binding.appTimerDefaultType.getSelectedItemId();
-        final MainActivity mainActivity = this.baseFragment.getMainActivity();
-        final String[] timerTypeStrings = baseFragment.getResources().getStringArray(R.array.timerTypes);
-        final StoreActivityCallback sac = new StoreActivityCallback(
-            Phrase.from("Storing {name} entry failed.")
-                .putOptional("name", timerTypeStrings[selectedActivity])
-                .format()
-                .toString()
-        );
-
-        BareStoreFunction storeFunction = null;
-        if (selectedActivity == 0) {
-            baseFragment.getMainActivity().selectedTimer = timer;
-            Navigation.findNavController(baseFragment.getView()).navigate(R.id.action_loggedInFragment2_to_feedingFragment);
-        } else if (selectedActivity == 1) {
-            storeFunction = callback -> client.createSleepRecordFromTimer(
-                timer,
-                notesEditor.getText(),
-                callback
-            );
-        } else if (selectedActivity == 2) {
-            storeFunction = callback -> client.createTummyTimeRecordFromTimer(
-                timer,
-                notesEditor.getText(),
-                callback
-            );
-        } else {
-            baseFragment.showError(
-                true,
-                R.string.error_storing_activity_failed_title,
-                R.string.error_storing_activity_unsupported
-            );
-            return;
-        }
-
-        if (storeFunction != null) {
-            mainActivity.storeActivity(timer, new TimerStoreFunction(
-                sac,
-                timer,
-                selectedActivity,
-                storeFunction
-            ));
-        }
+        updateActiveState();
     }
 
     private void updateActiveState() {
@@ -346,7 +241,7 @@ public class TimerListViewHolder extends RecyclerView.ViewHolder {
     private int inferDefaultSelectionFromName(String name) {
         name = name.toLowerCase();
         int i = 0;
-        for (CharSequence candidate : baseFragment.getActivity().getResources().getStringArray(R.array.timerTypes)) {
+        for (CharSequence candidate : baseFragment.getActivity().getResources().getStringArray(R.array.timerTypeNames)) {
             if (name.contains(candidate.toString().toLowerCase())) {
                 return i;
             }

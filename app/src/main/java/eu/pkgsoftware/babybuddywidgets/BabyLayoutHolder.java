@@ -2,7 +2,7 @@ package eu.pkgsoftware.babybuddywidgets;
 
 import android.view.View;
 
-import java.util.Date;
+import org.jetbrains.annotations.NotNull;
 
 import androidx.annotation.NonNull;
 import androidx.recyclerview.widget.GridLayoutManager;
@@ -12,6 +12,7 @@ import eu.pkgsoftware.babybuddywidgets.databinding.NotesEditorBinding;
 import eu.pkgsoftware.babybuddywidgets.history.ChildEventHistoryLoader;
 import eu.pkgsoftware.babybuddywidgets.networking.BabyBuddyClient;
 import eu.pkgsoftware.babybuddywidgets.networking.ChildrenStateTracker;
+import eu.pkgsoftware.babybuddywidgets.timers.StoreActivityRouter;
 import eu.pkgsoftware.babybuddywidgets.timers.TimerControlInterface;
 import eu.pkgsoftware.babybuddywidgets.timers.TimerListProvider;
 import eu.pkgsoftware.babybuddywidgets.utils.Promise;
@@ -33,6 +34,7 @@ public class BabyLayoutHolder extends RecyclerView.ViewHolder implements TimerCo
     private ChildEventHistoryLoader childHistoryLoader = null;
 
     private ChildrenStateTracker.ChildObserver childObserver = null;
+    private StoreActivityRouter storeActivityRouter;
 
     public BabyLayoutHolder(BaseFragment fragment, BabyManagerBinding bmb) {
         super(bmb.getRoot());
@@ -40,6 +42,8 @@ public class BabyLayoutHolder extends RecyclerView.ViewHolder implements TimerCo
 
         baseFragment = fragment;
         client = fragment.getMainActivity().getClient();
+
+        storeActivityRouter = new StoreActivityRouter(baseFragment.getMainActivity());
 
         GridLayoutManager l = new GridLayoutManager(binding.timersList.getContext(), 1);
         binding.timersList.setLayoutManager(l);
@@ -212,8 +216,8 @@ public class BabyLayoutHolder extends RecyclerView.ViewHolder implements TimerCo
     }
 
     @Override
-    public void startTimer(int timerId, @NonNull Promise<BabyBuddyClient.Timer, String> p) {
-        client.restartTimer(timerId, new BabyBuddyClient.RequestCallback<>() {
+    public void startTimer(@NotNull BabyBuddyClient.Timer timer, @NonNull Promise<BabyBuddyClient.Timer, String> p) {
+        client.restartTimer(timer.id, new BabyBuddyClient.RequestCallback<>() {
             @Override
             public void error(@NonNull Exception error) {
                 p.failed(baseFragment.getString(R.string.activity_store_failure_start_timer_failed));
@@ -227,8 +231,8 @@ public class BabyLayoutHolder extends RecyclerView.ViewHolder implements TimerCo
     }
 
     @Override
-    public void stopTimer(int timerId, @NonNull Promise<Object, String> p) {
-        client.deleteTimer(timerId, new BabyBuddyClient.RequestCallback<>() {
+    public void stopTimer(@NotNull BabyBuddyClient.Timer timer, @NonNull Promise<Object, String> p) {
+        client.deleteTimer(timer.id, new BabyBuddyClient.RequestCallback<>() {
             @Override
             public void error(@NonNull Exception error) {
                 p.failed(baseFragment.getString(R.string.activity_store_failure_failed_to_stop_message));
@@ -242,8 +246,26 @@ public class BabyLayoutHolder extends RecyclerView.ViewHolder implements TimerCo
     }
 
     @Override
-    public void storeActivity(int timerId, @NonNull String activity, @NonNull Promise<Object, String> p) {
-        // TODO
+    public void storeActivity(
+        @NotNull BabyBuddyClient.Timer timer,
+        @NonNull String activity,
+        @NonNull String notes,
+        @NonNull Promise<Boolean, Exception> promise
+    ) {
+        storeActivityRouter.store(activity, notes, timer, new Promise<>() {
+            @Override
+            public void succeeded(Boolean aBoolean) {
+                promise.succeeded(aBoolean);
+                if (childHistoryLoader != null) {
+                    childHistoryLoader.forceRefresh();
+                }
+            }
+
+            @Override
+            public void failed(Exception e) {
+                promise.failed(e);
+            }
+        });
     }
 }
 
