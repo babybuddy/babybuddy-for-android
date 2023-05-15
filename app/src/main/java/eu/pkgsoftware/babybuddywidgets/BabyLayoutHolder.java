@@ -122,7 +122,9 @@ public class BabyLayoutHolder extends RecyclerView.ViewHolder implements TimerCo
                 public void response(Boolean response) {
                     notesEditor.clearText();
                     notesSwitch.setState(false);
-                    childHistoryLoader.forceRefresh();
+                    if (childHistoryLoader != null) {
+                        childHistoryLoader.forceRefresh();
+                    }
                 }
             }
         );
