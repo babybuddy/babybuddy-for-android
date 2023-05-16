@@ -15,6 +15,7 @@ import eu.pkgsoftware.babybuddywidgets.networking.ChildrenStateTracker;
 import eu.pkgsoftware.babybuddywidgets.timers.StoreActivityRouter;
 import eu.pkgsoftware.babybuddywidgets.timers.TimerControlInterface;
 import eu.pkgsoftware.babybuddywidgets.timers.TimerListProvider;
+import eu.pkgsoftware.babybuddywidgets.timers.TimersUpdatedCallback;
 import eu.pkgsoftware.babybuddywidgets.utils.Promise;
 import eu.pkgsoftware.babybuddywidgets.widgets.SwitchButtonLogic;
 
@@ -35,6 +36,9 @@ public class BabyLayoutHolder extends RecyclerView.ViewHolder implements TimerCo
 
     private ChildrenStateTracker.ChildObserver childObserver = null;
     private StoreActivityRouter storeActivityRouter;
+
+    private BabyBuddyClient.Timer[] cachedTimers = null;
+    private TimersUpdatedCallback updateTimersCallback = null;
 
     public BabyLayoutHolder(BaseFragment fragment, BabyManagerBinding bmb) {
         super(bmb.getRoot());
@@ -177,7 +181,8 @@ public class BabyLayoutHolder extends RecyclerView.ViewHolder implements TimerCo
 
     public void updateTimerList(BabyBuddyClient.Timer[] timers) {
         if (child == null) {
-            timerListProvider.updateTimers(new BabyBuddyClient.Timer[0]);
+            cachedTimers = new BabyBuddyClient.Timer[0];
+            callTimerUpdateCallback();
             return;
         }
 
@@ -187,9 +192,8 @@ public class BabyLayoutHolder extends RecyclerView.ViewHolder implements TimerCo
             }
         }
 
-        if (timerListProvider != null) {
-            timerListProvider.updateTimers(timers);
-        }
+        cachedTimers = timers;
+        callTimerUpdateCallback();
     }
 
     public void onViewDeselected() {
@@ -210,6 +214,7 @@ public class BabyLayoutHolder extends RecyclerView.ViewHolder implements TimerCo
         resetChildHistoryLoader();
         resetDiaperUi();
         child = null;
+        cachedTimers = null;
     }
 
     public void close() {
@@ -268,6 +273,18 @@ public class BabyLayoutHolder extends RecyclerView.ViewHolder implements TimerCo
                 promise.failed(e);
             }
         });
+    }
+
+    @Override
+    public void registerTimersUpdatedCallback(@NonNull TimersUpdatedCallback callback) {
+        updateTimersCallback = callback;
+        callTimerUpdateCallback();
+    }
+
+    private void callTimerUpdateCallback() {
+        if ((cachedTimers != null) && (updateTimersCallback != null)) {
+            updateTimersCallback.newTimerListLoaded(cachedTimers);
+        }
     }
 }
 

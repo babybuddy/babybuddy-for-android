@@ -15,7 +15,7 @@ import eu.pkgsoftware.babybuddywidgets.BaseFragment;
 import eu.pkgsoftware.babybuddywidgets.history.ChildEventHistoryLoader;
 import eu.pkgsoftware.babybuddywidgets.networking.BabyBuddyClient;
 
-public class TimerListProvider extends RecyclerView.Adapter<TimerListViewHolder> implements TimerListViewHolderCallback {
+public class TimerListProvider extends RecyclerView.Adapter<TimerListViewHolder> implements TimerListViewHolderCallback, TimersUpdatedCallback {
     private BabyBuddyClient.Timer[] timers = new BabyBuddyClient.Timer[0];
 
     private final BaseFragment baseFragment;
@@ -32,6 +32,7 @@ public class TimerListProvider extends RecyclerView.Adapter<TimerListViewHolder>
         this.baseFragment = baseFragment;
         this.childHistoryLoader = childHistoryLoader;
         this.timerControls = timerControls;
+        this.timerControls.registerTimersUpdatedCallback(this);
     }
 
     private int[] listIds(BabyBuddyClient.Timer[] t) {
@@ -59,33 +60,6 @@ public class TimerListProvider extends RecyclerView.Adapter<TimerListViewHolder>
             }
         }
         return result;
-    }
-
-    public void updateTimers(BabyBuddyClient.Timer[] timers) {
-        timers = timers.clone();
-        Arrays.sort(timers, (a, b) -> Integer.compare(a.id, b.id));
-
-        if (!compareIds(timers, this.timers)) {
-            this.timers = timers;
-            notifyDataSetChanged();
-        } else {
-            for (int i = 0; i < timers.length; i++) {
-                if (!this.timers[i].equals(timers[i])) {
-                    BabyBuddyClient.Timer probeTimer = timers[i].clone();
-                    probeTimer.start = this.timers[i].start;
-                    probeTimer.end = this.timers[i].end;
-                    TimerListViewHolder timerHolder = findHolderForTimer(timers[i]);
-                    boolean probeTimerEqual = probeTimer.equals(this.timers[i]);
-
-                    this.timers[i] = timers[i];
-                    if (probeTimerEqual && (timerHolder != null)) {
-                        timerHolder.assignTimer(timers[i]);
-                    } else {
-                        notifyItemChanged(i);
-                    }
-                }
-            }
-        }
     }
 
     @Override
@@ -125,5 +99,33 @@ public class TimerListProvider extends RecyclerView.Adapter<TimerListViewHolder>
     @Override
     public void updateActivities() {
         childHistoryLoader.forceRefresh();
+    }
+
+    @Override
+    public void newTimerListLoaded(@NonNull BabyBuddyClient.Timer[] timers) {
+        timers = timers.clone();
+        Arrays.sort(timers, (a, b) -> Integer.compare(a.id, b.id));
+
+        if (!compareIds(timers, this.timers)) {
+            this.timers = timers;
+            notifyDataSetChanged();
+        } else {
+            for (int i = 0; i < timers.length; i++) {
+                if (!this.timers[i].equals(timers[i])) {
+                    BabyBuddyClient.Timer probeTimer = timers[i].clone();
+                    probeTimer.start = this.timers[i].start;
+                    probeTimer.end = this.timers[i].end;
+                    TimerListViewHolder timerHolder = findHolderForTimer(timers[i]);
+                    boolean probeTimerEqual = probeTimer.equals(this.timers[i]);
+
+                    this.timers[i] = timers[i];
+                    if (probeTimerEqual && (timerHolder != null)) {
+                        timerHolder.assignTimer(timers[i]);
+                    } else {
+                        notifyItemChanged(i);
+                    }
+                }
+            }
+        }
     }
 }

@@ -62,5 +62,4 @@ class Utils(val mainActivity: MainActivity) {
             promise.failed("No app token found.")
         }
     }
-
 }
