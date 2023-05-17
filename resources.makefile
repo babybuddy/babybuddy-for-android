@@ -131,7 +131,7 @@ resources/nonfree/raw_$$(image_id).png:
 		-H "Accept: application/json" \
 		-H "Authorization: Bearer $$$$( cat ./flaticon-token )" \
 		--output "$$@" \
-		"https://api.flaticon.com/v2/item/icon/download/$$(call get_field,1,$(1))"
+		"https://api.flaticon.com/v3/item/icon/download/$$(call get_field,1,$(1))"
 endif
 
 resources/nonfree/$$(call get_field,2,$(1)).png: resources/nonfree/raw_$$(image_id).png resources/nonfree/$$(call get_field,2,$(1)).marker

@@ -48,5 +48,11 @@ In addition the following Linux software packages are required:
 
 ## Building
 
+Run submodule updates
+```
+git submodule init
+git submodule update
+```
+
 That is it. The everything else is referenced from the gradle files.
 Launch Android Studio, open the project, and build it. It should work.
