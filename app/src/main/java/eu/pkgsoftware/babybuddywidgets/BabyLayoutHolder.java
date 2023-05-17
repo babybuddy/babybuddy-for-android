@@ -7,6 +7,7 @@ import org.jetbrains.annotations.NotNull;
 import androidx.annotation.NonNull;
 import androidx.recyclerview.widget.GridLayoutManager;
 import androidx.recyclerview.widget.RecyclerView;
+import eu.pkgsoftware.babybuddywidgets.compat.BabyBuddyV2TimerAdapter;
 import eu.pkgsoftware.babybuddywidgets.databinding.BabyManagerBinding;
 import eu.pkgsoftware.babybuddywidgets.databinding.NotesEditorBinding;
 import eu.pkgsoftware.babybuddywidgets.history.ChildEventHistoryLoader;
@@ -174,7 +175,11 @@ public class BabyLayoutHolder extends RecyclerView.ViewHolder implements TimerCo
                 binding.timelineProgressSpinner
             );
             childHistoryLoader.createTimelineObserver(stateTracker);
-            timerListProvider = new TimerListProvider(baseFragment, childHistoryLoader, this);
+            timerListProvider = new TimerListProvider(
+                baseFragment,
+                childHistoryLoader,
+                new BabyBuddyV2TimerAdapter(child, this)
+            );
             binding.timersList.setAdapter(timerListProvider);
         }
     }
