@@ -111,11 +111,11 @@ public class TimerListProvider extends RecyclerView.Adapter<TimerListViewHolder>
             notifyDataSetChanged();
         } else {
             for (int i = 0; i < timers.length; i++) {
+                final TimerListViewHolder timerHolder = findHolderForTimer(timers[i]);
                 if (!this.timers[i].equals(timers[i])) {
                     BabyBuddyClient.Timer probeTimer = timers[i].clone();
                     probeTimer.start = this.timers[i].start;
                     probeTimer.end = this.timers[i].end;
-                    TimerListViewHolder timerHolder = findHolderForTimer(timers[i]);
                     boolean probeTimerEqual = probeTimer.equals(this.timers[i]);
 
                     this.timers[i] = timers[i];
@@ -124,6 +124,8 @@ public class TimerListProvider extends RecyclerView.Adapter<TimerListViewHolder>
                     } else {
                         notifyItemChanged(i);
                     }
+                } else if (timerHolder != null) {
+                    timerHolder.updateNoChange();
                 }
             }
         }

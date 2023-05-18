@@ -203,7 +203,7 @@ public class BabyBuddyClient extends StreamReader {
         public boolean active;
         public int user_id;
 
-        public String readableName() {
+        public @NonNull String readableName() {
             if (name != null) {
                 return name;
             }

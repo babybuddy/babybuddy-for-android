@@ -41,6 +41,8 @@ public class BabyLayoutHolder extends RecyclerView.ViewHolder implements TimerCo
     private BabyBuddyClient.Timer[] cachedTimers = null;
     private TimersUpdatedCallback updateTimersCallback = null;
 
+    private int pendingTimerModificationCalls = 0;
+
     public BabyLayoutHolder(BaseFragment fragment, BabyManagerBinding bmb) {
         super(bmb.getRoot());
         binding = bmb;
@@ -165,6 +167,9 @@ public class BabyLayoutHolder extends RecyclerView.ViewHolder implements TimerCo
         notesSwitch.setState(notesEditor.isVisible());
 
         if (child != null) {
+            if (stateTracker == null) {
+                throw new RuntimeException("StateTracker was null somehow");
+            }
             childObserver = stateTracker.new ChildObserver(child.id, this::updateTimerList);
 
             childHistoryLoader = new ChildEventHistoryLoader(
@@ -185,6 +190,12 @@ public class BabyLayoutHolder extends RecyclerView.ViewHolder implements TimerCo
     }
 
     public void updateTimerList(BabyBuddyClient.Timer[] timers) {
+        if (pendingTimerModificationCalls > 0) {
+            // Buffer timer-list updates while a timer-modifying operation is running
+            // (prevents confusing UI updates)
+            return;
+        }
+
         if (child == null) {
             cachedTimers = new BabyBuddyClient.Timer[0];
             callTimerUpdateCallback();
@@ -229,14 +240,17 @@ public class BabyLayoutHolder extends RecyclerView.ViewHolder implements TimerCo
 
     @Override
     public void startTimer(@NotNull BabyBuddyClient.Timer timer, @NonNull Promise<BabyBuddyClient.Timer, String> p) {
+        pendingTimerModificationCalls++;
         client.restartTimer(timer.id, new BabyBuddyClient.RequestCallback<>() {
             @Override
             public void error(@NonNull Exception error) {
+                pendingTimerModificationCalls--;
                 p.failed(baseFragment.getString(R.string.activity_store_failure_start_timer_failed));
             }
 
             @Override
             public void response(BabyBuddyClient.Timer timer) {
+                pendingTimerModificationCalls--;
                 p.succeeded(timer);
             }
         });
@@ -244,14 +258,17 @@ public class BabyLayoutHolder extends RecyclerView.ViewHolder implements TimerCo
 
     @Override
     public void stopTimer(@NotNull BabyBuddyClient.Timer timer, @NonNull Promise<Object, String> p) {
+        pendingTimerModificationCalls++;
         client.deleteTimer(timer.id, new BabyBuddyClient.RequestCallback<>() {
             @Override
             public void error(@NonNull Exception error) {
+                pendingTimerModificationCalls--;
                 p.failed(baseFragment.getString(R.string.activity_store_failure_failed_to_stop_message));
             }
 
             @Override
             public void response(Boolean response) {
+                pendingTimerModificationCalls--;
                 p.succeeded(new Object());
             }
         });
@@ -264,9 +281,11 @@ public class BabyLayoutHolder extends RecyclerView.ViewHolder implements TimerCo
         @NonNull String notes,
         @NonNull Promise<Boolean, Exception> promise
     ) {
+        pendingTimerModificationCalls++;
         storeActivityRouter.store(activity, notes, timer, new Promise<>() {
             @Override
             public void succeeded(Boolean aBoolean) {
+                pendingTimerModificationCalls--;
                 promise.succeeded(aBoolean);
                 if (childHistoryLoader != null) {
                     childHistoryLoader.forceRefresh();
@@ -275,6 +294,7 @@ public class BabyLayoutHolder extends RecyclerView.ViewHolder implements TimerCo
 
             @Override
             public void failed(Exception e) {
+                pendingTimerModificationCalls--;
                 promise.failed(e);
             }
         });

@@ -104,17 +104,6 @@ public class TimerListViewHolder extends RecyclerView.ViewHolder {
         binding.currentTimerTime.setText("");
         timerHandler = new Handler(baseFragment.getMainActivity().getMainLooper());
 
-        binding.appTimerDefaultType.setOnItemSelectedListener(new AdapterView.OnItemSelectedListener() {
-            @Override
-            public void onItemSelected(AdapterView<?> adapterView, View view, int i, long l) {
-                credStore.setTimerDefaultSelection(timer.id, (int) l);
-            }
-
-            @Override
-            public void onNothingSelected(AdapterView<?> adapterView) {
-            }
-        });
-
         notesEditorSwitch = new SwitchButtonLogic(
             binding.addNoteButton, binding.removeNoteButton, false
         );
@@ -154,10 +143,12 @@ public class TimerListViewHolder extends RecyclerView.ViewHolder {
                         }
                     });
                 } else {
-                    final int selectedActivity = (int) binding.appTimerDefaultType.getSelectedItemId();
+                    if (BabyBuddyClient.ACTIVITIES.index(timer.name) < 0) {
+                        throw new UnsupportedOperationException("Activity does not exist: " + timer.name);
+                    }
                     this.timerControl.storeActivity(
                         timer,
-                        BabyBuddyClient.ACTIVITIES.ALL[selectedActivity],
+                        timer.name,
                         notesEditor.getText(),
                         new Promise<>() {
                             @Override
@@ -238,18 +229,6 @@ public class TimerListViewHolder extends RecyclerView.ViewHolder {
         updateTimerTime();
     }
 
-    private int inferDefaultSelectionFromName(String name) {
-        name = name.toLowerCase();
-        int i = 0;
-        for (CharSequence candidate : baseFragment.getActivity().getResources().getStringArray(R.array.timerTypeNames)) {
-            if (name.contains(candidate.toString().toLowerCase())) {
-                return i;
-            }
-            i++;
-        }
-        return 0;
-    }
-
     public void assignTimer(BabyBuddyClient.Timer timer) {
         if (isClosed) {
             isClosed = false;
@@ -257,20 +236,29 @@ public class TimerListViewHolder extends RecyclerView.ViewHolder {
         }
 
         this.timer = timer;
-        binding.timerName.setText(timer.readableName());
-        Integer defaultSelection = credStore.getTimerDefaultSelections().get(timer.id);
-        if (defaultSelection == null) {
-            if (timer.name != null) {
-                defaultSelection = inferDefaultSelectionFromName(timer.name);
-            } else {
-                defaultSelection = 0;
-            }
+
+        String name = timer.readableName();
+        final int activityIndex = BabyBuddyClient.ACTIVITIES.index(timer.name);
+        if (activityIndex >= 0) {
+            final String[] names = baseFragment.getResources().getStringArray(R.array.timerTypeNames);
+            name = names[activityIndex];
         }
-        binding.appTimerDefaultType.setSelection(defaultSelection);
+        binding.timerName.setText(name);
+
         updateActiveState();
 
         notesEditor.setIdentifier("timer_" + timer.id);
         notesEditorSwitch.setState(notesEditor.isVisible());
+    }
+
+    /**
+     * Called if a new data frame was received from the server, but no timer-data was
+     * changed.
+     */
+    public void updateNoChange() {
+        // We might have "short circuited" the timer-active state. If this was the case,
+        // re-enable the timer now!
+        updateActiveState();
     }
 
     public BabyBuddyClient.Timer getTimer() {

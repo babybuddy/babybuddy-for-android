@@ -373,7 +373,6 @@ public class ChildrenStateTracker {
         public static final long INTERVAL = 1000;
 
         private final ChildListener listener;
-        private BabyBuddyClient.Timer[] currentTimerList = null;
 
         public ChildObserver(int childId, ChildListener listener) {
             super(childId, INTERVAL);
@@ -389,7 +388,7 @@ public class ChildrenStateTracker {
         protected void queueRequests() {
             new QueueRequest<BabyBuddyClient.Timer[]>(true).queue(
                 new BoundTimerListCall()::call,
-                new BabyBuddyClient.RequestCallback<BabyBuddyClient.Timer[]>() {
+                new BabyBuddyClient.RequestCallback<>() {
                     @Override
                     public void error(@NonNull Exception error) {
                         closeWhenChildIsMissing();
@@ -404,10 +403,7 @@ public class ChildrenStateTracker {
                             return;
                         }
 
-                        if ((currentTimerList == null) || (!Arrays.equals(currentTimerList, response))) {
-                            currentTimerList = response;
-                            listener.timersUpdated(response);
-                        }
+                        listener.timersUpdated(response);
                     }
                 }
             );
