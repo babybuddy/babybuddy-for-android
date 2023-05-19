@@ -139,7 +139,7 @@ public class TimerListViewHolder extends RecyclerView.ViewHolder {
                         }
 
                         @Override
-                        public void failed(String s) {
+                        public void failed(TranslatedException s) {
                         }
                     });
                 } else {
@@ -152,14 +152,17 @@ public class TimerListViewHolder extends RecyclerView.ViewHolder {
                         notesEditor.getText(),
                         new Promise<>() {
                             @Override
-                            public void succeeded(Boolean b) {
-                                if (b == null) {
-                                    b = true;
+                            public void succeeded(Boolean stopped) {
+                                if (stopped == null) {
+                                    stopped = true;
                                 }
 
-                                if (b) {
+                                if (stopped) {
                                     timer.active = false;
                                     updateActiveState();
+
+                                    notesEditor.clearText();
+                                    notesEditorSwitch.setState(false);
                                 }
                             }
 
@@ -201,7 +204,7 @@ public class TimerListViewHolder extends RecyclerView.ViewHolder {
                         }
 
                         @Override
-                        public void failed(String s) {
+                        public void failed(TranslatedException s) {
                             baseFragment.showError(
                                 true,
                                 R.string.activity_store_failure_failed_to_stop_title,

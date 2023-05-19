@@ -3,8 +3,10 @@ package eu.pkgsoftware.babybuddywidgets.compat
 import eu.pkgsoftware.babybuddywidgets.networking.BabyBuddyClient.ACTIVITIES
 import eu.pkgsoftware.babybuddywidgets.networking.BabyBuddyClient.Child
 import eu.pkgsoftware.babybuddywidgets.networking.BabyBuddyClient.Timer
+import eu.pkgsoftware.babybuddywidgets.networking.RequestCodeFailure
 import eu.pkgsoftware.babybuddywidgets.timers.TimerControlInterface
 import eu.pkgsoftware.babybuddywidgets.timers.TimersUpdatedCallback
+import eu.pkgsoftware.babybuddywidgets.timers.TranslatedException
 import eu.pkgsoftware.babybuddywidgets.utils.Promise
 import java.util.Locale
 
@@ -128,40 +130,83 @@ class BabyBuddyV2TimerAdapter(
         return newTimer
     }
 
-    override fun startTimer(timer: Timer, cb: Promise<Timer, String>) {
-        virtualToActualTimer(timer)?.let {
-            cb.failed("Timer for activity ${timer.name} already exists")
-            return
+    override fun createNewTimer(timer: Timer, cb: Promise<Timer, TranslatedException>) {
+        TODO("Not yet implemented")
+    }
+
+    override fun startTimer(timer: Timer, cb: Promise<Timer, TranslatedException>) {
+        val timerToStart: Timer = virtualToActualTimer(timer)?.let {
+            if (it.active) {
+                cb.failed(
+                    TranslatedException("Timer for activity ${timer.name} already active", null)
+                )
+                return
+            }
+            it
+        } ?: run {
+            val actI = ACTIVITIES.index(timer.name)
+            if (actI < 0) {
+                cb.failed(TranslatedException("Invalid activity ${timer.name}", null))
+                return
+            }
+
+            val t = timer.clone()
+            t.name = "${t.name}-BBapp:${actI + 1}"
+            t
         }
 
-        val newTimer = timer.clone()
-        val actI = ACTIVITIES.index(newTimer.name)
-        if (actI < 0) {
-            cb.failed("Invalid activity ${newTimer.name}")
-        } else {
-            newTimer.name = "${newTimer.name}-BBapp:${actI + 1}"
-            wrap.startTimer(newTimer, object : Promise<Timer, String> {
+        fun success(s: Timer?) {
+            if (s == null) {
+                cb.succeeded(null)
+            } else {
+                val vTimer = timerToVirtualTimer(s)
+                cb.succeeded(vTimer)
+            }
+        }
+
+        fun doV2CreateRequest() {
+            wrap.createNewTimer(timer, object : Promise<Timer, TranslatedException> {
                 override fun succeeded(s: Timer?) {
-                    if (s == null) {
-                        cb.succeeded(null)
-                    } else {
-                        val vTimer = timerToVirtualTimer(timer)
-                        cb.succeeded(vTimer)
-                    }
+                    success(s)
                 }
 
-                override fun failed(f: String?) {
+                override fun failed(f: TranslatedException?) {
+                    cb.failed(f)
+                }
+            });
+        }
+
+        if (timerToStart == timer) {
+            doV2CreateRequest()
+            return
+        } else {
+            // For version 1.x compatibility, we try to restart the pre-existing timer first
+            wrap.startTimer(timerToStart, object : Promise<Timer, TranslatedException> {
+                override fun succeeded(s: Timer?) {
+                    success(s)
+                }
+
+                override fun failed(f: TranslatedException?) {
+                    f?.originalError?.let {
+                        if (it is RequestCodeFailure) {
+                            if (it.code == 404) {
+                                // This is likely a version 2.0 request that is required
+                                doV2CreateRequest()
+                                return
+                            }
+                        }
+                    }
                     cb.failed(f)
                 }
             })
         }
     }
 
-    override fun stopTimer(timer: Timer, cb: Promise<Any, String>) {
+    override fun stopTimer(timer: Timer, cb: Promise<Any, TranslatedException>) {
         virtualToActualTimer(timer)?.let {
             wrap.stopTimer(it, cb)
         } ?: {
-            cb.failed("Timer ${timer.name} does not exist")
+            cb.failed(TranslatedException("Timer ${timer.name} does not exist", null))
         }
     }
 
