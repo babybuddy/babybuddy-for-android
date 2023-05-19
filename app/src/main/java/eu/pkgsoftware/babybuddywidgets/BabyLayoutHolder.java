@@ -183,8 +183,7 @@ public class BabyLayoutHolder extends RecyclerView.ViewHolder implements TimerCo
             childHistoryLoader.createTimelineObserver(stateTracker);
             timerListProvider = new TimerListProvider(
                 baseFragment,
-                childHistoryLoader,
-                new BabyBuddyV2TimerAdapter(child, this)
+                new BabyBuddyV2TimerAdapter(child, this, this.baseFragment.getResources())
             );
             binding.timersList.setAdapter(timerListProvider);
         }

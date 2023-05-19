@@ -27,7 +27,6 @@ import eu.pkgsoftware.babybuddywidgets.utils.Promise;
 import eu.pkgsoftware.babybuddywidgets.widgets.SwitchButtonLogic;
 
 public class TimerListViewHolder extends RecyclerView.ViewHolder {
-    private final @NotNull TimerListViewHolderCallback callbacks;
     private final @NotNull QuickTimerEntryBinding binding;
 
     private final @NotNull BaseFragment baseFragment;
@@ -88,14 +87,12 @@ public class TimerListViewHolder extends RecyclerView.ViewHolder {
     public TimerListViewHolder(
         BaseFragment baseFragment,
         QuickTimerEntryBinding binding,
-        TimerControlInterface timerControl,
-        @NotNull TimerListViewHolderCallback callbacks
+        TimerControlInterface timerControl
     ) {
         super(binding.getRoot());
 
         this.baseFragment = baseFragment;
         this.binding = binding;
-        this.callbacks = callbacks;
         this.timerControl = timerControl;
 
         credStore = baseFragment.getMainActivity().getCredStore();

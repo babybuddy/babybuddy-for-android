@@ -1,5 +1,7 @@
 package eu.pkgsoftware.babybuddywidgets.compat
 
+import android.content.res.Resources
+import eu.pkgsoftware.babybuddywidgets.R
 import eu.pkgsoftware.babybuddywidgets.networking.BabyBuddyClient.ACTIVITIES
 import eu.pkgsoftware.babybuddywidgets.networking.BabyBuddyClient.Child
 import eu.pkgsoftware.babybuddywidgets.networking.BabyBuddyClient.Timer
@@ -15,7 +17,8 @@ data class WrappedTimer(val mappedActivityIndex: Int, val timer: Timer) {
 
 class BabyBuddyV2TimerAdapter(
     val child: Child,
-    val wrap: TimerControlInterface
+    val wrap: TimerControlInterface,
+    val resources: Resources
 ) : TimerControlInterface {
     private val virtualTimers: Array<Timer>
     private var timersCallback: TimersUpdatedCallback? = null
@@ -135,6 +138,7 @@ class BabyBuddyV2TimerAdapter(
     }
 
     override fun startTimer(timer: Timer, cb: Promise<Timer, TranslatedException>) {
+        var existingTimer = false
         val timerToStart: Timer = virtualToActualTimer(timer)?.let {
             if (it.active) {
                 cb.failed(
@@ -142,6 +146,7 @@ class BabyBuddyV2TimerAdapter(
                 )
                 return
             }
+            existingTimer = true
             it
         } ?: run {
             val actI = ACTIVITIES.index(timer.name)
@@ -151,7 +156,8 @@ class BabyBuddyV2TimerAdapter(
             }
 
             val t = timer.clone()
-            t.name = "${t.name}-BBapp:${actI + 1}"
+            val readableActivityName = resources.getStringArray(R.array.timerTypeNames)
+            t.name = "${readableActivityName[actI]}-BBapp:${actI + 1}"
             t
         }
 
@@ -165,7 +171,7 @@ class BabyBuddyV2TimerAdapter(
         }
 
         fun doV2CreateRequest() {
-            wrap.createNewTimer(timer, object : Promise<Timer, TranslatedException> {
+            wrap.createNewTimer(timerToStart, object : Promise<Timer, TranslatedException> {
                 override fun succeeded(s: Timer?) {
                     success(s)
                 }
@@ -176,7 +182,7 @@ class BabyBuddyV2TimerAdapter(
             });
         }
 
-        if (timerToStart == timer) {
+        if (!existingTimer) {
             doV2CreateRequest()
             return
         } else {

@@ -15,22 +15,19 @@ import eu.pkgsoftware.babybuddywidgets.BaseFragment;
 import eu.pkgsoftware.babybuddywidgets.history.ChildEventHistoryLoader;
 import eu.pkgsoftware.babybuddywidgets.networking.BabyBuddyClient;
 
-public class TimerListProvider extends RecyclerView.Adapter<TimerListViewHolder> implements TimerListViewHolderCallback, TimersUpdatedCallback {
+public class TimerListProvider extends RecyclerView.Adapter<TimerListViewHolder> implements TimersUpdatedCallback {
     private BabyBuddyClient.Timer[] timers = new BabyBuddyClient.Timer[0];
 
     private final BaseFragment baseFragment;
-    private final ChildEventHistoryLoader childHistoryLoader;
     private final List<TimerListViewHolder> holders = new LinkedList<>();
     private final TimerControlInterface timerControls;
 
     public TimerListProvider(
         @NotNull BaseFragment baseFragment,
-        @NonNull ChildEventHistoryLoader childHistoryLoader,
         @NotNull TimerControlInterface timerControls
     ) {
         super();
         this.baseFragment = baseFragment;
-        this.childHistoryLoader = childHistoryLoader;
         this.timerControls = timerControls;
         this.timerControls.registerTimersUpdatedCallback(this);
     }
@@ -65,7 +62,7 @@ public class TimerListProvider extends RecyclerView.Adapter<TimerListViewHolder>
     @Override
     public TimerListViewHolder onCreateViewHolder(ViewGroup parent, int viewType) {
         eu.pkgsoftware.babybuddywidgets.databinding.QuickTimerEntryBinding entryBinding = eu.pkgsoftware.babybuddywidgets.databinding.QuickTimerEntryBinding.inflate(LayoutInflater.from(parent.getContext()));
-        return new TimerListViewHolder(baseFragment, entryBinding, timerControls, this);
+        return new TimerListViewHolder(baseFragment, entryBinding, timerControls);
     }
 
     @Override
@@ -94,11 +91,6 @@ public class TimerListProvider extends RecyclerView.Adapter<TimerListViewHolder>
         for (TimerListViewHolder h : holders) {
             h.close();
         }
-    }
-
-    @Override
-    public void updateActivities() {
-        childHistoryLoader.forceRefresh();
     }
 
     @Override
