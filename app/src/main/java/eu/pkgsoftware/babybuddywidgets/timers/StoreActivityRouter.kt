@@ -1,7 +1,9 @@
 package eu.pkgsoftware.babybuddywidgets.timers
 
+import androidx.core.os.bundleOf
 import androidx.navigation.Navigation.findNavController
 import eu.pkgsoftware.babybuddywidgets.MainActivity
+import eu.pkgsoftware.babybuddywidgets.R
 import eu.pkgsoftware.babybuddywidgets.StoreFunction
 import eu.pkgsoftware.babybuddywidgets.networking.BabyBuddyClient.ACTIVITIES
 import eu.pkgsoftware.babybuddywidgets.networking.BabyBuddyClient.RequestCallback
@@ -95,7 +97,15 @@ class StoreActivityRouter(val mainActivity: MainActivity) {
                     }
                 )
 
-                ACTIVITIES.FEEDING -> throw java.lang.Exception("NOT IMPLEMENTED YET")
+                ACTIVITIES.FEEDING -> {
+                    mainActivity.selectedTimer = timer
+                    findNavController(mainActivity.findViewById(R.id.nav_host_fragment_content_main)).navigate(
+                        R.id.action_loggedInFragment2_to_feedingFragment, bundleOf("notes" to notes)
+                    )
+                    continuation.resume(false)
+                    return@suspendCoroutine
+                }
+
                 else -> {
                     continuation.resumeWithException(InvalidActivityException())
                     return@suspendCoroutine
@@ -103,10 +113,6 @@ class StoreActivityRouter(val mainActivity: MainActivity) {
             }
             mainActivity.storeActivity(timer, storeInterface)
         }
-
-        // baseFragment.getMainActivity().selectedTimer = timer
-        // findNavController(baseFragment.getView()).navigate(R.id.action_loggedInFragment2_to_feedingFragment)
-
     }
 
     fun store(

@@ -217,10 +217,12 @@ public class FeedingFragment extends BaseFragment {
                 selectedTimer = mainActivity().selectedTimer;
             }
 
-            CredStore.Notes notes = mainActivity().getCredStore().getObjectNotes(
-                "timer_" + selectedTimer.id
-            );
-            notesEditor.noteEditor.setText(notes.visible ? notes.note : "");
+            String notes = "";
+            final Bundle args = getArguments();
+            if (args != null) {
+                notes = args.getString("notes", "");
+            }
+            notesEditor.noteEditor.setText(notes);
         }
     }
 
@@ -429,7 +431,7 @@ public class FeedingFragment extends BaseFragment {
     }
 
     private void navUp() {
-        NavController nav = Navigation.findNavController(getView());
+        NavController nav = Navigation.findNavController(requireView());
         nav.navigateUp();
     }
 }

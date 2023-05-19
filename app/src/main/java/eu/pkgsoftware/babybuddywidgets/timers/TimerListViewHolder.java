@@ -10,15 +10,10 @@ import org.jetbrains.annotations.NotNull;
 
 import java.util.Date;
 
-import androidx.annotation.NonNull;
-import androidx.navigation.Navigation;
 import androidx.recyclerview.widget.RecyclerView;
 import eu.pkgsoftware.babybuddywidgets.BaseFragment;
-import eu.pkgsoftware.babybuddywidgets.CredStore;
-import eu.pkgsoftware.babybuddywidgets.MainActivity;
 import eu.pkgsoftware.babybuddywidgets.NotesEditorLogic;
 import eu.pkgsoftware.babybuddywidgets.R;
-import eu.pkgsoftware.babybuddywidgets.StoreFunction;
 import eu.pkgsoftware.babybuddywidgets.databinding.NotesEditorBinding;
 import eu.pkgsoftware.babybuddywidgets.databinding.QuickTimerEntryBinding;
 import eu.pkgsoftware.babybuddywidgets.networking.BabyBuddyClient;
@@ -30,7 +25,6 @@ public class TimerListViewHolder extends RecyclerView.ViewHolder {
     private final @NotNull QuickTimerEntryBinding binding;
 
     private final @NotNull BaseFragment baseFragment;
-    private final CredStore credStore;
     private final BabyBuddyClient client;
     private final Handler timerHandler;
     private final TimerControlInterface timerControl;
@@ -95,7 +89,6 @@ public class TimerListViewHolder extends RecyclerView.ViewHolder {
         this.binding = binding;
         this.timerControl = timerControl;
 
-        credStore = baseFragment.getMainActivity().getCredStore();
         client = baseFragment.getMainActivity().getClient();
 
         binding.currentTimerTime.setText("");

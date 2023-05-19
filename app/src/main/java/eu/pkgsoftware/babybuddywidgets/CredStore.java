@@ -5,6 +5,7 @@ import android.os.Build;
 import android.os.Message;
 import android.util.Base64;
 
+import org.jetbrains.annotations.NotNull;
 import org.json.JSONException;
 import org.json.JSONObject;
 
@@ -39,6 +40,8 @@ import androidx.annotation.NonNull;
 import eu.pkgsoftware.babybuddywidgets.networking.BabyBuddyClient;
 
 public class CredStore {
+    public static final Notes EMPTY_NOTES = new Notes("", false);
+
     public static class Notes {
         public String note;
         public boolean visible;
@@ -48,7 +51,7 @@ public class CredStore {
             this.visible = visible;
         }
 
-        public Notes clone() {
+        public @NotNull Notes clone() {
             return new Notes(note, visible);
         }
     }
@@ -304,10 +307,7 @@ public class CredStore {
         notesAssignments.put(id, new Notes(notes, visible));
     }
 
-    private static Notes EMPTY_NOTES = new Notes("", false);
-
-    public @NonNull
-    Notes getObjectNotes(String id) {
+    public @NonNull Notes getObjectNotes(String id) {
         return notesAssignments.getOrDefault(id, EMPTY_NOTES).clone();
     }
 

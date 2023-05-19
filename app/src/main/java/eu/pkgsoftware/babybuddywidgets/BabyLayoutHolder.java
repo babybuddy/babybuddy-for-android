@@ -183,7 +183,12 @@ public class BabyLayoutHolder extends RecyclerView.ViewHolder implements TimerCo
             childHistoryLoader.createTimelineObserver(stateTracker);
             timerListProvider = new TimerListProvider(
                 baseFragment,
-                new BabyBuddyV2TimerAdapter(child, this, this.baseFragment.getResources())
+                new BabyBuddyV2TimerAdapter(
+                    child,
+                    this,
+                    this.baseFragment.getResources(),
+                    baseFragment.getMainActivity().getCredStore()
+                )
             );
             binding.timersList.setAdapter(timerListProvider);
         }
@@ -336,6 +341,24 @@ public class BabyLayoutHolder extends RecyclerView.ViewHolder implements TimerCo
     private void callTimerUpdateCallback() {
         if ((cachedTimers != null) && (updateTimersCallback != null)) {
             updateTimersCallback.newTimerListLoaded(cachedTimers);
+        }
+    }
+
+    @NonNull
+    @Override
+    public CredStore.Notes getNotes(@NonNull BabyBuddyClient.Timer timer) {
+        CredStore credStore = baseFragment.getMainActivity().getCredStore();
+        return credStore.getObjectNotes("timer_" + timer.id);
+    }
+
+    @Override
+    public void setNotes(@NonNull BabyBuddyClient.Timer timer, CredStore.Notes notes) {
+        CredStore credStore = baseFragment.getMainActivity().getCredStore();
+        String key = "timer_" + timer.id;
+        if (notes == null) {
+            credStore.setObjectNotes(key, false, "");
+        } else {
+            credStore.setObjectNotes(key, notes.visible, notes.note);
         }
     }
 }

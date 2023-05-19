@@ -1,5 +1,6 @@
 package eu.pkgsoftware.babybuddywidgets.timers
 
+import eu.pkgsoftware.babybuddywidgets.CredStore.Notes
 import eu.pkgsoftware.babybuddywidgets.utils.Promise
 import eu.pkgsoftware.babybuddywidgets.networking.BabyBuddyClient.Timer
 
@@ -16,4 +17,6 @@ interface TimerControlInterface {
     fun stopTimer(timer: Timer, cb: Promise<Any, TranslatedException>)
     fun storeActivity(timer: Timer, activity: String, notes: String, cb: Promise<Boolean, Exception>)
     fun registerTimersUpdatedCallback(callback: TimersUpdatedCallback)
+    fun getNotes(timer: Timer): Notes
+    fun setNotes(timer: Timer, notes: Notes?)
 }

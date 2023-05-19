@@ -1,6 +1,7 @@
 package eu.pkgsoftware.babybuddywidgets.compat
 
 import android.content.res.Resources
+import eu.pkgsoftware.babybuddywidgets.CredStore
 import eu.pkgsoftware.babybuddywidgets.R
 import eu.pkgsoftware.babybuddywidgets.networking.BabyBuddyClient.ACTIVITIES
 import eu.pkgsoftware.babybuddywidgets.networking.BabyBuddyClient.Child
@@ -18,11 +19,12 @@ data class WrappedTimer(val mappedActivityIndex: Int, val timer: Timer) {
 class BabyBuddyV2TimerAdapter(
     val child: Child,
     val wrap: TimerControlInterface,
-    val resources: Resources
+    val resources: Resources,
+    val credStore: CredStore
 ) : TimerControlInterface {
     private val virtualTimers: Array<Timer>
     private var timersCallback: TimersUpdatedCallback? = null
-    private var actualTimers: List<WrappedTimer>? = null
+    private var actualTimers: MutableList<WrappedTimer>? = null
 
     companion object {
         val STRUCTURED_REGEX = "^.*-bbapp:([0-9]+)$".toRegex()
@@ -81,7 +83,7 @@ class BabyBuddyV2TimerAdapter(
             override fun newTimerListLoaded(timers: Array<Timer>) {
                 actualTimers = timers.map {
                     WrappedTimer(mapBabyBuddyNameToActivityIndex(it.readableName()), it)
-                }
+                }.toMutableList()
                 triggerTimerCallback()
             }
         })
@@ -167,6 +169,23 @@ class BabyBuddyV2TimerAdapter(
             } else {
                 val vTimer = timerToVirtualTimer(s)
                 cb.succeeded(vTimer)
+                if (vTimer != null) {
+                    actualTimers?.let {
+                        val actI = mapBabyBuddyNameToActivityIndex(vTimer.name)
+                        var updated = false
+                        val newTimer = WrappedTimer(actI, s)
+                        for (i in 0 until it.size) {
+                            if (it[i].mappedActivityIndex == actI) {
+                                it[i] = newTimer
+                                updated = true
+                            }
+                        }
+                        if (!updated) {
+                            it.add(newTimer)
+                        }
+                    }
+                    wrap.setNotes(s, credStore.getObjectNotes("virttimer_${child.id}_${vTimer.id}"))
+                }
             }
         }
 
@@ -232,5 +251,20 @@ class BabyBuddyV2TimerAdapter(
     override fun registerTimersUpdatedCallback(callback: TimersUpdatedCallback) {
         timersCallback = callback
         triggerTimerCallback()
+    }
+
+    override fun getNotes(timer: Timer): CredStore.Notes {
+        virtualToActualTimer(timer)?.let {
+            return wrap.getNotes(it)
+        }
+        return credStore.getObjectNotes("virttimer_${child.id}_${timer.id}")
+    }
+
+    override fun setNotes(timer: Timer, notes: CredStore.Notes?) {
+        val n = notes ?: CredStore.EMPTY_NOTES
+        credStore.setObjectNotes("virttimer_${child.id}_${timer.id}", n.visible, n.note)
+        virtualToActualTimer(timer)?.let {
+            wrap.setNotes(it, notes)
+        }
     }
 }
