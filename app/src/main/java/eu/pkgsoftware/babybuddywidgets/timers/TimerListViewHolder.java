@@ -8,8 +8,11 @@ import org.jetbrains.annotations.NotNull;
 
 import java.util.Date;
 
+import androidx.annotation.NonNull;
 import androidx.recyclerview.widget.RecyclerView;
 import eu.pkgsoftware.babybuddywidgets.BaseFragment;
+import eu.pkgsoftware.babybuddywidgets.CredStore;
+import eu.pkgsoftware.babybuddywidgets.NotesControl;
 import eu.pkgsoftware.babybuddywidgets.NotesEditorLogic;
 import eu.pkgsoftware.babybuddywidgets.R;
 import eu.pkgsoftware.babybuddywidgets.databinding.NotesEditorBinding;
@@ -99,9 +102,7 @@ public class TimerListViewHolder extends RecyclerView.ViewHolder {
             baseFragment.getMainActivity().getLayoutInflater()
         );
         binding.verticalRoot.addView(notesBinding.getRoot());
-        notesEditor = new NotesEditorLogic(
-            baseFragment.getMainActivity(), notesBinding, false
-        );
+        notesEditor = new NotesEditorLogic(notesBinding, false);
         notesEditorSwitch.addStateListener((v, userTriggered) -> notesEditor.setVisible(v));
 
         startStopLogic = new SwitchButtonLogic(
@@ -238,7 +239,25 @@ public class TimerListViewHolder extends RecyclerView.ViewHolder {
 
         updateActiveState();
 
-        notesEditor.setIdentifier("timer_" + timer.id);
+        notesEditor.setNotes(
+            new NotesControl() {
+                @Override
+                public void persistChanges() {
+                    baseFragment.getMainActivity().getCredStore().storePrefs();
+                }
+
+                @Override
+                public void setNotes(@NonNull CredStore.Notes notes) {
+                    timerControl.setNotes(timer, notes);
+                }
+
+                @NonNull
+                @Override
+                public CredStore.Notes getNotes() {
+                    return timerControl.getNotes(timer);
+                }
+            }
+        );
         notesEditorSwitch.setState(notesEditor.isVisible());
     }
 

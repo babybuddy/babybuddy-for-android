@@ -6,15 +6,46 @@ import android.text.TextWatcher
 import android.view.View
 import android.view.View.OnFocusChangeListener
 import android.view.ViewGroup
+import eu.pkgsoftware.babybuddywidgets.CredStore.Notes
 import eu.pkgsoftware.babybuddywidgets.databinding.NotesEditorBinding
 
+interface NotesControl {
+    fun getNotes(): Notes
+    fun setNotes(notes: Notes)
+    fun persistChanges()
+}
+
+class NoNotesControl : NotesControl {
+    override fun getNotes(): Notes {
+        return CredStore.EMPTY_NOTES
+    }
+
+    override fun setNotes(notes: Notes) {
+    }
+
+    override fun persistChanges() {
+    }
+}
+
+class CredStoreNotes(val id: String, val credStore: CredStore) : NotesControl {
+    override fun getNotes(): Notes {
+        return credStore.getObjectNotes(id)
+    }
+
+    override fun setNotes(notes: Notes) {
+        credStore.setObjectNotes(id, notes.visible, notes.note)
+    }
+
+    override fun persistChanges() {
+        credStore.storePrefs()
+    }
+}
+
 class NotesEditorLogic(
-    private val activity: MainActivity,
     private val binding: NotesEditorBinding,
     private var visible: Boolean
 ) {
-    private var id: String? = null
-    private val credStore: CredStore
+    private var notesControl: NotesControl = NoNotesControl()
 
     private fun updateVisibility() {
         val params = binding.root.layoutParams
@@ -24,7 +55,6 @@ class NotesEditorLogic(
     }
 
     init {
-        credStore = activity.credStore
         updateVisibility()
 
         val lt = LayoutTransition()
@@ -38,11 +68,11 @@ class NotesEditorLogic(
             override fun beforeTextChanged(s: CharSequence, start: Int, count: Int, after: Int) {}
             override fun onTextChanged(s: CharSequence, start: Int, before: Int, count: Int) {}
             override fun afterTextChanged(s: Editable) {
-                credStore.setObjectNotes(id, true, binding.noteEditor.text.toString())
+                notesControl.setNotes(Notes(binding.noteEditor.text.toString(), true))
             }
         })
         binding.noteEditor.onFocusChangeListener =
-            OnFocusChangeListener { v: View?, hasFocus: Boolean -> credStore.storePrefs() }
+            OnFocusChangeListener { v: View?, hasFocus: Boolean -> notesControl.persistChanges() }
     }
 
     fun isVisible(): Boolean {
@@ -51,25 +81,22 @@ class NotesEditorLogic(
 
     fun setVisible(b: Boolean) {
         visible = b
-        updateTextFromCredStore()
+        updateTextFromControl()
         updateVisibility()
-        if (id != null) {
-            credStore.setObjectNotes(id, visible, binding.noteEditor.text.toString())
-            credStore.storePrefs()
-        }
+        notesControl.setNotes(Notes(binding.noteEditor.text.toString(), visible))
+        notesControl.persistChanges()
     }
 
-    private fun updateTextFromCredStore() {
-        if (id != null) {
-            val notes = activity.credStore.getObjectNotes(id)
-            binding.noteEditor.setText(notes.note)
-        }
+    private fun updateTextFromControl() {
+        val notes = notesControl.getNotes()
+        binding.noteEditor.setText(notes.note)
     }
 
-    fun setIdentifier(id: String?) {
-        this.id = id
-        setVisible(credStore.getObjectNotes(id).visible)
-        updateTextFromCredStore()
+    fun setNotes(notesControl: NotesControl) {
+        this.notesControl.persistChanges()
+        this.notesControl = notesControl
+        setVisible(notesControl.getNotes().visible)
+        updateTextFromControl()
     }
 
     val text: String
@@ -80,10 +107,8 @@ class NotesEditorLogic(
         }
 
     fun clearText() {
-        if (id != null) {
-            credStore.setObjectNotes(id, visible, null)
-            credStore.storePrefs()
-        }
+        notesControl.setNotes(CredStore.EMPTY_NOTES)
+        notesControl.persistChanges()
         binding.noteEditor.setText("")
     }
 }

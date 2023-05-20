@@ -8,7 +8,6 @@ import androidx.annotation.NonNull;
 import androidx.recyclerview.widget.GridLayoutManager;
 import androidx.recyclerview.widget.RecyclerView;
 import eu.pkgsoftware.babybuddywidgets.activitycomponents.TimerControl;
-import eu.pkgsoftware.babybuddywidgets.compat.BabyBuddyV2TimerAdapter;
 import eu.pkgsoftware.babybuddywidgets.databinding.BabyManagerBinding;
 import eu.pkgsoftware.babybuddywidgets.databinding.NotesEditorBinding;
 import eu.pkgsoftware.babybuddywidgets.history.ChildEventHistoryLoader;
@@ -83,11 +82,7 @@ public class BabyLayoutHolder extends RecyclerView.ViewHolder implements TimerCo
         );
         binding.diaperNotesSlot.addView(notesEditorBinding.getRoot());
 
-        notesEditor = new NotesEditorLogic(
-            fragment.getMainActivity(),
-            notesEditorBinding,
-            false
-        );
+        notesEditor = new NotesEditorLogic(notesEditorBinding,false);
         notesSwitch.addStateListener((b, userInduced) -> notesEditor.setVisible(b));
 
         binding.mainScrollView.setOnScrollChangeListener((v, scrollX, scrollY, oldScrollX, oldScrollY) -> {
@@ -165,7 +160,9 @@ public class BabyLayoutHolder extends RecyclerView.ViewHolder implements TimerCo
     public void updateChild(BabyBuddyClient.Child c, ChildrenStateTracker stateTracker) {
         clear();
         this.child = c;
-        notesEditor.setIdentifier("diaper_" + c.slug);
+        notesEditor.setNotes(new CredStoreNotes(
+            "diaper_" + c.slug, baseFragment.getMainActivity().getCredStore()
+        ));
         notesSwitch.setState(notesEditor.isVisible());
 
         if (child != null) {
