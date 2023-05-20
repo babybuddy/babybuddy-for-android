@@ -11,6 +11,8 @@ import androidx.appcompat.app.AppCompatActivity
 import androidx.fragment.app.FragmentContainerView
 import androidx.navigation.Navigation
 import com.squareup.phrase.Phrase
+import eu.pkgsoftware.babybuddywidgets.activitycomponents.TimerControl
+import eu.pkgsoftware.babybuddywidgets.compat.BabyBuddyV2TimerAdapter
 import eu.pkgsoftware.babybuddywidgets.databinding.ActivityMainBinding
 import eu.pkgsoftware.babybuddywidgets.networking.BabyBuddyClient
 import eu.pkgsoftware.babybuddywidgets.networking.BabyBuddyClient.Child
@@ -18,6 +20,7 @@ import eu.pkgsoftware.babybuddywidgets.networking.BabyBuddyClient.GenericSubsetR
 import eu.pkgsoftware.babybuddywidgets.utils.AsyncClientRequest
 import kotlinx.coroutines.*
 import org.json.JSONArray
+import java.lang.RuntimeException
 import java.util.*
 import kotlin.coroutines.resume
 import kotlin.coroutines.resumeWithException
@@ -40,9 +43,11 @@ fun interface InputEventListener {
 }
 
 class MainActivity : AppCompatActivity() {
-    val scope = MainScope()
+    private val timerControls = mutableMapOf<Int, BabyBuddyV2TimerAdapter>()
 
-    private var binding: ActivityMainBinding? = null
+    var binding: ActivityMainBinding? = null
+
+    val scope = MainScope()
     val inputEventListeners = mutableListOf<InputEventListener>()
 
     internal var internalCredStore: CredStore? = null
@@ -316,5 +321,25 @@ class MainActivity : AppCompatActivity() {
                 progressDialog.cancel()
             }
         }
+    }
+
+
+    fun getChildTimerControl(child: Child): BabyBuddyV2TimerAdapter {
+        return getChildTimerControl(child.id)
+    }
+
+    fun getChildTimerControl(childId: Int): BabyBuddyV2TimerAdapter {
+        if (!timerControls.containsKey(childId)) {
+            timerControls.put(
+                childId,
+                BabyBuddyV2TimerAdapter(
+                    childId,
+                    TimerControl(this, childId),
+                    resources,
+                    credStore,
+                )
+            )
+        }
+        return timerControls[childId]!!
     }
 }

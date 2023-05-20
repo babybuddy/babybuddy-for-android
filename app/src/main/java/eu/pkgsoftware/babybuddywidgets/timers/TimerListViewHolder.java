@@ -1,8 +1,6 @@
 package eu.pkgsoftware.babybuddywidgets.timers;
 
 import android.os.Handler;
-import android.view.View;
-import android.widget.AdapterView;
 
 import com.squareup.phrase.Phrase;
 

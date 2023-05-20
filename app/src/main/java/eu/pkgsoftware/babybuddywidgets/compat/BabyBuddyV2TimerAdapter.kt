@@ -17,7 +17,7 @@ data class WrappedTimer(val mappedActivityIndex: Int, val timer: Timer) {
 }
 
 class BabyBuddyV2TimerAdapter(
-    val child: Child,
+    val childId: Int,
     val wrap: TimerControlInterface,
     val resources: Resources,
     val credStore: CredStore
@@ -69,9 +69,9 @@ class BabyBuddyV2TimerAdapter(
     init {
         virtualTimers = (0 until ACTIVITIES.ALL.size).map {
             val t = Timer()
-            t.id = it + ACTIVITIES.ALL.size * child.id
+            t.id = it + ACTIVITIES.ALL.size * childId
             t.user_id = 0
-            t.child_id = child.id
+            t.child_id = childId
             t.active = false
             t.name = ACTIVITIES.ALL[it]
             t.start = null
@@ -109,7 +109,7 @@ class BabyBuddyV2TimerAdapter(
         }
     }
 
-    private fun virtualToActualTimer(timer: Timer): Timer? {
+    fun virtualToActualTimer(timer: Timer): Timer? {
         val activityIndex = ACTIVITIES.index(timer.name)
         if (activityIndex < 0) {
             return null
@@ -124,7 +124,7 @@ class BabyBuddyV2TimerAdapter(
         return null
     }
 
-    private fun timerToVirtualTimer(timer: Timer): Timer? {
+    fun timerToVirtualTimer(timer: Timer): Timer? {
         val mappedActName = mapBabyBuddyNameToActivity(timer.name) ?: return null
         val activityIndex = ACTIVITIES.index(mappedActName)
 
@@ -136,7 +136,7 @@ class BabyBuddyV2TimerAdapter(
     }
 
     override fun createNewTimer(timer: Timer, cb: Promise<Timer, TranslatedException>) {
-        TODO("Not yet implemented")
+        startTimer(timer, cb)
     }
 
     override fun startTimer(timer: Timer, cb: Promise<Timer, TranslatedException>) {
@@ -184,7 +184,7 @@ class BabyBuddyV2TimerAdapter(
                             it.add(newTimer)
                         }
                     }
-                    wrap.setNotes(s, credStore.getObjectNotes("virttimer_${child.id}_${vTimer.id}"))
+                    wrap.setNotes(s, credStore.getObjectNotes("virttimer_${childId}_${vTimer.id}"))
                 }
             }
         }
@@ -257,12 +257,12 @@ class BabyBuddyV2TimerAdapter(
         virtualToActualTimer(timer)?.let {
             return wrap.getNotes(it)
         }
-        return credStore.getObjectNotes("virttimer_${child.id}_${timer.id}")
+        return credStore.getObjectNotes("virttimer_${childId}_${timer.id}")
     }
 
     override fun setNotes(timer: Timer, notes: CredStore.Notes?) {
         val n = notes ?: CredStore.EMPTY_NOTES
-        credStore.setObjectNotes("virttimer_${child.id}_${timer.id}", n.visible, n.note)
+        credStore.setObjectNotes("virttimer_${childId}_${timer.id}", n.visible, n.note)
         virtualToActualTimer(timer)?.let {
             wrap.setNotes(it, notes)
         }

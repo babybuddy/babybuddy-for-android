@@ -7,6 +7,7 @@ import org.jetbrains.annotations.NotNull;
 import androidx.annotation.NonNull;
 import androidx.recyclerview.widget.GridLayoutManager;
 import androidx.recyclerview.widget.RecyclerView;
+import eu.pkgsoftware.babybuddywidgets.activitycomponents.TimerControl;
 import eu.pkgsoftware.babybuddywidgets.compat.BabyBuddyV2TimerAdapter;
 import eu.pkgsoftware.babybuddywidgets.databinding.BabyManagerBinding;
 import eu.pkgsoftware.babybuddywidgets.databinding.NotesEditorBinding;
@@ -181,15 +182,7 @@ public class BabyLayoutHolder extends RecyclerView.ViewHolder implements TimerCo
                 binding.timelineProgressSpinner
             );
             childHistoryLoader.createTimelineObserver(stateTracker);
-            timerListProvider = new TimerListProvider(
-                baseFragment,
-                new BabyBuddyV2TimerAdapter(
-                    child,
-                    this,
-                    this.baseFragment.getResources(),
-                    baseFragment.getMainActivity().getCredStore()
-                )
-            );
+            timerListProvider = new TimerListProvider(baseFragment, this);
             binding.timersList.setAdapter(timerListProvider);
         }
     }
@@ -243,67 +236,46 @@ public class BabyLayoutHolder extends RecyclerView.ViewHolder implements TimerCo
         timerListProvider.close();
     }
 
+    private class UpdateBufferingPromise<A, B> implements Promise<A, B> {
+        private Promise<A, B> promise;
+
+        public UpdateBufferingPromise(Promise<A, B> promise) {
+            this.promise = promise;
+            pendingTimerModificationCalls++;
+        }
+
+        @Override
+        public void succeeded(A a) {
+            pendingTimerModificationCalls--;
+            promise.succeeded(a);
+        }
+
+        @Override
+        public void failed(B b) {
+            pendingTimerModificationCalls--;
+            promise.failed(b);
+        }
+    }
+
     @Override
     public void createNewTimer(@NonNull BabyBuddyClient.Timer timer, @NonNull Promise<BabyBuddyClient.Timer, TranslatedException> cb) {
-        pendingTimerModificationCalls++;
-        client.createTimer(child, timer.name, new BabyBuddyClient.RequestCallback<>() {
-            @Override
-            public void error(@NonNull Exception error) {
-                pendingTimerModificationCalls--;
-                cb.failed(new TranslatedException(
-                    baseFragment.getString(R.string.activity_store_failure_start_timer_failed),
-                    error)
-                );
-            }
-
-            @Override
-            public void response(BabyBuddyClient.Timer response) {
-                pendingTimerModificationCalls--;
-                cb.succeeded(response);
-            }
-        });
+        baseFragment.getMainActivity().getChildTimerControl(child).createNewTimer(
+            timer, new UpdateBufferingPromise<>(cb)
+        );
     }
 
     @Override
-    public void startTimer(@NotNull BabyBuddyClient.Timer timer, @NonNull Promise<BabyBuddyClient.Timer, TranslatedException> p) {
-        pendingTimerModificationCalls++;
-        client.restartTimer(timer.id, new BabyBuddyClient.RequestCallback<>() {
-            @Override
-            public void error(@NonNull Exception error) {
-                pendingTimerModificationCalls--;
-                p.failed(new TranslatedException(
-                    baseFragment.getString(R.string.activity_store_failure_start_timer_failed),
-                    error)
-                );
-            }
-
-            @Override
-            public void response(BabyBuddyClient.Timer timer) {
-                pendingTimerModificationCalls--;
-                p.succeeded(timer);
-            }
-        });
+    public void startTimer(@NotNull BabyBuddyClient.Timer timer, @NonNull Promise<BabyBuddyClient.Timer, TranslatedException> cb) {
+        baseFragment.getMainActivity().getChildTimerControl(child).startTimer(
+            timer, new UpdateBufferingPromise<>(cb)
+        );
     }
 
     @Override
-    public void stopTimer(@NotNull BabyBuddyClient.Timer timer, @NonNull Promise<Object, TranslatedException> p) {
-        pendingTimerModificationCalls++;
-        client.deleteTimer(timer.id, new BabyBuddyClient.RequestCallback<>() {
-            @Override
-            public void error(@NonNull Exception error) {
-                pendingTimerModificationCalls--;
-                p.failed(new TranslatedException(
-                    baseFragment.getString(R.string.activity_store_failure_failed_to_stop_message),
-                    error)
-                );
-            }
-
-            @Override
-            public void response(Boolean response) {
-                pendingTimerModificationCalls--;
-                p.succeeded(new Object());
-            }
-        });
+    public void stopTimer(@NotNull BabyBuddyClient.Timer timer, @NonNull Promise<Object, TranslatedException> cb) {
+        baseFragment.getMainActivity().getChildTimerControl(child).stopTimer(
+            timer, new UpdateBufferingPromise<>(cb)
+        );
     }
 
     @Override
@@ -311,55 +283,47 @@ public class BabyLayoutHolder extends RecyclerView.ViewHolder implements TimerCo
         @NotNull BabyBuddyClient.Timer timer,
         @NonNull String activity,
         @NonNull String notes,
-        @NonNull Promise<Boolean, Exception> promise
+        @NonNull Promise<Boolean, Exception> cb
     ) {
-        pendingTimerModificationCalls++;
-        storeActivityRouter.store(activity, notes, timer, new Promise<>() {
-            @Override
-            public void succeeded(Boolean aBoolean) {
-                pendingTimerModificationCalls--;
-                promise.succeeded(aBoolean);
-                if (childHistoryLoader != null) {
-                    childHistoryLoader.forceRefresh();
+        baseFragment.getMainActivity().getChildTimerControl(child).storeActivity(
+            timer,
+            activity,
+            notes,
+            new UpdateBufferingPromise<>(cb) {
+                @Override
+                public void succeeded(Boolean aBoolean) {
+                    super.succeeded(aBoolean);
+                    if (childHistoryLoader != null) {
+                        childHistoryLoader.forceRefresh();
+                    }
                 }
             }
-
-            @Override
-            public void failed(Exception e) {
-                pendingTimerModificationCalls--;
-                promise.failed(e);
-            }
-        });
+        );
     }
 
     @Override
     public void registerTimersUpdatedCallback(@NonNull TimersUpdatedCallback callback) {
-        updateTimersCallback = callback;
+        baseFragment.getMainActivity().getChildTimerControl(child).registerTimersUpdatedCallback(callback);
         callTimerUpdateCallback();
     }
 
     private void callTimerUpdateCallback() {
-        if ((cachedTimers != null) && (updateTimersCallback != null)) {
-            updateTimersCallback.newTimerListLoaded(cachedTimers);
+        // urgh...
+        TimerControl wrapped = (TimerControl) baseFragment.getMainActivity().getChildTimerControl(child).getWrap();
+        if (cachedTimers != null) {
+            wrapped.callTimerUpdateCallback(cachedTimers);
         }
     }
 
     @NonNull
     @Override
     public CredStore.Notes getNotes(@NonNull BabyBuddyClient.Timer timer) {
-        CredStore credStore = baseFragment.getMainActivity().getCredStore();
-        return credStore.getObjectNotes("timer_" + timer.id);
+        return baseFragment.getMainActivity().getChildTimerControl(child).getNotes(timer);
     }
 
     @Override
     public void setNotes(@NonNull BabyBuddyClient.Timer timer, CredStore.Notes notes) {
-        CredStore credStore = baseFragment.getMainActivity().getCredStore();
-        String key = "timer_" + timer.id;
-        if (notes == null) {
-            credStore.setObjectNotes(key, false, "");
-        } else {
-            credStore.setObjectNotes(key, notes.visible, notes.note);
-        }
+        baseFragment.getMainActivity().getChildTimerControl(child).setNotes(timer, notes);
     }
 }
 

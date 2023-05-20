@@ -634,11 +634,11 @@ public class BabyBuddyClient extends StreamReader {
         );
     }
 
-    public void createTimer(Child child, String name, RequestCallback<Timer> callback) {
+    public void createTimer(int child_id, String name, RequestCallback<Timer> callback) {
         String data;
         try {
             data = (new JSONObject())
-                .put("child", child.id)
+                .put("child", child_id)
                 .put("name", name)
                 .put("start", now())
                 .toString();
