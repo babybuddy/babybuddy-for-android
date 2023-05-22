@@ -63,7 +63,6 @@ public class CredStore {
     private String serverUrl;
     private String SALT_STRING;
     private String encryptedToken;
-    private Map<Integer, Integer> timerAssignments = new HashMap<Integer, Integer>();
     private Map<String, Notes> notesAssignments = new HashMap<String, Notes>();
     private Double lastUsedAmount = null;
     private Map<String, Integer> tutorialParameters = new HashMap<>();
@@ -85,16 +84,6 @@ public class CredStore {
             SALT_STRING = props.getProperty("salt");
             if (SALT_STRING == null) {
                 generateNewSalt();
-            }
-
-            String timerAssignmentsString = props.getProperty("timer_default_types");
-            if (timerAssignmentsString != null) {
-                for (String ass : timerAssignmentsString.split(";")) {
-                    if (ass.length() <= 0) continue;
-                    String[] assParts = ass.split("=");
-                    if (assParts.length != 2) continue;
-                    timerAssignments.put(Integer.parseInt(assParts[0]), Integer.parseInt(assParts[1]));
-                }
             }
 
             encryptedToken = props.getProperty("token");
@@ -185,15 +174,6 @@ public class CredStore {
             props.setProperty("token", encryptedToken);
         }
 
-        StringBuilder timerAssignmentsString = new StringBuilder();
-        for (Map.Entry<Integer, Integer> e : timerAssignments.entrySet()) {
-            timerAssignmentsString.append(e.getKey());
-            timerAssignmentsString.append("=");
-            timerAssignmentsString.append(e.getValue());
-            timerAssignmentsString.append(";");
-        }
-        props.setProperty("timer_default_types", timerAssignmentsString.toString());
-
         // props.setProperty("children_cache", stringMapToString(children));
         if (currentChild != null) {
             props.setProperty("selected_child", currentChild);
@@ -280,26 +260,12 @@ public class CredStore {
         return serverUrl;
     }
 
-    public void setTimerDefaultSelection(int timer, int selection) {
-        timerAssignments.put(timer, selection);
-        storePrefs();
-    }
-
-    public Map<Integer, Integer> getTimerDefaultSelections() {
-        return new HashMap<>(timerAssignments);
-    }
-
     public String getSelectedChild() {
         return currentChild;
     }
 
     public void setSelectedChild(String c) {
         currentChild = c;
-        storePrefs();
-    }
-
-    public void clearTimerAssociations() {
-        timerAssignments.clear();
         storePrefs();
     }
 

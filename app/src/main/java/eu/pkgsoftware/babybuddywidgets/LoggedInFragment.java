@@ -158,7 +158,6 @@ public class LoggedInFragment extends BaseFragment {
 
     private void logout() {
         credStore.storeAppToken(null);
-        credStore.clearTimerAssociations();
         credStore.clearNotes();
         Navigation.findNavController(getView()).navigate(R.id.logoutOperation);
     }
