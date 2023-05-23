@@ -1,6 +1,8 @@
 package eu.pkgsoftware.babybuddywidgets;
 
 import android.content.Context;
+import android.content.pm.PackageInfo;
+import android.content.pm.PackageManager;
 import android.os.Build;
 import android.os.Message;
 import android.util.Base64;
@@ -37,6 +39,7 @@ import javax.crypto.spec.IvParameterSpec;
 import javax.crypto.spec.SecretKeySpec;
 
 import androidx.annotation.NonNull;
+import androidx.core.content.PackageManagerCompat;
 import eu.pkgsoftware.babybuddywidgets.networking.BabyBuddyClient;
 
 public class CredStore {
@@ -57,6 +60,7 @@ public class CredStore {
     }
 
     public static final String ENCRYPTION_STRING = "gK,8kwXJZRmL6/yz&Dp;tr5&Muk,A;h,VGeb$qN-Gid3xLW&a/Xi0YOomVpQVAiFn:hP$8dbIX;L*v*cie&Tnkf+obFEN;a+DTmrILQO6CkY.oOV25dBjpXbep%qAu1bnbeS3A-zn%m";
+    public final String CURRENT_VERSION;
 
     private String settingsFilePath;
 
@@ -66,19 +70,35 @@ public class CredStore {
     private Map<String, Notes> notesAssignments = new HashMap<String, Notes>();
     private Double lastUsedAmount = null;
     private Map<String, Integer> tutorialParameters = new HashMap<>();
+    private String storedVersion = "";
 
     private String currentChild = null;
     // private Map<String, String> children = new HashMap<>();
 
+    public static String getAppVersionString(Context context) {
+        PackageManager pm = context.getPackageManager();
+        PackageInfo pi = null;
+        try {
+            pi = pm.getPackageInfo(context.getPackageName(), 0);
+        } catch (PackageManager.NameNotFoundException e) {
+            e.printStackTrace();
+            return "";
+        }
+        return pi.versionName;
+    }
+
     public CredStore(Context context) {
-        settingsFilePath = context.getFilesDir().getAbsolutePath().toString() + "/settings.conf";
+        settingsFilePath = context.getFilesDir().getAbsolutePath() + "/settings.conf";
+
+        CURRENT_VERSION = getAppVersionString(context);
 
         try {
             Properties props = new Properties();
-            try (FileInputStream fis = new FileInputStream(settingsFilePath.toString())) {
+            try (FileInputStream fis = new FileInputStream(settingsFilePath)) {
                 props.load(fis);
             } catch (IOException e) {
-                // pass
+                // pass, but save current version
+                props.put("stored_version", CURRENT_VERSION);
             }
             serverUrl = props.getProperty("server");
             SALT_STRING = props.getProperty("salt");
@@ -87,6 +107,9 @@ public class CredStore {
             }
 
             encryptedToken = props.getProperty("token");
+
+            storedVersion = props.getProperty("stored_version", "-1");
+            storedVersion = "-1";
 
             // children = props.getProperty("children_cache", "");
             currentChild = props.getProperty("selected_child", null);
@@ -173,6 +196,8 @@ public class CredStore {
         if (encryptedToken != null) {
             props.setProperty("token", encryptedToken);
         }
+
+        props.put("stored_version", storedVersion);
 
         // props.setProperty("children_cache", stringMapToString(children));
         if (currentChild != null) {
@@ -298,5 +323,14 @@ public class CredStore {
     public void setTutorialParameter(String s, Integer i) {
         tutorialParameters.put(s, i);
         storePrefs();
+    }
+
+    public void updateStoredVersion() {
+        storedVersion = CURRENT_VERSION;
+        storePrefs();
+    }
+
+    public boolean isStoredVersionOutdated() {
+        return !CURRENT_VERSION.equals(storedVersion);
     }
 }

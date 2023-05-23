@@ -217,6 +217,8 @@ public class LoggedInFragment extends BaseFragment {
                 }
             }
         );
+
+        UpdateNotifications.Companion.showUpdateNotice(this);
     }
 
     @Override
