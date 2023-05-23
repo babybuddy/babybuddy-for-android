@@ -13,31 +13,6 @@ the Babybuddy App to the Babybuddy Server.
 
 If you use an http-address instead of an https-address, the application will show you this warning. Only use this feature for local BabyBuddy servers in a network that you control!
 
-# Create/manage Timers
-
-## Default Timers
-
-![](direct/help_create_default_timers.png)
-
-After logging in, the first thing you should do is setup the timers that you want to use.
-Typically, you can click "Create Default Timers" to create timers for some primary activities
-you might want to log.
-
-## Timer Setup
-
-![](direct/help_timer_setup.png)
-
-If you started the app while timers were already running in your Baby Buddy app, this button
-is not available. Instead, the pre-existing timers will appear on screen.
-You can overwrite the current timers and (re-)create the default timers via the
-"Recreate Default Timers" option from the menu.
-
-## Configuring Timers
-
-![](screenshots/help_timers_configure2.png)
-
-Alternatively, you can assign the timers to a (different) activity by using the drop-down menu.
-
 # Overview
 
 ## Overview
@@ -74,6 +49,15 @@ To stop the timer and store the activity, press the "save" button.
 
 Saving a feeding will trigger a second form, where the feeding type (e.g., solid food) and
 method must be entered before the feeding can be stored.
+
+## Other timers
+
+![](screenshots/help_timers_default.png)
+
+In a previous version of Babybuddy for Android, the app listed an arbitrary
+number of timers. Now, by default, only timers for the events that can be tracked
+by the app are visible. This was changed to achieve compatibility with
+Baby Buddy version 2.0.
 
 # Logging Diapers
 
