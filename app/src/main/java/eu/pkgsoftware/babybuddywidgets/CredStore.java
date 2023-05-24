@@ -3,23 +3,16 @@ package eu.pkgsoftware.babybuddywidgets;
 import android.content.Context;
 import android.content.pm.PackageInfo;
 import android.content.pm.PackageManager;
-import android.os.Build;
-import android.os.Message;
 import android.util.Base64;
 
 import org.jetbrains.annotations.NotNull;
-import org.json.JSONException;
-import org.json.JSONObject;
 
 import java.io.FileInputStream;
 import java.io.FileOutputStream;
 import java.io.IOException;
 import java.nio.charset.StandardCharsets;
-import java.security.InvalidKeyException;
 import java.security.MessageDigest;
-import java.security.NoSuchAlgorithmException;
 import java.security.SecureRandom;
-import java.text.ParseException;
 import java.util.Collections;
 import java.util.Enumeration;
 import java.util.HashMap;
@@ -27,20 +20,14 @@ import java.util.Map;
 import java.util.NoSuchElementException;
 import java.util.Objects;
 import java.util.Properties;
-import java.util.Timer;
 import java.util.regex.Pattern;
 
-import javax.crypto.BadPaddingException;
 import javax.crypto.Cipher;
-import javax.crypto.IllegalBlockSizeException;
-import javax.crypto.NoSuchPaddingException;
 import javax.crypto.SecretKey;
 import javax.crypto.spec.IvParameterSpec;
 import javax.crypto.spec.SecretKeySpec;
 
 import androidx.annotation.NonNull;
-import androidx.core.content.PackageManagerCompat;
-import eu.pkgsoftware.babybuddywidgets.networking.BabyBuddyClient;
 
 public class CredStore {
     public static final Notes EMPTY_NOTES = new Notes("", false);
@@ -109,7 +96,6 @@ public class CredStore {
             encryptedToken = props.getProperty("token");
 
             storedVersion = props.getProperty("stored_version", "-1");
-            storedVersion = "-1";
 
             // children = props.getProperty("children_cache", "");
             currentChild = props.getProperty("selected_child", null);

@@ -2,6 +2,7 @@ package eu.pkgsoftware.babybuddywidgets
 
 import android.content.DialogInterface
 import androidx.appcompat.app.AlertDialog
+import com.squareup.phrase.Phrase
 
 class UpdateNotifications() {
     companion object {
@@ -34,18 +35,24 @@ class UpdateNotifications() {
         fun showUpdateNotice(baseFragment: BaseFragment) {
             val credStore = baseFragment.mainActivity.credStore
             if (credStore.isStoredVersionOutdated) {
-                val testVersion =
-                    baseFragment.resources.getString(R.string.upgrade_version_less_than_test)
+                val testVersion = baseFragment.resources.getString(R.string.upgrade_latest_info_version_less_than_or_equal)
                 if (!versionLessThanEqualTest(credStore.CURRENT_VERSION, testVersion)) {
                     credStore.updateStoredVersion()
                     return
                 }
 
+                val title = Phrase.from(baseFragment.mainActivity, R.string.upgrade_latest_info_title)
+                    .putOptional("version", credStore.CURRENT_VERSION)
+                    .format()
+                val note = Phrase.from(baseFragment.mainActivity, R.string.upgrade_latest_info_note)
+                    .putOptional("version", credStore.CURRENT_VERSION)
+                    .format()
+
                 baseFragment.runAfterDialog {
                     credStore.updateStoredVersion()
                     AlertDialog.Builder(baseFragment.requireContext())
-                        .setTitle(R.string.upgrade_latest_info_title)
-                        .setMessage(R.string.upgrade_latest_info_note)
+                        .setTitle(title)
+                        .setMessage(note)
                         .setPositiveButton(R.string.dialog_ok) { dialog, which ->
                             dialog.dismiss()
                         }
