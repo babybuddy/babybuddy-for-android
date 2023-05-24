@@ -22,6 +22,7 @@ import androidx.annotation.NonNull;
 import androidx.annotation.Nullable;
 import androidx.navigation.NavController;
 import androidx.navigation.Navigation;
+import eu.pkgsoftware.babybuddywidgets.compat.BabyBuddyV2TimerAdapter;
 import eu.pkgsoftware.babybuddywidgets.databinding.FeedingFragmentBinding;
 import eu.pkgsoftware.babybuddywidgets.databinding.NotesEditorBinding;
 import eu.pkgsoftware.babybuddywidgets.networking.BabyBuddyClient;
@@ -121,6 +122,7 @@ public class FeedingFragment extends BaseFragment {
     private NotesEditorBinding notesEditor = null;
     private AmountValuesGenerator amountValuesGenerator = new AmountValuesGenerator();
     private BabyBuddyClient.Timer selectedTimer = null;
+    private BabyBuddyClient.Timer virtTimer = null;
     private boolean restoredPreviousState = false;
 
     @Override
@@ -161,6 +163,13 @@ public class FeedingFragment extends BaseFragment {
         notesEditor = NotesEditorBinding.inflate(mainActivity().getLayoutInflater());
         binding.notes.addView(notesEditor.getRoot());
 
+        String notes = "";
+        final Bundle args = getArguments();
+        if (args != null) {
+            notes = args.getString("notes", "");
+        }
+        notesEditor.noteEditor.setText(notes);
+
         resetVisibilityState();
 
         return view;
@@ -176,8 +185,12 @@ public class FeedingFragment extends BaseFragment {
             if (timerIdString != null) {
                 try {
                     selectedTimer = BabyBuddyClient.Timer.fromJSON(new JSONObject(timerIdString));
+                    virtTimer = timerControl().timerToVirtualTimer(
+                        selectedTimer
+                    );
                 } catch (ParseException | JSONException e) {
                     selectedTimer = null;
+                    virtTimer = null;
                     System.err.println("Could not decode selected timer data");
                 }
             }
@@ -215,12 +228,10 @@ public class FeedingFragment extends BaseFragment {
         if (!restoredPreviousState) {
             if (mainActivity().selectedTimer != null) {
                 selectedTimer = mainActivity().selectedTimer;
+                virtTimer = timerControl().timerToVirtualTimer(
+                    selectedTimer
+                );
             }
-
-            CredStore.Notes notes = mainActivity().getCredStore().getObjectNotes(
-                "timer_" + selectedTimer.id
-            );
-            notesEditor.noteEditor.setText(notes.visible ? notes.note : "");
         }
     }
 
@@ -228,16 +239,12 @@ public class FeedingFragment extends BaseFragment {
     public void onPause() {
         super.onPause();
 
-        CredStore.Notes notes = mainActivity().getCredStore().getObjectNotes(
-            "timer_" + selectedTimer.id
-        );
-        notes.note = notesEditor.noteEditor.getText().toString();
-        mainActivity().getCredStore().setObjectNotes(
-            "timer_" + selectedTimer.id,
-            notes.visible,
-            notes.note
-        );
-        mainActivity().getCredStore().storePrefs();
+        if (selectedTimer != null) {
+            CredStore.Notes notes = timerControl().getNotes(virtTimer);
+            notes.note = notesEditor.noteEditor.getText().toString();
+            timerControl().setNotes(virtTimer, notes);
+            mainActivity().getCredStore().storePrefs();
+        }
     }
 
     @Override
@@ -359,6 +366,10 @@ public class FeedingFragment extends BaseFragment {
         return (MainActivity) getActivity();
     }
 
+    private BabyBuddyV2TimerAdapter timerControl() {
+        return mainActivity().getChildTimerControl(selectedTimer.child_id);
+    }
+
     private void submitFeeding() {
         long feedingTypeId = binding.feedingTypeSpinner.getSelectedItemId();
         Constants.FeedingTypeEnum feedingType = Constants.FeedingTypeEnumValues.get((int) feedingTypeId);
@@ -385,14 +396,10 @@ public class FeedingFragment extends BaseFragment {
             @Override
             public void response(Boolean response) {
                 MainActivity ma = mainActivity();
-                mainActivity().getCredStore().storeLastUsedAmount(amount);
+                ma.getCredStore().storeLastUsedAmount(amount);
                 notesEditor.noteEditor.setText("");
-                mainActivity().getCredStore().setObjectNotes(
-                    "timer_" + selectedTimer.id,
-                    false,
-                    ""
-                );
-                mainActivity().getCredStore().storePrefs();
+
+                timerControl().setNotes(virtTimer, CredStore.EMPTY_NOTES);
                 navUp();
             }
 
@@ -429,7 +436,7 @@ public class FeedingFragment extends BaseFragment {
     }
 
     private void navUp() {
-        NavController nav = Navigation.findNavController(getView());
+        NavController nav = Navigation.findNavController(requireView());
         nav.navigateUp();
     }
 }

@@ -1,22 +1,18 @@
 package eu.pkgsoftware.babybuddywidgets;
 
 import android.content.Context;
-import android.os.Build;
-import android.os.Message;
+import android.content.pm.PackageInfo;
+import android.content.pm.PackageManager;
 import android.util.Base64;
 
-import org.json.JSONException;
-import org.json.JSONObject;
+import org.jetbrains.annotations.NotNull;
 
 import java.io.FileInputStream;
 import java.io.FileOutputStream;
 import java.io.IOException;
 import java.nio.charset.StandardCharsets;
-import java.security.InvalidKeyException;
 import java.security.MessageDigest;
-import java.security.NoSuchAlgorithmException;
 import java.security.SecureRandom;
-import java.text.ParseException;
 import java.util.Collections;
 import java.util.Enumeration;
 import java.util.HashMap;
@@ -24,21 +20,18 @@ import java.util.Map;
 import java.util.NoSuchElementException;
 import java.util.Objects;
 import java.util.Properties;
-import java.util.Timer;
 import java.util.regex.Pattern;
 
-import javax.crypto.BadPaddingException;
 import javax.crypto.Cipher;
-import javax.crypto.IllegalBlockSizeException;
-import javax.crypto.NoSuchPaddingException;
 import javax.crypto.SecretKey;
 import javax.crypto.spec.IvParameterSpec;
 import javax.crypto.spec.SecretKeySpec;
 
 import androidx.annotation.NonNull;
-import eu.pkgsoftware.babybuddywidgets.networking.BabyBuddyClient;
 
 public class CredStore {
+    public static final Notes EMPTY_NOTES = new Notes("", false);
+
     public static class Notes {
         public String note;
         public boolean visible;
@@ -48,35 +41,51 @@ public class CredStore {
             this.visible = visible;
         }
 
-        public Notes clone() {
+        public @NotNull Notes clone() {
             return new Notes(note, visible);
         }
     }
 
     public static final String ENCRYPTION_STRING = "gK,8kwXJZRmL6/yz&Dp;tr5&Muk,A;h,VGeb$qN-Gid3xLW&a/Xi0YOomVpQVAiFn:hP$8dbIX;L*v*cie&Tnkf+obFEN;a+DTmrILQO6CkY.oOV25dBjpXbep%qAu1bnbeS3A-zn%m";
+    public final String CURRENT_VERSION;
 
     private String settingsFilePath;
 
     private String serverUrl;
     private String SALT_STRING;
     private String encryptedToken;
-    private Map<Integer, Integer> timerAssignments = new HashMap<Integer, Integer>();
     private Map<String, Notes> notesAssignments = new HashMap<String, Notes>();
     private Double lastUsedAmount = null;
     private Map<String, Integer> tutorialParameters = new HashMap<>();
+    private String storedVersion = "";
 
     private String currentChild = null;
     // private Map<String, String> children = new HashMap<>();
 
+    public static String getAppVersionString(Context context) {
+        PackageManager pm = context.getPackageManager();
+        PackageInfo pi = null;
+        try {
+            pi = pm.getPackageInfo(context.getPackageName(), 0);
+        } catch (PackageManager.NameNotFoundException e) {
+            e.printStackTrace();
+            return "";
+        }
+        return pi.versionName;
+    }
+
     public CredStore(Context context) {
-        settingsFilePath = context.getFilesDir().getAbsolutePath().toString() + "/settings.conf";
+        settingsFilePath = context.getFilesDir().getAbsolutePath() + "/settings.conf";
+
+        CURRENT_VERSION = getAppVersionString(context);
 
         try {
             Properties props = new Properties();
-            try (FileInputStream fis = new FileInputStream(settingsFilePath.toString())) {
+            try (FileInputStream fis = new FileInputStream(settingsFilePath)) {
                 props.load(fis);
             } catch (IOException e) {
-                // pass
+                // pass, but save current version
+                props.put("stored_version", CURRENT_VERSION);
             }
             serverUrl = props.getProperty("server");
             SALT_STRING = props.getProperty("salt");
@@ -84,17 +93,9 @@ public class CredStore {
                 generateNewSalt();
             }
 
-            String timerAssignmentsString = props.getProperty("timer_default_types");
-            if (timerAssignmentsString != null) {
-                for (String ass : timerAssignmentsString.split(";")) {
-                    if (ass.length() <= 0) continue;
-                    String[] assParts = ass.split("=");
-                    if (assParts.length != 2) continue;
-                    timerAssignments.put(Integer.parseInt(assParts[0]), Integer.parseInt(assParts[1]));
-                }
-            }
-
             encryptedToken = props.getProperty("token");
+
+            storedVersion = props.getProperty("stored_version", "-1");
 
             // children = props.getProperty("children_cache", "");
             currentChild = props.getProperty("selected_child", null);
@@ -182,14 +183,7 @@ public class CredStore {
             props.setProperty("token", encryptedToken);
         }
 
-        StringBuilder timerAssignmentsString = new StringBuilder();
-        for (Map.Entry<Integer, Integer> e : timerAssignments.entrySet()) {
-            timerAssignmentsString.append(e.getKey());
-            timerAssignmentsString.append("=");
-            timerAssignmentsString.append(e.getValue());
-            timerAssignmentsString.append(";");
-        }
-        props.setProperty("timer_default_types", timerAssignmentsString.toString());
+        props.put("stored_version", storedVersion);
 
         // props.setProperty("children_cache", stringMapToString(children));
         if (currentChild != null) {
@@ -277,15 +271,6 @@ public class CredStore {
         return serverUrl;
     }
 
-    public void setTimerDefaultSelection(int timer, int selection) {
-        timerAssignments.put(timer, selection);
-        storePrefs();
-    }
-
-    public Map<Integer, Integer> getTimerDefaultSelections() {
-        return new HashMap<>(timerAssignments);
-    }
-
     public String getSelectedChild() {
         return currentChild;
     }
@@ -295,19 +280,11 @@ public class CredStore {
         storePrefs();
     }
 
-    public void clearTimerAssociations() {
-        timerAssignments.clear();
-        storePrefs();
-    }
-
     public void setObjectNotes(String id, boolean visible, String notes) {
         notesAssignments.put(id, new Notes(notes, visible));
     }
 
-    private static Notes EMPTY_NOTES = new Notes("", false);
-
-    public @NonNull
-    Notes getObjectNotes(String id) {
+    public @NonNull Notes getObjectNotes(String id) {
         return notesAssignments.getOrDefault(id, EMPTY_NOTES).clone();
     }
 
@@ -332,5 +309,14 @@ public class CredStore {
     public void setTutorialParameter(String s, Integer i) {
         tutorialParameters.put(s, i);
         storePrefs();
+    }
+
+    public void updateStoredVersion() {
+        storedVersion = CURRENT_VERSION;
+        storePrefs();
+    }
+
+    public boolean isStoredVersionOutdated() {
+        return !CURRENT_VERSION.equals(storedVersion);
     }
 }

@@ -11,12 +11,16 @@ import androidx.appcompat.app.AppCompatActivity
 import androidx.fragment.app.FragmentContainerView
 import androidx.navigation.Navigation
 import com.squareup.phrase.Phrase
+import eu.pkgsoftware.babybuddywidgets.activitycomponents.TimerControl
+import eu.pkgsoftware.babybuddywidgets.compat.BabyBuddyV2TimerAdapter
 import eu.pkgsoftware.babybuddywidgets.databinding.ActivityMainBinding
 import eu.pkgsoftware.babybuddywidgets.networking.BabyBuddyClient
 import eu.pkgsoftware.babybuddywidgets.networking.BabyBuddyClient.Child
 import eu.pkgsoftware.babybuddywidgets.networking.BabyBuddyClient.GenericSubsetResponseHeader
+import eu.pkgsoftware.babybuddywidgets.utils.AsyncClientRequest
 import kotlinx.coroutines.*
 import org.json.JSONArray
+import java.lang.RuntimeException
 import java.util.*
 import kotlin.coroutines.resume
 import kotlin.coroutines.resumeWithException
@@ -34,35 +38,16 @@ enum class ConflictResolutionOptions {
     CANCEL, RESOLVE, STOP_TIMER
 }
 
-class AsyncClientRequest() {
-    companion object {
-        suspend inline fun <X> call(crossinline body: (callback: BabyBuddyClient.RequestCallback<X>) -> Unit): X {
-            return withContext(Dispatchers.Default) {
-                suspendCoroutine<X> { continuation ->
-                    val callbacks = object : BabyBuddyClient.RequestCallback<X> {
-                        override fun error(error: Exception) {
-                            continuation.resumeWithException(error)
-                        }
-
-                        override fun response(response: X) {
-                            continuation.resume(response)
-                        }
-                    }
-                    body.invoke(callbacks)
-                }
-            }
-        }
-    }
-}
-
 fun interface InputEventListener {
     fun inputEvent(event: InputEvent)
 }
 
 class MainActivity : AppCompatActivity() {
-    val scope = MainScope()
+    private val timerControls = mutableMapOf<Int, BabyBuddyV2TimerAdapter>()
 
-    private var binding: ActivityMainBinding? = null
+    var binding: ActivityMainBinding? = null
+
+    val scope = MainScope()
     val inputEventListeners = mutableListOf<InputEventListener>()
 
     internal var internalCredStore: CredStore? = null
@@ -235,12 +220,6 @@ class MainActivity : AppCompatActivity() {
             }
         }
 
-        suspend fun stopTimer() {
-            AsyncClientRequest.call<Boolean> {
-                client.setTimerActive(timer.id, false, it)
-            }
-        }
-
         suspend fun patchEntry(
             e: BabyBuddyClient.TimeEntry,
             values: BabyBuddyClient.QueryValues
@@ -282,7 +261,7 @@ class MainActivity : AppCompatActivity() {
             var readableActivityName = storeInterface.name()
             if (BabyBuddyClient.ACTIVITIES.index(readableActivityName) >= 0) {
                 val i = BabyBuddyClient.ACTIVITIES.index(readableActivityName);
-                readableActivityName = resources.getStringArray(R.array.timerTypes).get(i)
+                readableActivityName = resources.getStringArray(R.array.timerTypeNames).get(i)
             }
 
             val progressDialog = ProgressDialog(this@MainActivity)
@@ -316,10 +295,8 @@ class MainActivity : AppCompatActivity() {
                 progressDialog.show()
                 if (resolution == ConflictResolutionOptions.STOP_TIMER) {
                     progressDialog.cancel()
-                    stopTimer()
                     storeInterface.timerStopped()
                 } else if (resolution == ConflictResolutionOptions.RESOLVE) {
-                    stopTimer()
                     var retries = 3
                     while (retries > 0) {
                         resolve(conflicts)
@@ -344,5 +321,25 @@ class MainActivity : AppCompatActivity() {
                 progressDialog.cancel()
             }
         }
+    }
+
+
+    fun getChildTimerControl(child: Child): BabyBuddyV2TimerAdapter {
+        return getChildTimerControl(child.id)
+    }
+
+    fun getChildTimerControl(childId: Int): BabyBuddyV2TimerAdapter {
+        if (!timerControls.containsKey(childId)) {
+            timerControls.put(
+                childId,
+                BabyBuddyV2TimerAdapter(
+                    childId,
+                    TimerControl(this, childId),
+                    resources,
+                    credStore,
+                )
+            )
+        }
+        return timerControls[childId]!!
     }
 }

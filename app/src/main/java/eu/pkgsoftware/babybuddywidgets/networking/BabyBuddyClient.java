@@ -28,6 +28,7 @@ import java.util.Locale;
 import java.util.Map;
 import java.util.Objects;
 import java.util.TimeZone;
+import java.util.Timer;
 
 import androidx.annotation.NonNull;
 import eu.pkgsoftware.babybuddywidgets.Constants;
@@ -202,7 +203,7 @@ public class BabyBuddyClient extends StreamReader {
         public boolean active;
         public int user_id;
 
-        public String readableName() {
+        public @NonNull String readableName() {
             if (name != null) {
                 return name;
             }
@@ -224,7 +225,8 @@ public class BabyBuddyClient extends StreamReader {
             t.name = obj.isNull("name") ? null : obj.getString("name");
             t.start = parseNullOrDate(obj, "start");
             t.end = parseNullOrDate(obj, "end");
-            t.active = obj.getBoolean("active");
+            // Starting at v2.0 of baby buddy, the active-field is gone. Timers are always active when present!
+            t.active = obj.optBoolean("active", true);
             t.user_id = obj.getInt("user");
             return t;
         }
@@ -588,7 +590,7 @@ public class BabyBuddyClient extends StreamReader {
             null,
             new RequestCallback<String>() {
                 @Override
-                public void error(Exception e) {
+                public void error(@NonNull Exception e) {
                     callback.error(e);
                 }
 
@@ -632,6 +634,43 @@ public class BabyBuddyClient extends StreamReader {
         );
     }
 
+    public void createTimer(int child_id, String name, RequestCallback<Timer> callback) {
+        String data;
+        try {
+            data = (new JSONObject())
+                .put("child", child_id)
+                .put("name", name)
+                .put("start", now())
+                .toString();
+        } catch (JSONException e) {
+            throw new RuntimeException("JSON Structure not built correctly");
+        }
+
+        dispatchQuery(
+            "POST",
+            "api/timers/",
+            data,
+            new RequestCallback<String>() {
+                @Override
+                public void error(@NonNull Exception e) {
+                    callback.error(e);
+                }
+
+                @Override
+                public void response(String response) {
+                    Timer result;
+                    try {
+                        result = Timer.fromJSON(new JSONObject(response));
+                    } catch (JSONException | ParseException e) {
+                        error(e);
+                        return;
+                    }
+                    callback.response(result);
+                }
+            }
+        );
+    }
+
     public void listTimers(RequestCallback<Timer[]> callback) {
         listTimers(null, callback);
     }
@@ -644,7 +683,7 @@ public class BabyBuddyClient extends StreamReader {
         qv.add("limit", 1000000);
         dispatchQuery("GET", "api/timers/?" + qv.toQueryString(), null, new RequestCallback<String>() {
             @Override
-            public void error(Exception e) {
+            public void error(@NonNull Exception e) {
                 callback.error(e);
             }
 
@@ -668,21 +707,7 @@ public class BabyBuddyClient extends StreamReader {
     }
 
     public void deleteTimer(int timer_id, RequestCallback<Boolean> callback) {
-        dispatchQuery(
-            "DELETE",
-            String.format(Locale.US, "api/timers/%d/", timer_id),
-            null,
-            new RequestCallback<String>() {
-                @Override
-                public void error(Exception error) {
-                    callback.error(error);
-                }
-
-                @Override
-                public void response(String response) {
-                    callback.response(true);
-                }
-            });
+        simpleCall("DELETE", String.format(Locale.US, "api/timers/%d/", timer_id), null, callback);
     }
 
     private static String urlencode(String s) {
@@ -693,20 +718,25 @@ public class BabyBuddyClient extends StreamReader {
         }
     }
 
-    public void setTimerActive(int timer_id, boolean active, RequestCallback<Boolean> callback) {
+    public void restartTimer(int timer_id, RequestCallback<Timer> callback) {
         dispatchQuery(
             "PATCH",
-            "api/timers/" + timer_id + (active ? "/restart/" : "/stop/"),
+            "api/timers/" + timer_id + "/restart/",
             null,
-            new RequestCallback<String>() {
+            new RequestCallback<>() {
                 @Override
-                public void error(Exception e) {
+                public void error(@NonNull Exception e) {
                     callback.error(e);
                 }
 
                 @Override
                 public void response(String response) {
-                    callback.response(true);
+                    try {
+                        JSONObject obj = new JSONObject(response);
+                        callback.response(Timer.fromJSON(obj));
+                    } catch (JSONException | ParseException e) {
+                        this.error(e);
+                    }
                 }
             });
     }
@@ -722,7 +752,7 @@ public class BabyBuddyClient extends StreamReader {
             null,
             new RequestCallback<String>() {
                 @Override
-                public void error(Exception e) {
+                public void error(@NonNull Exception e) {
                     callback.error(e);
                 }
 
@@ -756,7 +786,7 @@ public class BabyBuddyClient extends StreamReader {
             data,
             new RequestCallback<String>() {
                 @Override
-                public void error(Exception e) {
+                public void error(@NonNull Exception e) {
                     callback.error(e);
                 }
 
@@ -784,7 +814,7 @@ public class BabyBuddyClient extends StreamReader {
             data,
             new RequestCallback<String>() {
                 @Override
-                public void error(Exception e) {
+                public void error(@NonNull Exception e) {
                     callback.error(e);
                 }
 
@@ -815,7 +845,7 @@ public class BabyBuddyClient extends StreamReader {
             data,
             new RequestCallback<String>() {
                 @Override
-                public void error(Exception e) {
+                public void error(@NonNull Exception e) {
                     callback.error(e);
                 }
 
@@ -848,7 +878,7 @@ public class BabyBuddyClient extends StreamReader {
             data,
             new RequestCallback<String>() {
                 @Override
-                public void error(Exception e) {
+                public void error(@NonNull Exception e) {
                     callback.error(e);
                 }
 
@@ -859,41 +889,32 @@ public class BabyBuddyClient extends StreamReader {
             });
     }
 
-    public void createTimer(Child child, String name, RequestCallback<Timer> callback) {
-        String data;
-        try {
-            data = (new JSONObject())
-                .put("child", child.id)
-                .put("name", name)
-                .put("start", now())
-                .toString();
-        } catch (JSONException e) {
-            throw new RuntimeException("JSON Structure not built correctly");
+    @NonNull
+    private static String addQueryParameters(QueryValues queryValues, @NonNull String path) {
+        if (queryValues == null) {
+            queryValues = new QueryValues();
         }
+        path = path + "?" + queryValues.toQueryString();
+        return path;
+    }
 
+    private void simpleCall(String method, String path, QueryValues query, RequestCallback<Boolean> callback) {
+        path = addQueryParameters(query, path);
         dispatchQuery(
-            "POST",
-            "api/timers/",
-            data,
-            new RequestCallback<String>() {
+            method,
+            path,
+            null,
+            new RequestCallback<>() {
                 @Override
-                public void error(Exception e) {
+                public void error(@NonNull Exception e) {
                     callback.error(e);
                 }
 
                 @Override
                 public void response(String response) {
-                    Timer result;
-                    try {
-                        result = Timer.fromJSON(new JSONObject(response));
-                    } catch (JSONException | ParseException e) {
-                        error(e);
-                        return;
-                    }
-                    callback.response(result);
+                    callback.response(true);
                 }
-            }
-        );
+            });
     }
 
     public void listGeneric(
@@ -907,7 +928,7 @@ public class BabyBuddyClient extends StreamReader {
             queryValues = new QueryValues();
         }
         queryValues.add("offset", offset);
-        path = path + "?" + queryValues.toQueryString();
+        path = addQueryParameters(queryValues, path);
         dispatchQuery("GET", path, null, new RequestCallback<String>() {
             @Override
             public void error(@NonNull Exception error) {

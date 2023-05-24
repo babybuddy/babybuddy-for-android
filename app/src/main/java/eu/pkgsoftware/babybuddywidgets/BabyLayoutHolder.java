@@ -1,130 +1,31 @@
 package eu.pkgsoftware.babybuddywidgets;
 
-import android.view.LayoutInflater;
 import android.view.View;
-import android.view.ViewGroup;
 
-import java.util.Arrays;
-import java.util.LinkedList;
-import java.util.List;
+import org.jetbrains.annotations.NotNull;
 
 import androidx.annotation.NonNull;
 import androidx.recyclerview.widget.GridLayoutManager;
 import androidx.recyclerview.widget.RecyclerView;
+import eu.pkgsoftware.babybuddywidgets.activitycomponents.TimerControl;
 import eu.pkgsoftware.babybuddywidgets.databinding.BabyManagerBinding;
 import eu.pkgsoftware.babybuddywidgets.databinding.NotesEditorBinding;
-import eu.pkgsoftware.babybuddywidgets.databinding.QuickTimerEntryBinding;
 import eu.pkgsoftware.babybuddywidgets.history.ChildEventHistoryLoader;
 import eu.pkgsoftware.babybuddywidgets.networking.BabyBuddyClient;
 import eu.pkgsoftware.babybuddywidgets.networking.ChildrenStateTracker;
+import eu.pkgsoftware.babybuddywidgets.timers.StoreActivityRouter;
+import eu.pkgsoftware.babybuddywidgets.timers.TimerControlInterface;
+import eu.pkgsoftware.babybuddywidgets.timers.TimerListProvider;
+import eu.pkgsoftware.babybuddywidgets.timers.TimersUpdatedCallback;
+import eu.pkgsoftware.babybuddywidgets.timers.TranslatedException;
+import eu.pkgsoftware.babybuddywidgets.utils.Promise;
 import eu.pkgsoftware.babybuddywidgets.widgets.SwitchButtonLogic;
 
-public class BabyLayoutHolder extends RecyclerView.ViewHolder {
-    private class TimerListProvider extends RecyclerView.Adapter<TimerListViewHolder> implements TimerListViewHolder.TimerListViewHolderCallback {
-        private BabyBuddyClient.Timer[] timers = new BabyBuddyClient.Timer[0];
-        private List<TimerListViewHolder> holders = new LinkedList<>();
-
-        private int[] listIds(BabyBuddyClient.Timer[] t) {
-            int[] result = new int[t.length];
-            for (int i = 0; i < t.length; i++) {
-                result[i] = t[i].id;
-            }
-            Arrays.sort(result);
-            return result;
-        }
-
-        private boolean compareIds(BabyBuddyClient.Timer[] t1, BabyBuddyClient.Timer[] t2) {
-            return Arrays.equals(listIds(t1), listIds(t2));
-        }
-
-        private TimerListViewHolder findHolderForTimer(BabyBuddyClient.Timer t) {
-            TimerListViewHolder result = null;
-            for (TimerListViewHolder h : holders) {
-                if (h.getTimer().id == t.id) {
-                    if (result != null) {
-                        return null; // Multiple timers - dismiss
-                    } else {
-                        result = h;
-                    }
-                }
-            }
-            return result;
-        }
-
-        public void updateTimers(BabyBuddyClient.Timer[] timers) {
-            timers = timers.clone();
-            Arrays.sort(timers, (a, b) -> Integer.compare(a.id, b.id));
-
-            if (!compareIds(timers, this.timers)) {
-                this.timers = timers;
-                notifyDataSetChanged();
-            } else {
-                for (int i = 0; i < timers.length; i++) {
-                    if (!this.timers[i].equals(timers[i])) {
-                        BabyBuddyClient.Timer probeTimer = timers[i].clone();
-                        probeTimer.start = this.timers[i].start;
-                        probeTimer.end = this.timers[i].end;
-                        TimerListViewHolder timerHolder = findHolderForTimer(timers[i]);
-                        boolean probeTimerEqual = probeTimer.equals(this.timers[i]);
-
-                        this.timers[i] = timers[i];
-                        if (probeTimerEqual && (timerHolder != null)) {
-                            timerHolder.assignTimer(timers[i]);
-                        } else {
-                            notifyItemChanged(i);
-                        }
-                    }
-                }
-            }
-        }
-
-        @Override
-        public TimerListViewHolder onCreateViewHolder(ViewGroup parent, int viewType) {
-            QuickTimerEntryBinding entryBinding = QuickTimerEntryBinding.inflate(LayoutInflater.from(parent.getContext()));
-            return new TimerListViewHolder(baseFragment, entryBinding, this);
-        }
-
-        @Override
-        public void onViewAttachedToWindow(@NonNull TimerListViewHolder holder) {
-            super.onViewAttachedToWindow(holder);
-            holders.add(holder);
-        }
-
-        @Override
-        public void onViewDetachedFromWindow(@NonNull TimerListViewHolder holder) {
-            super.onViewDetachedFromWindow(holder);
-            holders.remove(holder);
-        }
-
-        @Override
-        public void onBindViewHolder(TimerListViewHolder holder, int position) {
-            holder.assignTimer(timers[position]);
-        }
-
-        @Override
-        public int getItemCount() {
-            return timers.length;
-        }
-
-        public void close() {
-            for (TimerListViewHolder h : holders) {
-                h.close();
-            }
-        }
-
-        @Override
-        public void updateActivities() {
-            if (childHistoryLoader != null) {
-                childHistoryLoader.forceRefresh();
-            }
-        }
-    }
-
-    private BabyManagerBinding binding;
+public class BabyLayoutHolder extends RecyclerView.ViewHolder implements TimerControlInterface {
+    private final BabyManagerBinding binding;
     private final BaseFragment baseFragment;
     private final BabyBuddyClient client;
-    private final CredStore credStore;
-    private BabyLayoutHolder.TimerListProvider timerListProvider;
+    private TimerListProvider timerListProvider = null;
 
     private BabyBuddyClient.Child child = null;
 
@@ -136,14 +37,21 @@ public class BabyLayoutHolder extends RecyclerView.ViewHolder {
     private ChildEventHistoryLoader childHistoryLoader = null;
 
     private ChildrenStateTracker.ChildObserver childObserver = null;
+    private StoreActivityRouter storeActivityRouter;
+
+    private BabyBuddyClient.Timer[] cachedTimers = null;
+    private TimersUpdatedCallback updateTimersCallback = null;
+
+    private int pendingTimerModificationCalls = 0;
 
     public BabyLayoutHolder(BaseFragment fragment, BabyManagerBinding bmb) {
         super(bmb.getRoot());
         binding = bmb;
 
         baseFragment = fragment;
-        credStore = fragment.getMainActivity().getCredStore();
         client = fragment.getMainActivity().getClient();
+
+        storeActivityRouter = new StoreActivityRouter(baseFragment.getMainActivity());
 
         GridLayoutManager l = new GridLayoutManager(binding.timersList.getContext(), 1);
         binding.timersList.setLayoutManager(l);
@@ -162,7 +70,6 @@ public class BabyLayoutHolder extends RecyclerView.ViewHolder {
         binding.wetEnabledButton.setOnClickListener(invertWet);
         binding.wetDisabledButton.setOnClickListener(invertWet);
         binding.sendChangeButton.setOnClickListener(view -> storeDiaperChange());
-        binding.createDefaultTimers.setOnClickListener(view -> createDefaultTimers());
 
         notesSwitch = new SwitchButtonLogic(
             binding.addNoteButton,
@@ -170,19 +77,12 @@ public class BabyLayoutHolder extends RecyclerView.ViewHolder {
             false
         );
 
-        timerListProvider = new BabyLayoutHolder.TimerListProvider();
-        binding.timersList.setAdapter(timerListProvider);
-
         NotesEditorBinding notesEditorBinding = NotesEditorBinding.inflate(
             fragment.getMainActivity().getLayoutInflater()
         );
         binding.diaperNotesSlot.addView(notesEditorBinding.getRoot());
 
-        notesEditor = new NotesEditorLogic(
-            fragment.getMainActivity(),
-            notesEditorBinding,
-            false
-        );
+        notesEditor = new NotesEditorLogic(notesEditorBinding,false);
         notesSwitch.addStateListener((b, userInduced) -> notesEditor.setVisible(b));
 
         binding.mainScrollView.setOnScrollChangeListener((v, scrollX, scrollY, oldScrollX, oldScrollY) -> {
@@ -214,7 +114,7 @@ public class BabyLayoutHolder extends RecyclerView.ViewHolder {
         client.createChangeRecord(child, changeWet, changeSolid, notesEditor.getText(),
             new BabyBuddyClient.RequestCallback<Boolean>() {
                 @Override
-                public void error(Exception error) {
+                public void error(@NonNull Exception error) {
                     baseFragment.showError(
                         true,
                         "Failed to save",
@@ -226,7 +126,9 @@ public class BabyLayoutHolder extends RecyclerView.ViewHolder {
                 public void response(Boolean response) {
                     notesEditor.clearText();
                     notesSwitch.setState(false);
-                    childHistoryLoader.forceRefresh();
+                    if (childHistoryLoader != null) {
+                        childHistoryLoader.forceRefresh();
+                    }
                 }
             }
         );
@@ -234,107 +136,10 @@ public class BabyLayoutHolder extends RecyclerView.ViewHolder {
         resetDiaperUi();
     }
 
-    public void recreateDefaultTimers() {
-        removeTimers(this::createDefaultTimers);
-    }
-
-    private void removeTimers(final Runnable after) {
-        client.listTimers(child.id, new BabyBuddyClient.RequestCallback<BabyBuddyClient.Timer[]>() {
-            @Override
-            public void error(Exception error) {
-                baseFragment.showError(
-                    true,
-                    "Failed to remove timers",
-                    "Getting timer list failed."
-                );
-            }
-
-            @Override
-            public void response(final BabyBuddyClient.Timer[] response) {
-                Boolean[] removed = new Boolean[response.length];
-
-                for (int i = 0; i < response.length; i++) {
-                    final BabyBuddyClient.Timer t = response[i];
-                    final int _i = i;
-                    client.deleteTimer(t.id, new BabyBuddyClient.RequestCallback<Boolean>() {
-                        public boolean allRemoved() {
-                            for (Boolean r : removed) {
-                                if ((r == null) || !r) {
-                                    return false;
-                                }
-                            }
-                            return true;
-                        }
-
-                        public boolean anyFailed() {
-                            for (Boolean r : removed) {
-                                if ((r != null) && !r) {
-                                    return true;
-                                }
-                            }
-                            return false;
-                        }
-
-                        @Override
-                        public void error(Exception error) {
-                            if (!anyFailed()) {
-                                baseFragment.showError(
-                                    true,
-                                    "Failed to remove timers",
-                                    "Timer could not be deleted"
-                                );
-                            }
-                            removed[_i] = false;
-                        }
-
-                        @Override
-                        public void response(Boolean response) {
-                            removed[_i] = true;
-
-                            if (allRemoved()) {
-                                requeueImmediateTimerListRefresh();
-                                after.run();
-                            }
-                        }
-                    });
-                }
-            }
-        });
-    }
-
-    private void createDefaultTimers() {
-        int i = 0;
-        for (String timerTypeName : baseFragment.getResources().getStringArray(R.array.timerTypes)) {
-            final int finalI = i;
-            client.createTimer(child, timerTypeName, new BabyBuddyClient.RequestCallback<BabyBuddyClient.Timer>() {
-                @Override
-                public void error(Exception error) {
-                }
-
-                @Override
-                public void response(BabyBuddyClient.Timer response) {
-                    credStore.setTimerDefaultSelection(response.id, finalI);
-                    client.setTimerActive(response.id, false, new BabyBuddyClient.RequestCallback<Boolean>() {
-                        @Override
-                        public void error(Exception error) {
-                            requeueImmediateTimerListRefresh();
-                        }
-
-                        @Override
-                        public void response(Boolean response) {
-                            requeueImmediateTimerListRefresh();
-                        }
-                    });
-                }
-            });
-            i++;
-        }
-    }
-
     private void requeueImmediateTimerListRefresh() {
         client.listTimers(child.id, new BabyBuddyClient.RequestCallback<BabyBuddyClient.Timer[]>() {
             @Override
-            public void error(Exception error) {
+            public void error(@NonNull Exception error) {
             }
 
             @Override
@@ -349,17 +154,21 @@ public class BabyLayoutHolder extends RecyclerView.ViewHolder {
             childHistoryLoader.close();
         }
         childHistoryLoader = null;
+        binding.timersList.setAdapter(null);
     }
 
     public void updateChild(BabyBuddyClient.Child c, ChildrenStateTracker stateTracker) {
         clear();
         this.child = c;
-        notesEditor.setIdentifier("diaper_" + c.slug);
+        notesEditor.setNotes(new CredStoreNotes(
+            "diaper_" + c.slug, baseFragment.getMainActivity().getCredStore()
+        ));
         notesSwitch.setState(notesEditor.isVisible());
 
-        binding.createDefaultTimers.setVisibility(View.GONE);
-
         if (child != null) {
+            if (stateTracker == null) {
+                throw new RuntimeException("StateTracker was null somehow");
+            }
             childObserver = stateTracker.new ChildObserver(child.id, this::updateTimerList);
 
             childHistoryLoader = new ChildEventHistoryLoader(
@@ -370,19 +179,32 @@ public class BabyLayoutHolder extends RecyclerView.ViewHolder {
                 binding.timelineProgressSpinner
             );
             childHistoryLoader.createTimelineObserver(stateTracker);
+            timerListProvider = new TimerListProvider(baseFragment, this);
+            binding.timersList.setAdapter(timerListProvider);
         }
     }
 
     public void updateTimerList(BabyBuddyClient.Timer[] timers) {
+        if (pendingTimerModificationCalls > 0) {
+            // Buffer timer-list updates while a timer-modifying operation is running
+            // (prevents confusing UI updates)
+            return;
+        }
+
+        if (child == null) {
+            cachedTimers = new BabyBuddyClient.Timer[0];
+            callTimerUpdateCallback();
+            return;
+        }
+
         for (BabyBuddyClient.Timer t : timers) {
-            if ((child == null) || (t.child_id != child.id)) {
-                timerListProvider.updateTimers(new BabyBuddyClient.Timer[0]);
+            if (t.child_id != child.id) {
                 return;
             }
         }
 
-        timerListProvider.updateTimers(timers);
-        binding.createDefaultTimers.setVisibility(timers.length == 0 ? View.VISIBLE : View.GONE);
+        cachedTimers = timers;
+        callTimerUpdateCallback();
     }
 
     public void onViewDeselected() {
@@ -403,11 +225,102 @@ public class BabyLayoutHolder extends RecyclerView.ViewHolder {
         resetChildHistoryLoader();
         resetDiaperUi();
         child = null;
+        cachedTimers = null;
     }
 
     public void close() {
         clear();
         timerListProvider.close();
+    }
+
+    private class UpdateBufferingPromise<A, B> implements Promise<A, B> {
+        private Promise<A, B> promise;
+
+        public UpdateBufferingPromise(Promise<A, B> promise) {
+            this.promise = promise;
+            pendingTimerModificationCalls++;
+        }
+
+        @Override
+        public void succeeded(A a) {
+            pendingTimerModificationCalls--;
+            promise.succeeded(a);
+        }
+
+        @Override
+        public void failed(B b) {
+            pendingTimerModificationCalls--;
+            promise.failed(b);
+        }
+    }
+
+    @Override
+    public void createNewTimer(@NonNull BabyBuddyClient.Timer timer, @NonNull Promise<BabyBuddyClient.Timer, TranslatedException> cb) {
+        baseFragment.getMainActivity().getChildTimerControl(child).createNewTimer(
+            timer, new UpdateBufferingPromise<>(cb)
+        );
+    }
+
+    @Override
+    public void startTimer(@NotNull BabyBuddyClient.Timer timer, @NonNull Promise<BabyBuddyClient.Timer, TranslatedException> cb) {
+        baseFragment.getMainActivity().getChildTimerControl(child).startTimer(
+            timer, new UpdateBufferingPromise<>(cb)
+        );
+    }
+
+    @Override
+    public void stopTimer(@NotNull BabyBuddyClient.Timer timer, @NonNull Promise<Object, TranslatedException> cb) {
+        baseFragment.getMainActivity().getChildTimerControl(child).stopTimer(
+            timer, new UpdateBufferingPromise<>(cb)
+        );
+    }
+
+    @Override
+    public void storeActivity(
+        @NotNull BabyBuddyClient.Timer timer,
+        @NonNull String activity,
+        @NonNull String notes,
+        @NonNull Promise<Boolean, Exception> cb
+    ) {
+        baseFragment.getMainActivity().getChildTimerControl(child).storeActivity(
+            timer,
+            activity,
+            notes,
+            new UpdateBufferingPromise<>(cb) {
+                @Override
+                public void succeeded(Boolean aBoolean) {
+                    super.succeeded(aBoolean);
+                    if (childHistoryLoader != null) {
+                        childHistoryLoader.forceRefresh();
+                    }
+                }
+            }
+        );
+    }
+
+    @Override
+    public void registerTimersUpdatedCallback(@NonNull TimersUpdatedCallback callback) {
+        baseFragment.getMainActivity().getChildTimerControl(child).registerTimersUpdatedCallback(callback);
+        callTimerUpdateCallback();
+    }
+
+    private void callTimerUpdateCallback() {
+        // urgh...
+        TimerControl wrapped = (TimerControl) baseFragment.getMainActivity().getChildTimerControl(child).getWrap();
+        if (cachedTimers != null) {
+            wrapped.callTimerUpdateCallback(cachedTimers);
+        }
+    }
+
+    @NonNull
+    @Override
+    public CredStore.Notes getNotes(@NonNull BabyBuddyClient.Timer timer) {
+        return baseFragment.getMainActivity().getChildTimerControl(child).getNotes(timer);
+    }
+
+    @Override
+    public void setNotes(@NonNull BabyBuddyClient.Timer timer, CredStore.Notes notes) {
+        baseFragment.getMainActivity().getChildTimerControl(child).setNotes(timer, notes);
     }
 }
 

@@ -3,9 +3,6 @@
     xmlns:tools="http://schemas.android.com/tools"
     tools:context="eu.pkgsoftware.babybuddywidgets.MainActivity">
     <item
-        android:id="@+id/recreateTimersButton"
-        android:title="@string/recreateTimersMenu" />
-    <item
         android:id="@+id/showHelpMenuButton"
         android:title="@string/showHelpMenuButtonTitle" />
     <item

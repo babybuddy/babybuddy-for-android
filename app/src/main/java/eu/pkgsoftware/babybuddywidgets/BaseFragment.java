@@ -22,12 +22,6 @@ public class BaseFragment extends Fragment {
         void call(boolean b);
     }
 
-    public interface Promise<S, F> {
-        void succeeded(S s);
-
-        void failed(F f);
-    }
-
     private AlertDialog dialog = null;
     protected ProgressDialog progressDialog;
 
@@ -66,12 +60,9 @@ public class BaseFragment extends Fragment {
         dialog = new AlertDialog.Builder(getContext())
             .setTitle(title)
             .setMessage(errorMessage)
-            .setPositiveButton("Ok", new DialogInterface.OnClickListener() {
-                @Override
-                public void onClick(DialogInterface dialogInterface, int i) {
-                    hideError();
-                    callback.call(true);
-                }
+            .setPositiveButton(R.string.dialog_ok, (dialogInterface, i) -> {
+                hideError();
+                callback.call(true);
             })
             .show();
         return dialog;
@@ -109,6 +100,14 @@ public class BaseFragment extends Fragment {
         if (dialog != null) {
             dialog.cancel();
             dialog = null;
+        }
+    }
+
+    public void runAfterDialog(Runnable r) {
+        if (dialog != null) {
+            dialog.setOnDismissListener(dialog -> r.run());
+        } else {
+            r.run();
         }
     }
 

@@ -117,20 +117,10 @@
         android:layout_below="@id/changeButtons"
         />
 
-    <Button
-        android:id="@+id/createDefaultTimers"
-        android:layout_width="wrap_content"
-        android:layout_height="wrap_content"
-        android:layout_centerHorizontal="true"
-        android:layout_below="@id/diaperNotesSlot"
-        android:layout_marginTop="8dp"
-        android:visibility="gone"
-        android:text="Create default timers" />
-
     <ScrollView
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
-        android:layout_below="@+id/createDefaultTimers"
+        android:layout_below="@id/diaperNotesSlot"
         android:layout_centerHorizontal="true"
         android:layout_marginTop="8dp"
         android:id="@+id/mainScrollView">

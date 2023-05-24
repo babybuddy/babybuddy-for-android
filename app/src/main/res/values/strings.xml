@@ -1,5 +1,5 @@
 <resources>
-    <array name="timerTypes" translatable="false">
+    <array name="timerTypeNames">
         <item>Feeding</item>
         <item>Sleep</item>
         <item>Tummy time</item>
@@ -41,7 +41,6 @@
     <string name="about_page_title">About Baby&#160;Buddy for Android</string>
 
     <!-- Menu items -->
-    <string name="recreateTimersMenu">Recreate default timers</string>
     <string name="logoutMenu">Logout</string>
     <string name="showHelpMenuButtonTitle">Help</string>
 
@@ -69,6 +68,9 @@
     <string name="login_qrcode_info_text_no_camera">Your device does not have a camera. You cannot use QR Code logins.</string>
     <string name="login_qrcode_button_text">Login with QR Code</string>
 
+    <!-- Generic logged in -->
+    <string name="logged_in_no_children_found">(No children found)</string>
+
     <!--- Store activities -->
     <string name="error_storing_activity_failed_title">Could not store activity</string>
     <string name="error_storing_activity_unsupported">Unsupported activity</string>
@@ -81,6 +83,7 @@
     <string name="activity_store_failure_cancel">Cancel</string>
     <string name="activity_store_failure_failed_to_stop_title">Timer stop</string>
     <string name="activity_store_failure_failed_to_stop_message">Stopping timer failed</string>
+    <string name="activity_store_failure_start_timer_failed">Start timer failed</string>
 
     <!--- Store activities: Conflicts -->
     <string name="conflicting_activity_title">Overlapping time entries</string>
@@ -101,7 +104,6 @@
     <!-- TODO: Remove or change this placeholder text -->
     <string name="hello_blank_fragment">Hello blank fragment</string>
 
-
     <!-- QR Code Login -->
     <string name="login_qrcode_camera_access_needed_dialog_title">Camera access needed</string>
     <string name="login_qrcode_camera_access_needed_dialog_body">
@@ -120,4 +122,18 @@
     <string name="login_qrcode_login_button">Login now</string>
     <string name="login_qrcode_cancel_button">Cancel</string>
     <string name="login_qrcode_camera_access_was_disabled_message">Camera access was disabled.\nPlease enable camera access in Android\'s settings menu and try again.</string>
+
+    <!-- Generic dialog fields -->
+    <string name="dialog_ok">OK</string>
+
+    <!-- Upgrade notifications -->
+    <string name="upgrade_latest_info_version_less_than_or_equal">1.3.0z</string>
+    <string name="upgrade_latest_info_title">Update {version}</string>
+    <string name="upgrade_latest_info_note">
+        This version is compatible with BabyBuddy version 2.0 and higher.
+
+        \n\nThe timer feature had to be changed to make the app work with Baby Buddy 2.0 and higher:
+        Only the timers that are supported by the app are shown now. Timer controls and manual timer
+        associations of timers with activities were removed.
+    </string>
 </resources>

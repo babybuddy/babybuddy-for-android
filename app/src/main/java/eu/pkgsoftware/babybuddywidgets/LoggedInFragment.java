@@ -158,7 +158,6 @@ public class LoggedInFragment extends BaseFragment {
 
     private void logout() {
         credStore.storeAppToken(null);
-        credStore.clearTimerAssociations();
         credStore.clearNotes();
         Navigation.findNavController(getView()).navigate(R.id.logoutOperation);
     }
@@ -173,14 +172,6 @@ public class LoggedInFragment extends BaseFragment {
         }
         if (item.getItemId() == R.id.aboutPageMenuItem) {
             Navigation.findNavController(getView()).navigate(R.id.global_aboutFragment);
-        }
-        if (item.getItemId() == R.id.recreateTimersButton) {
-            if (babyAdapter != null) {
-                BabyLayoutHolder holder = babyAdapter.getActive();
-                if (holder != null) {
-                    holder.recreateDefaultTimers();
-                }
-            }
         }
         return false;
     }
@@ -226,6 +217,8 @@ public class LoggedInFragment extends BaseFragment {
                 }
             }
         );
+
+        UpdateNotifications.Companion.showUpdateNotice(this);
     }
 
     @Override
@@ -281,7 +274,7 @@ public class LoggedInFragment extends BaseFragment {
     private void updateTitle() {
         BabyBuddyClient.Child child = selectedChild();
         if (child == null) {
-            getMainActivity().setTitle("(No children found)");
+            getMainActivity().setTitle(R.string.logged_in_no_children_found);
         } else {
             getMainActivity().setTitle(child.first_name + " " + child.last_name);
         }
