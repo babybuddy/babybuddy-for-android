@@ -108,12 +108,6 @@ public class LoginFragment extends BaseFragment {
 
         binding.loginInfoText.setMovementMethod(LinkMovementMethod.getInstance());
 
-        binding.qrCode.setOnClickListener(view1 -> {
-            NavController controller = Navigation.findNavController(getView());
-            controller.navigate(R.id.action_LoginFragment_to_QRCodeLoginFragment);
-        });
-        binding.qrCode.setEnabled(false);
-
         updateLoginButton();
 
         final View mainLayout = getMainActivity().findViewById(R.id.main_layout);
@@ -194,29 +188,9 @@ public class LoginFragment extends BaseFragment {
 
         getMainActivity().addMenuProvider(menu);
 
-        Bundle b = getArguments();
-        if (b != null) {
-            if (b.getBoolean("noCameraAccess", false)) {
-                binding.errorBubble.flashMessage(
-                    R.string.login_qrcode_camera_access_was_disabled_message,
-                    5000
-                );
-            }
-        }
-
         if (getMainActivity().getCredStore().getAppToken() != null) {
             progressDialog.hide();
             moveToLoggedIn();
-        } else {
-            final QRCode qrCode = new QRCode(this, null, true);
-            qrCode.setCameraOnInitialized(() -> {
-                binding.qrCode.setEnabled(qrCode.getHasCamera());
-                if (qrCode.getHasCamera()) {
-                    binding.qrCodeInfoText.setText(R.string.login_qrcode_info_text);
-                } else {
-                    binding.qrCodeInfoText.setText(R.string.login_qrcode_info_text_no_camera);
-                }
-            });
         }
     }
 

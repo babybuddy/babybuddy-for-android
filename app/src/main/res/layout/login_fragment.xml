@@ -20,16 +20,6 @@
         app:layout_constraintStart_toStartOf="@+id/passwordEdit"
         app:layout_constraintTop_toBottomOf="@+id/passwordEdit" />
 
-    <Button
-        android:id="@+id/qrCode"
-        android:layout_width="wrap_content"
-        android:layout_height="wrap_content"
-        android:layout_marginTop="8dp"
-        android:text="@string/login_qrcode_button_text"
-        app:layout_constraintEnd_toEndOf="parent"
-        app:layout_constraintStart_toStartOf="parent"
-        app:layout_constraintTop_toBottomOf="@+id/qrCodeInfoText" />
-
     <EditText
         android:id="@+id/passwordEdit"
         android:layout_width="match_parent"
@@ -67,17 +57,6 @@
         app:layout_constraintTop_toBottomOf="@+id/serverAddressEdit" />
 
     <TextView
-        android:id="@+id/qrCodeInfoText"
-        android:layout_width="0dp"
-        android:layout_height="wrap_content"
-        android:layout_marginTop="24dp"
-        android:text="@string/login_qrcode_info_text_checking_camera"
-        android:textColor="?android:attr/textColorPrimary"
-        app:layout_constraintEnd_toEndOf="parent"
-        app:layout_constraintStart_toStartOf="parent"
-        app:layout_constraintTop_toBottomOf="@+id/loginButton" />
-
-    <TextView
         android:id="@+id/loginInfoText"
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
@@ -87,17 +66,5 @@
         app:layout_constraintHorizontal_bias="0.5"
         app:layout_constraintStart_toStartOf="parent"
         app:layout_constraintTop_toTopOf="parent" />
-
-    <eu.pkgsoftware.babybuddywidgets.widgets.InfoBubble
-        android:id="@+id/errorBubble"
-        style="@style/WarningPill"
-        android:layout_width="wrap_content"
-        android:layout_height="wrap_content"
-        android:layout_marginBottom="16dp"
-        android:elevation="2dp"
-        android:text="Demo message"
-        app:layout_constraintBottom_toBottomOf="@+id/qrCode"
-        app:layout_constraintEnd_toEndOf="parent"
-        app:layout_constraintStart_toStartOf="parent" />
 
 </androidx.constraintlayout.widget.ConstraintLayout>
