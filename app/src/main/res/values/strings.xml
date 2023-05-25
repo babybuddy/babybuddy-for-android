@@ -127,7 +127,7 @@
     <string name="dialog_ok">OK</string>
 
     <!-- Upgrade notifications -->
-    <string name="upgrade_latest_info_version_less_than_or_equal">2.0.0z</string>
+    <string name="upgrade_latest_info_version_less_than_or_equal">2.0.0</string>
     <string name="upgrade_latest_info_title">Update {version}</string>
     <string name="upgrade_latest_info_note">
         This update introduces compatibility with the new Baby Buddy version 2.0 update.
