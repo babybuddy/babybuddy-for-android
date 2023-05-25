@@ -10,7 +10,7 @@ while handling children.
 
 ## Where to get?
 
-You can either install the [APK from the lastest release](https://github.com/MrApplejuice/BabyBuddyAndroid/releases/tag/v1.1.5) directly or buy the app on the Google Play store:
+You can either install the [APK from the lastest release](https://github.com/MrApplejuice/BabyBuddyAndroid/releases) directly or buy the app on the Google Play store:
 
 <a href='https://play.google.com/store/apps/details?id=eu.pkgsoftware.babybuddywidgets&pcampaignid=pcampaignidMKT-Other-global-all-co-prtnr-py-PartBadge-Mar2515-1'><img height='75' alt='Get it on Google Play' src='https://play.google.com/intl/en_us/badges/static/images/badges/en_badge_web_generic.png'/></a>
 
