@@ -3,7 +3,6 @@ package eu.pkgsoftware.babybuddywidgets.history
 import android.view.View
 import android.widget.LinearLayout
 import android.widget.ProgressBar
-import androidx.appcompat.app.AppCompatActivity
 import eu.pkgsoftware.babybuddywidgets.BaseFragment
 import eu.pkgsoftware.babybuddywidgets.VisibilityCheck
 import eu.pkgsoftware.babybuddywidgets.logic.ContinuousListItem
@@ -15,7 +14,6 @@ import eu.pkgsoftware.babybuddywidgets.networking.ChildrenStateTracker
 import eu.pkgsoftware.babybuddywidgets.networking.ChildrenStateTracker.TimelineListener
 import eu.pkgsoftware.babybuddywidgets.networking.ChildrenStateTracker.TimelineObserver
 import kotlinx.coroutines.*
-import java.util.*
 
 class ChildEventHistoryLoader(
     private val fragment: BaseFragment,
@@ -24,7 +22,7 @@ class ChildEventHistoryLoader(
     private val visibilityCheck: VisibilityCheck,
     private val progressBar: ProgressBar
 ) {
-    private val initialActivityCollectionGate = (ACTIVITIES.ALL + EVENTS.ALL).toMutableList()
+    private val activityCollectionGate = (ACTIVITIES.ALL + EVENTS.ALL).toMutableList()
 
     private var timelineObserver: TimelineObserver? = null
     private val timeEntryLookup = mutableMapOf<ContinuousListItem, TimeEntry>()
@@ -62,7 +60,10 @@ class ChildEventHistoryLoader(
             TimelineEntry(fragment, e)
         };
         result.timeEntry = e
-        result.setModifiedCallback { timelineObserver?.forceUpdate() }
+        result.setModifiedCallback {
+            activityCollectionGate.addAll(ACTIVITIES.ALL + EVENTS.ALL)
+            timelineObserver?.forceUpdate()
+        }
         container.addView(result.view)
         currentList.add(result)
         return result
@@ -81,7 +82,7 @@ class ChildEventHistoryLoader(
     private fun addTimelineItems(offset: Int, totalCount: Int, type: String, _entries: Array<TimeEntry>) {
         val to = timelineObserver ?: return
 
-        initialActivityCollectionGate.remove(type)
+        activityCollectionGate.remove(type)
 
         // Put this in separate thread!
         listIntegrator.updateItemsWithCount(
@@ -96,7 +97,7 @@ class ChildEventHistoryLoader(
 
         val updateJob = this.updateJob
         if ((updateJob == null) || (!updateJob.isActive)) {
-            if (initialActivityCollectionGate.isEmpty()) {
+            if (activityCollectionGate.isEmpty()) {
                 this.updateJob = fragment.mainActivity.scope.launch { deferredUpdate() }
             }
         }
@@ -178,8 +179,8 @@ class ChildEventHistoryLoader(
 
     fun forceRefresh() {
         updateJob?.cancel("forceRefresh()")
-        initialActivityCollectionGate.clear()
-        initialActivityCollectionGate.addAll(ACTIVITIES.ALL + EVENTS.ALL)
+        activityCollectionGate.clear()
+        activityCollectionGate.addAll(ACTIVITIES.ALL + EVENTS.ALL)
         timelineObserver?.forceUpdate()
     }
 }
