@@ -1,4 +1,4 @@
-.PHONY: all info refresh-flaticon-token help licenses libraries
+.PHONY: all info refresh-flaticon-token help licenses
 
 SPACE := $(null) $(null)
 
@@ -59,7 +59,7 @@ ALL_TARGETS = \
     $(DRAWABLE_TARGETS) \
     $(PROGRAM_ICON_TARGETS) \
 
-all: $(ALL_TARGETS) help licenses libraries
+all: $(ALL_TARGETS) help licenses
 
 help:
 	$(MAKE) -f help.makefile all
@@ -174,7 +174,3 @@ $(foreach mipmap,$(MIPMAPS), $(eval $(call _convert_rectangular_icon,$(mipmap)))
 # Playstore icon
 app/src/main/pkg_app_icon-playstore.png: resources/icon/icon.png
 	convert -background none $< -resize 512x512 $@
-
-# Sub libraries
-libraries:
-	make -C app/src/submodules
