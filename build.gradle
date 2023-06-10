@@ -25,3 +25,14 @@ allprojects {
 task clean(type: Delete) {
     delete rootProject.buildDir
 }
+
+gradle.beforeProject { project ->
+    if (project.name == "zxing-cpp") {
+        println("Patching zxing-cpp build.gradle file")
+        copy {
+            from file("3rdparty/patched-zxing-build.gradle")
+            into file("3rdparty/zxing-cpp/wrappers/android/zxingcpp/")
+            rename ".*", "build.gradle"
+        }
+    }
+}
