@@ -1,3 +1,5 @@
+import groovy.xml.MarkupBuilder
+
 import java.util.regex.Matcher
 
 plugins {
@@ -38,7 +40,7 @@ task generateAboutStrings {
     licenseText = splits[1].trim().replaceAll("\n\n", "\\\\\\n\\\\\\n").replaceAll("\n", " ")
 
     def xmlout = new StringWriter()
-    def xml = new groovy.xml.MarkupBuilder(xmlout)
+    def xml = new MarkupBuilder(xmlout)
     xml.resources {
         xml."string-array"(name:"autostring_about_icon_iconlists") {
             for (item in outList) {
@@ -67,18 +69,11 @@ task generateAboutStrings {
 
 task invokeMakefile(type: Exec) {
     commandLine 'make', '-C', '..', '-f', 'resources.makefile'
-    environment 'ANDROID_HOME', android.sdkDirectory
-}
-
-task copyLibs(type: Copy) {
-    from "src/submodules/libs/zxingcpp-release.aar"
-    into "libs"
-    dependsOn(invokeMakefile)
 }
 
 build {
     dependsOn(generateAboutStrings)
-    dependsOn(copyLibs)
+    dependsOn(invokeMakefile)
 }
 
 android {
@@ -110,16 +105,16 @@ android {
     namespace 'eu.pkgsoftware.babybuddywidgets'
 }
 
-ext.camerax_version = "1.2.2"
+ext.camerax_version = "1.2.3"
 
 dependencies {
     implementation 'com.squareup.phrase:phrase:1.2.0'
 
     implementation 'androidx.appcompat:appcompat:1.6.1'
-    implementation 'com.google.android.material:material:1.8.0'
+    implementation 'com.google.android.material:material:1.9.0'
     implementation 'androidx.constraintlayout:constraintlayout:2.1.4'
-    implementation 'androidx.navigation:navigation-fragment-ktx:2.5.3'
-    implementation 'androidx.navigation:navigation-ui-ktx:2.5.3'
+    implementation 'androidx.navigation:navigation-fragment-ktx:2.6.0'
+    implementation 'androidx.navigation:navigation-ui-ktx:2.6.0'
     implementation 'androidx.legacy:legacy-support-v4:1.0.0'
     implementation("androidx.concurrent:concurrent-futures:1.1.0")
 
@@ -131,7 +126,7 @@ dependencies {
     testImplementation 'junit:junit:4.13.2'
     androidTestImplementation 'androidx.test.ext:junit:1.1.5'
     androidTestImplementation 'androidx.test.espresso:espresso-core:3.5.1'
-    implementation 'androidx.core:core-ktx:1.10.0'
+    implementation 'androidx.core:core-ktx:1.10.1'
     implementation "org.jetbrains.kotlin:kotlin-stdlib-jdk7:$kotlin_version"
     implementation "org.jetbrains.kotlinx:kotlinx-coroutines-core:1.6.4"
     implementation "org.jetbrains.kotlinx:kotlinx-coroutines-android:1.6.4"
