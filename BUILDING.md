@@ -54,16 +54,7 @@ git submodule init
 git submodule update
 ```
 
-2.Open `app/src/submodules/zxing-cpp/wrappers/android/zxingcpp/build.gradle` and comment out the line abiFilters:
-```
-         ndk {
-             // speed up build: compile only arm versions
--            abiFilters 'armeabi-v7a', 'arm64-v8a'
-+            // abiFilters 'armeabi-v7a', 'arm64-v8a'
-         }
-```
-
-3.Open Android Studio and make sure you got `NDK` installed from the sdk-manager
+2.Open Android Studio and make sure you got `NDK` installed from the sdk-manager
 
 That is it. The everything else is referenced from the gradle files.
 Launch Android Studio, open the project, and build it. It should work.

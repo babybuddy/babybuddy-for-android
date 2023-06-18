@@ -1,2 +1,7 @@
 rootProject.name = "BabyBuddyWidgets"
+
 include ':app'
+
+include ':zxing-cpp'
+project(':zxing-cpp').projectDir = file("3rdparty/zxing-cpp/wrappers/android/zxingcpp")
+
