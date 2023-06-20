@@ -10,6 +10,8 @@ import org.jetbrains.annotations.NotNull;
 import java.io.FileInputStream;
 import java.io.FileOutputStream;
 import java.io.IOException;
+import java.io.InputStream;
+import java.io.OutputStream;
 import java.nio.charset.StandardCharsets;
 import java.security.MessageDigest;
 import java.security.SecureRandom;
@@ -46,10 +48,31 @@ public class CredStore {
         }
     }
 
+    public interface SettingsFileOpener {
+        public InputStream openReadStream() throws IOException;
+        public OutputStream openWriteStream() throws IOException;
+    }
+
+    public static class StaticPathOpener implements SettingsFileOpener {
+        private final String path;
+
+        public StaticPathOpener(String path) {
+            this.path = path;
+        }
+
+        public InputStream openReadStream() throws IOException{
+            return new FileInputStream(path);
+        }
+
+        public OutputStream openWriteStream() throws IOException{
+            return new FileOutputStream(path);
+        }
+    }
+
     public static final String ENCRYPTION_STRING = "gK,8kwXJZRmL6/yz&Dp;tr5&Muk,A;h,VGeb$qN-Gid3xLW&a/Xi0YOomVpQVAiFn:hP$8dbIX;L*v*cie&Tnkf+obFEN;a+DTmrILQO6CkY.oOV25dBjpXbep%qAu1bnbeS3A-zn%m";
     public final String CURRENT_VERSION;
 
-    private String settingsFilePath;
+    private @NotNull SettingsFileOpener settingsFileOpener;
 
     private String serverUrl;
     private String SALT_STRING;
@@ -74,14 +97,10 @@ public class CredStore {
         return pi.versionName;
     }
 
-    public CredStore(Context context) {
-        settingsFilePath = context.getFilesDir().getAbsolutePath() + "/settings.conf";
-
-        CURRENT_VERSION = getAppVersionString(context);
-
+    private void loadCredsFile() {
         try {
             Properties props = new Properties();
-            try (FileInputStream fis = new FileInputStream(settingsFilePath)) {
+            try (InputStream fis = settingsFileOpener.openReadStream()) {
                 props.load(fis);
             } catch (IOException e) {
                 // pass, but save current version
@@ -136,6 +155,20 @@ public class CredStore {
         } catch (NoSuchElementException e) {
             e.printStackTrace();
         }
+    }
+
+    public CredStore(Context context) {
+        CURRENT_VERSION = getAppVersionString(context);
+        settingsFileOpener = new StaticPathOpener(
+            context.getFilesDir().getAbsolutePath() + "/settings.conf"
+        );
+        loadCredsFile();
+    }
+
+    public CredStore(@NotNull SettingsFileOpener opener, @NotNull String currentVersion) {
+        CURRENT_VERSION = currentVersion;
+        settingsFileOpener = opener;
+        loadCredsFile();
     }
 
     private String stringMapToString(Map<String, String> m) {
@@ -207,7 +240,7 @@ public class CredStore {
             props.setProperty("tutorial_parameters", stringMapToString(stringMap));
         }
 
-        try (FileOutputStream fos = new FileOutputStream(settingsFilePath.toString())) {
+        try (OutputStream fos = settingsFileOpener.openWriteStream()) {
             props.store(fos, "");
         } catch (IOException e) {
             // pass
