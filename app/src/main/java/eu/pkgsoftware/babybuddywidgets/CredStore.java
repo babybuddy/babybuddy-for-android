@@ -31,7 +31,7 @@ import javax.crypto.spec.SecretKeySpec;
 
 import androidx.annotation.NonNull;
 
-public class CredStore {
+public class CredStore extends CredStoreEncryptionEngine {
     public static final Notes EMPTY_NOTES = new Notes("", false);
 
     public static class Notes {
@@ -50,6 +50,7 @@ public class CredStore {
 
     public interface SettingsFileOpener {
         public InputStream openReadStream() throws IOException;
+
         public OutputStream openWriteStream() throws IOException;
     }
 
@@ -60,22 +61,20 @@ public class CredStore {
             this.path = path;
         }
 
-        public InputStream openReadStream() throws IOException{
+        public InputStream openReadStream() throws IOException {
             return new FileInputStream(path);
         }
 
-        public OutputStream openWriteStream() throws IOException{
+        public OutputStream openWriteStream() throws IOException {
             return new FileOutputStream(path);
         }
     }
 
-    public static final String ENCRYPTION_STRING = "gK,8kwXJZRmL6/yz&Dp;tr5&Muk,A;h,VGeb$qN-Gid3xLW&a/Xi0YOomVpQVAiFn:hP$8dbIX;L*v*cie&Tnkf+obFEN;a+DTmrILQO6CkY.oOV25dBjpXbep%qAu1bnbeS3A-zn%m";
     public final String CURRENT_VERSION;
 
     private @NotNull SettingsFileOpener settingsFileOpener;
 
     private String serverUrl;
-    private String SALT_STRING;
     private String encryptedToken;
     private Map<String, Notes> notesAssignments = new HashMap<String, Notes>();
     private Double lastUsedAmount = null;
@@ -107,9 +106,9 @@ public class CredStore {
                 props.put("stored_version", CURRENT_VERSION);
             }
             serverUrl = props.getProperty("server");
-            SALT_STRING = props.getProperty("salt");
-            if (SALT_STRING == null) {
-                generateNewSalt();
+            String loadedSalt = props.getProperty("salt");
+            if (loadedSalt != null) {
+                setSALT(loadedSalt);
             }
 
             encryptedToken = props.getProperty("token");
@@ -211,7 +210,7 @@ public class CredStore {
         if (serverUrl != null) {
             props.setProperty("server", serverUrl);
         }
-        props.setProperty("salt", SALT_STRING);
+        props.setProperty("salt", getSALT());
         if (encryptedToken != null) {
             props.setProperty("token", encryptedToken);
         }
@@ -247,51 +246,12 @@ public class CredStore {
         }
     }
 
-    private void generateNewSalt() {
-        byte[] rnd = new byte[32];
-        new SecureRandom().nextBytes(rnd);
-        SALT_STRING = Base64.encodeToString(rnd, Base64.DEFAULT);
-    }
-
     public String getAppToken() {
-        try {
-            if (encryptedToken == null) {
-                return null;
-            } else {
-                Cipher cipher = Cipher.getInstance("AES/CBC/PKCS5Padding");
-                byte[] rawKey = (SALT_STRING + ":::::" + ENCRYPTION_STRING).getBytes(StandardCharsets.ISO_8859_1);
-                byte[] md5Key = MessageDigest.getInstance("MD5").digest(rawKey);
-                byte[] ivGen = MessageDigest.getInstance("MD5").digest(
-                    (new String(md5Key, StandardCharsets.ISO_8859_1) + ":::::" + SALT_STRING).getBytes(StandardCharsets.UTF_8));
-                SecretKey key = new SecretKeySpec(md5Key, "AES");
-                cipher.init(Cipher.DECRYPT_MODE, key, new IvParameterSpec(ivGen));
-                byte[] decoded = cipher.doFinal(Base64.decode(encryptedToken, Base64.DEFAULT));
-                return new String(decoded, StandardCharsets.ISO_8859_1);
-            }
-        } catch (Exception e) {
-            e.printStackTrace();
-        }
-        return null;
+        return decryptMessage(encryptedToken);
     }
 
     public void storeAppToken(String token) {
-        try {
-            if (token == null) {
-                encryptedToken = null;
-            } else {
-                Cipher cipher = Cipher.getInstance("AES/CBC/PKCS5Padding");
-                byte[] rawKey = (SALT_STRING + ":::::" + ENCRYPTION_STRING).getBytes(StandardCharsets.ISO_8859_1);
-                byte[] md5Key = MessageDigest.getInstance("MD5").digest(rawKey);
-                byte[] ivGen = MessageDigest.getInstance("MD5").digest(
-                    (new String(md5Key, StandardCharsets.ISO_8859_1) + ":::::" + SALT_STRING).getBytes(StandardCharsets.UTF_8));
-                SecretKey key = new SecretKeySpec(md5Key, "AES");
-                cipher.init(Cipher.ENCRYPT_MODE, key, new IvParameterSpec(ivGen));
-                byte[] encoded = cipher.doFinal(token.getBytes(StandardCharsets.ISO_8859_1));
-                encryptedToken = Base64.encodeToString(encoded, Base64.DEFAULT);
-            }
-        } catch (Exception e) {
-            e.printStackTrace();
-        }
+        encryptedToken = encryptMessage(token);
         storePrefs();
     }
 
