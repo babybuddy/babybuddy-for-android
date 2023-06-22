@@ -76,6 +76,7 @@ public class CredStore extends CredStoreEncryptionEngine {
 
     private String serverUrl;
     private String encryptedToken;
+    private String encryptedCookies = null;
     private Map<String, Notes> notesAssignments = new HashMap<String, Notes>();
     private Double lastUsedAmount = null;
     private Map<String, Integer> tutorialParameters = new HashMap<>();
@@ -112,6 +113,7 @@ public class CredStore extends CredStoreEncryptionEngine {
             }
 
             encryptedToken = props.getProperty("token");
+            encryptedCookies = props.getProperty("cookies", null);
 
             storedVersion = props.getProperty("stored_version", "-1");
 
@@ -214,6 +216,9 @@ public class CredStore extends CredStoreEncryptionEngine {
         if (encryptedToken != null) {
             props.setProperty("token", encryptedToken);
         }
+        if (encryptedCookies != null) {
+            props.setProperty("cookies", encryptedCookies);
+        }
 
         props.put("stored_version", storedVersion);
 
@@ -311,5 +316,22 @@ public class CredStore extends CredStoreEncryptionEngine {
 
     public boolean isStoredVersionOutdated() {
         return !CURRENT_VERSION.equals(storedVersion);
+    }
+
+    public Map<String, String> getAuthCookies() {
+        String encodedMap = decryptMessage(encryptedCookies);
+        if (encodedMap == null) {
+            return new HashMap<>();
+        }
+        return stringToStringMap(encodedMap);
+    }
+
+    public void setAuthCookies(Map<String, String> cookies) {
+        if (cookies.size() == 0) {
+            encryptedCookies = null;
+        } else {
+            encryptedCookies = encryptMessage(stringMapToString(cookies));
+        }
+        storePrefs();
     }
 }
