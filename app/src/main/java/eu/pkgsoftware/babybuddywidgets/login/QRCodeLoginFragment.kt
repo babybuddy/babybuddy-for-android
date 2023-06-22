@@ -225,7 +225,7 @@ class QRCodeLoginFragment : BaseFragment() {
 
                     override fun failed(s: String) {
                         progressDialog.hide()
-                        credStore.storeAppToken(null)
+                        credStore.clearLoginData()
                         binding.qrcodeCancelButton.performClick()
                         showError(true, "Login failed", s)
                     }
