@@ -13,8 +13,6 @@ import java.io.IOException;
 import java.io.InputStream;
 import java.io.OutputStream;
 import java.nio.charset.StandardCharsets;
-import java.security.MessageDigest;
-import java.security.SecureRandom;
 import java.util.Collections;
 import java.util.Enumeration;
 import java.util.HashMap;
@@ -23,11 +21,6 @@ import java.util.NoSuchElementException;
 import java.util.Objects;
 import java.util.Properties;
 import java.util.regex.Pattern;
-
-import javax.crypto.Cipher;
-import javax.crypto.SecretKey;
-import javax.crypto.spec.IvParameterSpec;
-import javax.crypto.spec.SecretKeySpec;
 
 import androidx.annotation.NonNull;
 
@@ -326,12 +319,18 @@ public class CredStore extends CredStoreEncryptionEngine {
         return stringToStringMap(encodedMap);
     }
 
-    public void setAuthCookies(Map<String, String> cookies) {
-        if (cookies.size() == 0) {
+    public void storeAuthCookies(Map<String, String> cookies) {
+        if ((cookies == null) || (cookies.size() == 0)) {
             encryptedCookies = null;
         } else {
             encryptedCookies = encryptMessage(stringMapToString(cookies));
         }
         storePrefs();
+    }
+
+    public void clearLoginData() {
+        storeAppToken(null);
+        storeAuthCookies(null);
+        clearNotes();
     }
 }
