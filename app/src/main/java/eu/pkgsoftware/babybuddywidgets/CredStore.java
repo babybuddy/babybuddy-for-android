@@ -169,11 +169,11 @@ public class CredStore extends CredStoreEncryptionEngine {
         StringBuilder result = new StringBuilder();
         for (Map.Entry<String, String> e : m.entrySet()) {
             String k = new String(
-                Base64.encode(e.getKey().getBytes(StandardCharsets.UTF_8), Base64.DEFAULT),
+                Base64.encode(e.getKey().getBytes(StandardCharsets.UTF_8), Base64.NO_WRAP),
                 StandardCharsets.UTF_8
             );
             String v = new String(
-                Base64.encode(e.getValue().getBytes(StandardCharsets.UTF_8), Base64.DEFAULT),
+                Base64.encode(e.getValue().getBytes(StandardCharsets.UTF_8), Base64.NO_WRAP),
                 StandardCharsets.UTF_8
             );
             result.append(k.trim()).append(":").append(v.trim()).append("\n");
@@ -190,10 +190,10 @@ public class CredStore extends CredStoreEncryptionEngine {
             }
 
             String key = new String(
-                Base64.decode(assignmentParts[0].trim(), Base64.DEFAULT), StandardCharsets.UTF_8
+                Base64.decode(assignmentParts[0].trim(), Base64.NO_WRAP), StandardCharsets.UTF_8
             );
             String value = new String(
-                Base64.decode(assignmentParts[1].trim(), Base64.DEFAULT), StandardCharsets.UTF_8
+                Base64.decode(assignmentParts[1].trim(), Base64.NO_WRAP), StandardCharsets.UTF_8
             );
             result.put(key, value);
         }
