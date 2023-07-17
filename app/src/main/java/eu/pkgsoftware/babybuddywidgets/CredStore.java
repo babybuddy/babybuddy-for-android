@@ -10,9 +10,9 @@ import org.jetbrains.annotations.NotNull;
 import java.io.FileInputStream;
 import java.io.FileOutputStream;
 import java.io.IOException;
+import java.io.InputStream;
+import java.io.OutputStream;
 import java.nio.charset.StandardCharsets;
-import java.security.MessageDigest;
-import java.security.SecureRandom;
 import java.util.Collections;
 import java.util.Enumeration;
 import java.util.HashMap;
@@ -22,14 +22,9 @@ import java.util.Objects;
 import java.util.Properties;
 import java.util.regex.Pattern;
 
-import javax.crypto.Cipher;
-import javax.crypto.SecretKey;
-import javax.crypto.spec.IvParameterSpec;
-import javax.crypto.spec.SecretKeySpec;
-
 import androidx.annotation.NonNull;
 
-public class CredStore {
+public class CredStore extends CredStoreEncryptionEngine {
     public static final Notes EMPTY_NOTES = new Notes("", false);
 
     public static class Notes {
@@ -46,14 +41,35 @@ public class CredStore {
         }
     }
 
-    public static final String ENCRYPTION_STRING = "gK,8kwXJZRmL6/yz&Dp;tr5&Muk,A;h,VGeb$qN-Gid3xLW&a/Xi0YOomVpQVAiFn:hP$8dbIX;L*v*cie&Tnkf+obFEN;a+DTmrILQO6CkY.oOV25dBjpXbep%qAu1bnbeS3A-zn%m";
+    public interface SettingsFileOpener {
+        public InputStream openReadStream() throws IOException;
+
+        public OutputStream openWriteStream() throws IOException;
+    }
+
+    public static class StaticPathOpener implements SettingsFileOpener {
+        private final String path;
+
+        public StaticPathOpener(String path) {
+            this.path = path;
+        }
+
+        public InputStream openReadStream() throws IOException {
+            return new FileInputStream(path);
+        }
+
+        public OutputStream openWriteStream() throws IOException {
+            return new FileOutputStream(path);
+        }
+    }
+
     public final String CURRENT_VERSION;
 
-    private String settingsFilePath;
+    private @NotNull SettingsFileOpener settingsFileOpener;
 
     private String serverUrl;
-    private String SALT_STRING;
     private String encryptedToken;
+    private String encryptedCookies = null;
     private Map<String, Notes> notesAssignments = new HashMap<String, Notes>();
     private Double lastUsedAmount = null;
     private Map<String, Integer> tutorialParameters = new HashMap<>();
@@ -74,26 +90,23 @@ public class CredStore {
         return pi.versionName;
     }
 
-    public CredStore(Context context) {
-        settingsFilePath = context.getFilesDir().getAbsolutePath() + "/settings.conf";
-
-        CURRENT_VERSION = getAppVersionString(context);
-
+    private void loadCredsFile() {
         try {
             Properties props = new Properties();
-            try (FileInputStream fis = new FileInputStream(settingsFilePath)) {
+            try (InputStream fis = settingsFileOpener.openReadStream()) {
                 props.load(fis);
             } catch (IOException e) {
                 // pass, but save current version
                 props.put("stored_version", CURRENT_VERSION);
             }
             serverUrl = props.getProperty("server");
-            SALT_STRING = props.getProperty("salt");
-            if (SALT_STRING == null) {
-                generateNewSalt();
+            String loadedSalt = props.getProperty("salt");
+            if (loadedSalt != null) {
+                setSALT(loadedSalt);
             }
 
             encryptedToken = props.getProperty("token");
+            encryptedCookies = props.getProperty("cookies", null);
 
             storedVersion = props.getProperty("stored_version", "-1");
 
@@ -138,15 +151,29 @@ public class CredStore {
         }
     }
 
+    public CredStore(Context context) {
+        CURRENT_VERSION = getAppVersionString(context);
+        settingsFileOpener = new StaticPathOpener(
+            context.getFilesDir().getAbsolutePath() + "/settings.conf"
+        );
+        loadCredsFile();
+    }
+
+    public CredStore(@NotNull SettingsFileOpener opener, @NotNull String currentVersion) {
+        CURRENT_VERSION = currentVersion;
+        settingsFileOpener = opener;
+        loadCredsFile();
+    }
+
     private String stringMapToString(Map<String, String> m) {
         StringBuilder result = new StringBuilder();
         for (Map.Entry<String, String> e : m.entrySet()) {
             String k = new String(
-                Base64.encode(e.getKey().getBytes(StandardCharsets.UTF_8), Base64.DEFAULT),
+                Base64.encode(e.getKey().getBytes(StandardCharsets.UTF_8), Base64.NO_WRAP),
                 StandardCharsets.UTF_8
             );
             String v = new String(
-                Base64.encode(e.getValue().getBytes(StandardCharsets.UTF_8), Base64.DEFAULT),
+                Base64.encode(e.getValue().getBytes(StandardCharsets.UTF_8), Base64.NO_WRAP),
                 StandardCharsets.UTF_8
             );
             result.append(k.trim()).append(":").append(v.trim()).append("\n");
@@ -163,10 +190,10 @@ public class CredStore {
             }
 
             String key = new String(
-                Base64.decode(assignmentParts[0].trim(), Base64.DEFAULT), StandardCharsets.UTF_8
+                Base64.decode(assignmentParts[0].trim(), Base64.NO_WRAP), StandardCharsets.UTF_8
             );
             String value = new String(
-                Base64.decode(assignmentParts[1].trim(), Base64.DEFAULT), StandardCharsets.UTF_8
+                Base64.decode(assignmentParts[1].trim(), Base64.NO_WRAP), StandardCharsets.UTF_8
             );
             result.put(key, value);
         }
@@ -178,9 +205,12 @@ public class CredStore {
         if (serverUrl != null) {
             props.setProperty("server", serverUrl);
         }
-        props.setProperty("salt", SALT_STRING);
+        props.setProperty("salt", getSALT());
         if (encryptedToken != null) {
             props.setProperty("token", encryptedToken);
+        }
+        if (encryptedCookies != null) {
+            props.setProperty("cookies", encryptedCookies);
         }
 
         props.put("stored_version", storedVersion);
@@ -207,58 +237,19 @@ public class CredStore {
             props.setProperty("tutorial_parameters", stringMapToString(stringMap));
         }
 
-        try (FileOutputStream fos = new FileOutputStream(settingsFilePath.toString())) {
+        try (OutputStream fos = settingsFileOpener.openWriteStream()) {
             props.store(fos, "");
         } catch (IOException e) {
             // pass
         }
     }
 
-    private void generateNewSalt() {
-        byte[] rnd = new byte[32];
-        new SecureRandom().nextBytes(rnd);
-        SALT_STRING = Base64.encodeToString(rnd, Base64.DEFAULT);
-    }
-
     public String getAppToken() {
-        try {
-            if (encryptedToken == null) {
-                return null;
-            } else {
-                Cipher cipher = Cipher.getInstance("AES/CBC/PKCS5Padding");
-                byte[] rawKey = (SALT_STRING + ":::::" + ENCRYPTION_STRING).getBytes(StandardCharsets.ISO_8859_1);
-                byte[] md5Key = MessageDigest.getInstance("MD5").digest(rawKey);
-                byte[] ivGen = MessageDigest.getInstance("MD5").digest(
-                    (new String(md5Key, StandardCharsets.ISO_8859_1) + ":::::" + SALT_STRING).getBytes(StandardCharsets.UTF_8));
-                SecretKey key = new SecretKeySpec(md5Key, "AES");
-                cipher.init(Cipher.DECRYPT_MODE, key, new IvParameterSpec(ivGen));
-                byte[] decoded = cipher.doFinal(Base64.decode(encryptedToken, Base64.DEFAULT));
-                return new String(decoded, StandardCharsets.ISO_8859_1);
-            }
-        } catch (Exception e) {
-            e.printStackTrace();
-        }
-        return null;
+        return decryptMessage(encryptedToken);
     }
 
     public void storeAppToken(String token) {
-        try {
-            if (token == null) {
-                encryptedToken = null;
-            } else {
-                Cipher cipher = Cipher.getInstance("AES/CBC/PKCS5Padding");
-                byte[] rawKey = (SALT_STRING + ":::::" + ENCRYPTION_STRING).getBytes(StandardCharsets.ISO_8859_1);
-                byte[] md5Key = MessageDigest.getInstance("MD5").digest(rawKey);
-                byte[] ivGen = MessageDigest.getInstance("MD5").digest(
-                    (new String(md5Key, StandardCharsets.ISO_8859_1) + ":::::" + SALT_STRING).getBytes(StandardCharsets.UTF_8));
-                SecretKey key = new SecretKeySpec(md5Key, "AES");
-                cipher.init(Cipher.ENCRYPT_MODE, key, new IvParameterSpec(ivGen));
-                byte[] encoded = cipher.doFinal(token.getBytes(StandardCharsets.ISO_8859_1));
-                encryptedToken = Base64.encodeToString(encoded, Base64.DEFAULT);
-            }
-        } catch (Exception e) {
-            e.printStackTrace();
-        }
+        encryptedToken = encryptMessage(token);
         storePrefs();
     }
 
@@ -318,5 +309,28 @@ public class CredStore {
 
     public boolean isStoredVersionOutdated() {
         return !CURRENT_VERSION.equals(storedVersion);
+    }
+
+    public Map<String, String> getAuthCookies() {
+        String encodedMap = decryptMessage(encryptedCookies);
+        if (encodedMap == null) {
+            return new HashMap<>();
+        }
+        return stringToStringMap(encodedMap);
+    }
+
+    public void storeAuthCookies(Map<String, String> cookies) {
+        if ((cookies == null) || (cookies.size() == 0)) {
+            encryptedCookies = null;
+        } else {
+            encryptedCookies = encryptMessage(stringMapToString(cookies));
+        }
+        storePrefs();
+    }
+
+    public void clearLoginData() {
+        storeAppToken(null);
+        storeAuthCookies(null);
+        clearNotes();
     }
 }

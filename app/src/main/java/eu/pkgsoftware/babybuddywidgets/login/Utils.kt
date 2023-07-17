@@ -7,6 +7,7 @@ import eu.pkgsoftware.babybuddywidgets.MainActivity
 import eu.pkgsoftware.babybuddywidgets.R
 import eu.pkgsoftware.babybuddywidgets.networking.BabyBuddyClient.Child
 import eu.pkgsoftware.babybuddywidgets.networking.BabyBuddyClient.RequestCallback
+import eu.pkgsoftware.babybuddywidgets.networking.RequestCodeFailure
 import java.util.Locale
 
 class Utils(val mainActivity: MainActivity) {
@@ -42,10 +43,17 @@ class Utils(val mainActivity: MainActivity) {
             val client = mainActivity.client
             client.listChildren(object : RequestCallback<Array<Child?>?> {
                 override fun error(error: Exception) {
-                    error.message?.let {
-                        promise.failed(it)
-                    } ?: {
+                    val message = error.message
+                    if (message == null) {
+                        if (error is RequestCodeFailure) {
+                            if ((error.code >= 401) || (error.code < 600)) {
+                                promise.failed("Authentication failed (http response: ${error.code})")
+                                return
+                            }
+                        }
                         promise.failed("Failed")
+                    } else {
+                        promise.failed(message)
                     }
                 }
 

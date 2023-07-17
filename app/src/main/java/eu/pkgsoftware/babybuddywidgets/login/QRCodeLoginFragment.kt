@@ -215,6 +215,7 @@ class QRCodeLoginFragment : BaseFragment() {
                 val credStore = mainActivity.credStore;
                 credStore.storeServerUrl(loginData.url)
                 credStore.storeAppToken(loginData.token)
+                credStore.storeAuthCookies(loginData.cookies)
 
                 Utils(mainActivity).testLoginToken(object : Promise<Any, String> {
                     override fun succeeded(s: Any?) {
@@ -224,7 +225,7 @@ class QRCodeLoginFragment : BaseFragment() {
 
                     override fun failed(s: String) {
                         progressDialog.hide()
-                        credStore.storeAppToken(null)
+                        credStore.clearLoginData()
                         binding.qrcodeCancelButton.performClick()
                         showError(true, "Login failed", s)
                     }

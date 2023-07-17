@@ -113,7 +113,7 @@ public class BabyBuddyClient extends StreamReader {
     }
 
     public static class QueryValues {
-        public HashMap<String, String> queryValues = new HashMap<String, String>();
+        public HashMap<String, String> queryValues = new HashMap<>();
 
         public QueryValues add(String name, String value) {
             queryValues.put(name, value);
@@ -137,6 +137,19 @@ public class BabyBuddyClient extends StreamReader {
                 result.append(e.getKey());
                 result.append("=");
                 result.append(urlencode(e.getValue()));
+            }
+            return result.toString();
+        }
+
+        public String toCookiesString() {
+            StringBuilder result = new StringBuilder("");
+            for (Map.Entry<String, String> e : queryValues.entrySet()) {
+                if (result.length() > 0) {
+                    result.append("; ");
+                }
+                result.append(e.getKey());
+                result.append("=");
+                result.append(e.getValue());
             }
             return result.toString();
         }
@@ -503,6 +516,13 @@ public class BabyBuddyClient extends StreamReader {
         HttpURLConnection con = (HttpURLConnection) pathToUrl(path).openConnection();
         String token = credStore.getAppToken();
         con.setRequestProperty("Authorization", "Token " + token);
+
+        QueryValues qValues = new QueryValues();
+        for (Map.Entry<String, String> entry : credStore.getAuthCookies().entrySet()) {
+            qValues.add(entry.getKey(), entry.getValue());
+        }
+        con.setRequestProperty("Cookie", qValues.toCookiesString());
+
         con.setDoInput(true);
         return con;
     }
