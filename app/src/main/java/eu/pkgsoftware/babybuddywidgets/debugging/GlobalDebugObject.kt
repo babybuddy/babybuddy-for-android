@@ -4,8 +4,11 @@ import android.util.Log
 
 class GlobalDebugObject {
     companion object {
+        @JvmStatic
         val ENABLED = true
+        @JvmStatic
         val DO_PRINT = true
+        @JvmStatic
         val LOG_FILE_MESSAGE_LIMIT = 10000
 
         val LOCK = Object()

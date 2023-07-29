@@ -9,10 +9,11 @@ import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
 import android.widget.Toast
+import eu.pkgsoftware.babybuddywidgets.BaseFragment
 import eu.pkgsoftware.babybuddywidgets.R
 import eu.pkgsoftware.babybuddywidgets.databinding.FragmentDebugLogDisplayBinding
 
-class DebugLogDisplay : Fragment() {
+class DebugLogDisplay : BaseFragment() {
     lateinit var fragment: FragmentDebugLogDisplayBinding
 
     override fun onResume() {
@@ -24,6 +25,8 @@ class DebugLogDisplay : Fragment() {
             stringBuilder.append("\n<EOL>\n")
         }
         fragment.debugTextArea.setText(stringBuilder)
+
+        mainActivity.setTitle(getString(R.string.export_debug_logs_title))
     }
 
     override fun onCreateView(

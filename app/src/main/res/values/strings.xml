@@ -136,6 +136,7 @@
     </string>
 
     <!-- Debugging -->
+    <string name="export_debug_logs_title">Export Debug Logs</string>
     <string name="export_debug_logs_menu_item">Export Debug Logs</string>
     <string name="export_debug_logs_menu_item_copy_to_clipboard">Copy to clipboard</string>
 </resources>
