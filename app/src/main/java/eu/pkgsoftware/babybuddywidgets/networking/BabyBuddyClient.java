@@ -27,16 +27,16 @@ import java.util.List;
 import java.util.Locale;
 import java.util.Map;
 import java.util.Objects;
+import java.util.Random;
 import java.util.TimeZone;
 import java.util.Timer;
 
 import androidx.annotation.NonNull;
 import eu.pkgsoftware.babybuddywidgets.Constants;
 import eu.pkgsoftware.babybuddywidgets.CredStore;
+import eu.pkgsoftware.babybuddywidgets.debugging.GlobalDebugObject;
 
 public class BabyBuddyClient extends StreamReader {
-    public final boolean DEBUG = false;
-
     public static final String DATE_FORMAT_STRING = "yyyy-MM-dd'T'HH:mm:ssX";
     public static final String DATE_QUERY_FORMAT_STRING = "yyyy-MM-dd'T'HH:mm:ss";
 
@@ -495,12 +495,18 @@ public class BabyBuddyClient extends StreamReader {
 
     private void updateServerDateTime(HttpURLConnection con) {
         String dateString = con.getHeaderField("Date");
+        if (dateString == null) {
+            GlobalDebugObject.log("updateServerDateTime(): Date header not found");
+            return; // Chicken out, no dateString found, let's hope everything works!
+        }
         try {
             Date serverTime = SERVER_DATE_FORMAT.parse(dateString);
             Date now = new Date(System.currentTimeMillis());
 
             serverDateOffset = serverTime.getTime() - now.getTime() - 100; // 100 ms offset
+            GlobalDebugObject.log("updateServerDateTime(): Adjusted serverDateOffset to " + serverDateOffset);
         } catch (ParseException e) {
+            GlobalDebugObject.log("updateServerDateTime(): Date header parse error; " + e);
         }
     }
 
@@ -541,20 +547,21 @@ public class BabyBuddyClient extends StreamReader {
         this.syncMessage = new Handler(mainLoop);
     }
 
+    private final Random requestIdGenerator = new Random();
+    private synchronized int newRequestId() {
+        return Math.abs(requestIdGenerator.nextInt()) % 10000;
+    }
+
     private void dispatchQuery(String method, String path, String payload, RequestCallback<String> callback) {
+        final int REQUEST_ID = newRequestId();
+        final String QUERY_STR = "Query " + REQUEST_ID;
+
         Thread thread = new Thread() {
             @Override
             public void run() {
                 try {
                     HttpURLConnection query = doQuery(path);
-                    if (DEBUG) {
-                        System.out.println(
-                            "BabyBuddyClient.DEBUG "
-                                + method
-                                + "  path: " + path
-                                + "  payload: " + payload
-                        );
-                    }
+                    GlobalDebugObject.log(QUERY_STR + ": " + method + " to " + path + "; payload = " + payload);
 
                     query.setRequestMethod(method);
                     if (payload != null) {
@@ -570,20 +577,18 @@ public class BabyBuddyClient extends StreamReader {
                     updateServerDateTime(query);
 
                     int responseCode = query.getResponseCode();
-                    if (DEBUG) {
-                        System.out.println(" -> response code: " + responseCode);
-                    }
                     if ((responseCode < 200) || (responseCode >= 300)) {
                         String message = query.getResponseMessage();
-                        throw new RequestCodeFailure(
-                            responseCode,
-                            message,
-                            loadHttpData(query.getErrorStream())
+                        String messageText = loadHttpData(query.getErrorStream());
+                        GlobalDebugObject.log(
+                            QUERY_STR + " response error: " + responseCode + "; messageText = " + messageText
                         );
+                        throw new RequestCodeFailure(responseCode, message, messageText);
                     }
 
 
-                    String result = loadHttpData(query);
+                    final String result = loadHttpData(query);
+                    GlobalDebugObject.log(QUERY_STR + " succeeded: response = " + result);
                     syncMessage.post(new Runnable() {
                         @Override
                         public void run() {
@@ -591,6 +596,7 @@ public class BabyBuddyClient extends StreamReader {
                         }
                     });
                 } catch (Exception e) {
+                    GlobalDebugObject.log(QUERY_STR + ": Exception occurred; " + e);
                     syncMessage.post(() -> callback.error(e));
                 }
             }

@@ -21,6 +21,7 @@ import androidx.recyclerview.widget.RecyclerView;
 import androidx.viewpager2.widget.ViewPager2;
 import eu.pkgsoftware.babybuddywidgets.databinding.BabyManagerBinding;
 import eu.pkgsoftware.babybuddywidgets.databinding.LoggedInFragmentBinding;
+import eu.pkgsoftware.babybuddywidgets.debugging.GlobalDebugObject;
 import eu.pkgsoftware.babybuddywidgets.networking.BabyBuddyClient;
 import eu.pkgsoftware.babybuddywidgets.networking.ChildrenStateTracker;
 
@@ -154,6 +155,7 @@ public class LoggedInFragment extends BaseFragment {
     @Override
     public void onCreateOptionsMenu(@NonNull Menu menu, MenuInflater inflater) {
         inflater.inflate(R.menu.loggedin_menu, menu);
+        menu.findItem(R.id.exportDebugLogsMenuItem).setVisible(GlobalDebugObject.getENABLED());
     }
 
     private void logout() {
@@ -171,6 +173,9 @@ public class LoggedInFragment extends BaseFragment {
         }
         if (item.getItemId() == R.id.aboutPageMenuItem) {
             Navigation.findNavController(getView()).navigate(R.id.global_aboutFragment);
+        }
+        if (item.getItemId() == R.id.exportDebugLogsMenuItem) {
+            Navigation.findNavController(getView()).navigate(R.id.action_global_debugLogDisplay);
         }
         return false;
     }
