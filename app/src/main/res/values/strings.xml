@@ -101,8 +101,6 @@
     </string>
     <string name="history_delete_question_delete_button">Delete</string>
     <string name="history_delete_question_cancel_button">Cancel</string>
-    <!-- TODO: Remove or change this placeholder text -->
-    <string name="hello_blank_fragment">Hello blank fragment</string>
 
     <!-- QR Code Login -->
     <string name="login_qrcode_camera_access_needed_dialog_title">Camera access needed</string>
@@ -136,4 +134,8 @@
         Only the timers that are supported by the app are shown now. Timer controls and manual timer
         associations of timers with activities were removed.
     </string>
+
+    <!-- Debugging -->
+    <string name="export_debug_logs_menu_item">Export Debug Logs</string>
+    <string name="export_debug_logs_menu_item_copy_to_clipboard">Copy to clipboard</string>
 </resources>

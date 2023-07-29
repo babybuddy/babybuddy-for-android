@@ -12,4 +12,7 @@
     <item
         android:id="@+id/aboutPageMenuItem"
         android:title="@string/about_page_title" />
+    <item
+        android:id="@+id/exportDebugLogsMenuButton"
+        android:title="@string/export_debug_logs_menu_item" />
 </menu>

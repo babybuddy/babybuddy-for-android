@@ -172,6 +172,9 @@ public class LoggedInFragment extends BaseFragment {
         if (item.getItemId() == R.id.aboutPageMenuItem) {
             Navigation.findNavController(getView()).navigate(R.id.global_aboutFragment);
         }
+        if (item.getItemId() == R.id.exportDebugLogsMenuButton) {
+            Navigation.findNavController(getView()).navigate(R.id.action_global_debugLogDisplay);
+        }
         return false;
     }
 
