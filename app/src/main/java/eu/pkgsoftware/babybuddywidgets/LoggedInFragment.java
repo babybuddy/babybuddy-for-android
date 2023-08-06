@@ -139,13 +139,13 @@ public class LoggedInFragment extends BaseFragment {
         binding.babyViewPagerSwitcher.registerOnPageChangeCallback(new ViewPager2.OnPageChangeCallback() {
             @Override
             public void onPageSelected(int position) {
-                super.onPageSelected(position);
+            super.onPageSelected(position);
 
-                BabyBuddyClient.Child child = children == null ? null : children[position];
-                credStore.setSelectedChild(child == null ? null : child.slug);
-                babyAdapter.activeViewChanged(child);
+            BabyBuddyClient.Child child = children == null ? null : children[position];
+            credStore.setSelectedChild(child == null ? null : child.slug);
+            babyAdapter.activeViewChanged(child);
 
-                updateTitle();
+            updateTitle();
             }
         });
 
