@@ -13,6 +13,7 @@ import eu.pkgsoftware.babybuddywidgets.databinding.NotesEditorBinding;
 import eu.pkgsoftware.babybuddywidgets.history.ChildEventHistoryLoader;
 import eu.pkgsoftware.babybuddywidgets.networking.BabyBuddyClient;
 import eu.pkgsoftware.babybuddywidgets.networking.ChildrenStateTracker;
+import eu.pkgsoftware.babybuddywidgets.timers.EmptyTimerListProvider;
 import eu.pkgsoftware.babybuddywidgets.timers.StoreActivityRouter;
 import eu.pkgsoftware.babybuddywidgets.timers.TimerControlInterface;
 import eu.pkgsoftware.babybuddywidgets.timers.TimerListProvider;
@@ -82,7 +83,7 @@ public class BabyLayoutHolder extends RecyclerView.ViewHolder implements TimerCo
         );
         binding.diaperNotesSlot.addView(notesEditorBinding.getRoot());
 
-        notesEditor = new NotesEditorLogic(notesEditorBinding,false);
+        notesEditor = new NotesEditorLogic(notesEditorBinding, false);
         notesSwitch.addStateListener((b, userInduced) -> notesEditor.setVisible(b));
 
         binding.mainScrollView.setOnScrollChangeListener((v, scrollX, scrollY, oldScrollX, oldScrollY) -> {
@@ -154,7 +155,7 @@ public class BabyLayoutHolder extends RecyclerView.ViewHolder implements TimerCo
             childHistoryLoader.close();
         }
         childHistoryLoader = null;
-        binding.timersList.setAdapter(null);
+        binding.timersList.setAdapter(new EmptyTimerListProvider());
     }
 
     public void updateChild(BabyBuddyClient.Child c, ChildrenStateTracker stateTracker) {
