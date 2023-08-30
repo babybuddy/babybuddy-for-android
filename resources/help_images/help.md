@@ -2,16 +2,39 @@
 
 ## Login
 
-![](screenshots/help_normal_login.png)
+![](screenshots/help_login_page.png)
 
-Enter your Babybuddy Server URL, username, and password. Then press login to connect
-the Babybuddy App to the Babybuddy Server.
+There are two options for connecting to your Babybuddy server:
+Enter your Babybuddy server URL, username, and password. Then press
+login to connect the Babybuddy app to the Babybuddy server. Or you choose the
+QR Code option (scroll down for details on that option).
+
+## QR Code login
+
+![](direct/help_login_qrcode.png)
+
+Alternatively, you can login to your Babybuddy Server using a login QR-code. Login to
+your Babybuddy Server from another device. Then navigate
+via the user menu (top-right) to the "Add a device" page. This is where you find
+the login QR-code. Scan the QR-code with the app on your phone. If
+scanned successfully, you should get the option to login to Babybuddy
+by pressing the "Login now" button.
 
 ## Insecure Login
 
 ![](screenshots/help_insecure_http_warning.png)
 
-If you use an http-address instead of an https-address, the application will show you this warning. Only use this feature for local BabyBuddy servers in a network that you control!
+If you use an http-address instead of an https-address, the application will
+show you this warning. Only use this feature for local BabyBuddy servers in a
+network that you control!
+
+## Home Assistant Ingress
+
+![](direct/help_login_homeassistant.png)
+
+Babybuddy for Android has partial support for logging in
+to a Babybuddy server that is hosted on a Homeassistant Ingress-server. You
+will need to use the QR-code login option to login to such a server.
 
 # Overview
 

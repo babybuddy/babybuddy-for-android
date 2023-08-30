@@ -7,7 +7,6 @@ endef
 help_image_list := \
 	help_insecure_http.png \
 	help_insecure_http_warning.png \
-	help_normal_login.png \
 	help_timer_setup.png \
 	help_create_default_timers.png \
 	help_create_default_timers_menu.png \
@@ -20,6 +19,9 @@ help_image_list := \
 	help_save_button_highlight.png \
 	help_save_diaper_highlight.png \
 	help_timers_configure2.png \
+	help_login_page.png \
+	help_login_qrcode.png \
+	help_login_homeassistant.png \
 
 TARGET_PATH := app/src/main/res/drawable
 SOURCE_PATH := resources/help_images
