@@ -1,6 +1,7 @@
 package eu.pkgsoftware.babybuddywidgets.login
 
 import android.app.AlertDialog
+import android.content.DialogInterface
 import eu.pkgsoftware.babybuddywidgets.utils.Promise
 import eu.pkgsoftware.babybuddywidgets.CredStore
 import eu.pkgsoftware.babybuddywidgets.MainActivity
@@ -8,7 +9,11 @@ import eu.pkgsoftware.babybuddywidgets.R
 import eu.pkgsoftware.babybuddywidgets.networking.BabyBuddyClient.Child
 import eu.pkgsoftware.babybuddywidgets.networking.BabyBuddyClient.RequestCallback
 import eu.pkgsoftware.babybuddywidgets.networking.RequestCodeFailure
+import eu.pkgsoftware.babybuddywidgets.utils.AsyncPromise
+import eu.pkgsoftware.babybuddywidgets.utils.AsyncPromiseFailure
 import java.util.Locale
+import kotlin.coroutines.resume
+import kotlin.coroutines.suspendCoroutine
 
 class Utils(val mainActivity: MainActivity) {
     fun httpCleaner(address: String, promise: Promise<String, Any>) {
@@ -34,6 +39,32 @@ class Utils(val mainActivity: MainActivity) {
                 cleanedAddress = "https://" + cleanedAddress;
             }
             promise.succeeded(cleanedAddress)
+        }
+    }
+
+    suspend fun showBetaWarningForHomeassistant(loginData: LoginData) {
+        if (loginData.cookies.containsKey("ingress_session")) {
+            suspendCoroutine<Any?> { cont ->
+                AlertDialog.Builder(mainActivity)
+                    .setTitle(R.string.login_qrcode_homeassistant_beta_warning_title)
+                    .setMessage(R.string.login_qrcode_homeassistant_beta_warning_message)
+                    .setPositiveButton(R.string.login_qrcode_homeassistant_beta_warning_continue) { dialogInterface, i ->
+                        dialogInterface.dismiss()
+                        cont.resume(null)
+                    }.show()
+            }
+        }
+    }
+
+    suspend fun cleanLoginData(loginData: LoginData): LoginData? {
+        return try {
+            showBetaWarningForHomeassistant(loginData)
+            val cleanedAddress = AsyncPromise.call<String, Any> {
+                httpCleaner(loginData.url, it)
+            }
+            loginData.replace(cleanedAddress, null, null)
+        } catch (e: AsyncPromiseFailure) {
+            null
         }
     }
 

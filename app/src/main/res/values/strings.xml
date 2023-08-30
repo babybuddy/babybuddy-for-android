@@ -121,6 +121,14 @@
     <string name="login_qrcode_cancel_button">Cancel</string>
     <string name="login_qrcode_camera_access_was_disabled_message">Camera access was disabled.\nPlease enable camera access in Android\'s settings menu and try again.</string>
 
+    <string name="login_qrcode_homeassistant_beta_warning_title">Unstable Homeassistant Support</string>
+    <string name="login_qrcode_homeassistant_beta_warning_message">
+        You are about to login to a home-assistant ingress server. Logging in to baby buddy this
+        way is in beta-support and you might be logged out from your baby buddy instance
+        unexpectedly and might need to login again.
+    </string>
+    <string name="login_qrcode_homeassistant_beta_warning_continue">Continue</string>
+
     <!-- Generic dialog fields -->
     <string name="dialog_ok">OK</string>
 

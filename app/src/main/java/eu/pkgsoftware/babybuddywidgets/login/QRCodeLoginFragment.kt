@@ -20,7 +20,14 @@ import com.squareup.phrase.Phrase
 import eu.pkgsoftware.babybuddywidgets.BaseFragment
 import eu.pkgsoftware.babybuddywidgets.R
 import eu.pkgsoftware.babybuddywidgets.databinding.QrCodeLoginFragmentBinding
+import eu.pkgsoftware.babybuddywidgets.utils.AsyncPromise
+import eu.pkgsoftware.babybuddywidgets.utils.AsyncPromiseFailure
+import eu.pkgsoftware.babybuddywidgets.utils.CancelParallel
 import eu.pkgsoftware.babybuddywidgets.utils.Promise
+import kotlinx.coroutines.launch
+import kotlinx.coroutines.sync.Mutex
+import java.util.Objects
+import kotlin.math.log
 
 
 const val CLEAR_DELAY_MS = 2000
@@ -46,6 +53,8 @@ class QRCodeLoginFragment : BaseFragment() {
 
     var heldLoginData: LoginData? = null
 
+    private val cancelParallelLogin = CancelParallel()
+
     override fun onCreateView(
         inflater: LayoutInflater, container: ViewGroup?,
         savedInstanceState: Bundle?
@@ -59,7 +68,7 @@ class QRCodeLoginFragment : BaseFragment() {
         }
         binding.qrcodeLoginButton.setOnClickListener {
             heldLoginData?.also {
-                performLogin(it)
+                launchPerformLogin(it)
             } ?: {
                 binding.qrcodeCancelButton.performClick()
             }
@@ -207,35 +216,42 @@ class QRCodeLoginFragment : BaseFragment() {
         }
     }
 
-    private fun performLogin(loginData: LoginData) {
-        Utils(mainActivity).httpCleaner(loginData.url, object : Promise<String, Any> {
-            override fun succeeded(s: String?) {
+    private fun launchPerformLogin(loginData: LoginData) {
+        mainActivity.scope.launch {
+            performLogin(loginData)
+        }
+    }
+
+    private suspend fun performLogin(loginData: LoginData) {
+        cancelParallelLogin.cancelParallel {
+            val utils = Utils(mainActivity)
+            val cleanedLoginData = utils.cleanLoginData(loginData)
+            if (cleanedLoginData == null) {
+                binding.qrcodeCancelButton.performClick()
+            } else {
                 showProgress(getString(R.string.logging_in_message))
 
                 val credStore = mainActivity.credStore;
-                credStore.storeServerUrl(loginData.url)
-                credStore.storeAppToken(loginData.token)
-                credStore.storeAuthCookies(loginData.cookies)
+                credStore.storeServerUrl(cleanedLoginData.url)
+                credStore.storeAppToken(cleanedLoginData.token)
+                credStore.storeAuthCookies(cleanedLoginData.cookies)
 
-                Utils(mainActivity).testLoginToken(object : Promise<Any, String> {
-                    override fun succeeded(s: Any?) {
-                        progressDialog.hide()
-                        moveToLoggedIn()
+                try {
+                    AsyncPromise.call<Any, String> {
+                        utils.testLoginToken(it)
                     }
+                } catch (e: AsyncPromiseFailure) {
+                    progressDialog.hide()
+                    credStore.clearLoginData()
+                    binding.qrcodeCancelButton.performClick()
+                    showError(true, "Login failed", e.value.toString())
+                    return@cancelParallel
+                }
 
-                    override fun failed(s: String) {
-                        progressDialog.hide()
-                        credStore.clearLoginData()
-                        binding.qrcodeCancelButton.performClick()
-                        showError(true, "Login failed", s)
-                    }
-                })
+                progressDialog.hide()
+                moveToLoggedIn()
             }
-
-            override fun failed(f: Any?) {
-                binding.qrcodeCancelButton.performClick()
-            }
-        })
+        }
     }
 
     private fun moveToLoggedIn() {

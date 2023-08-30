@@ -38,6 +38,13 @@ class LoginData(val url: String, val token: String, val cookies: Map<String, Str
                 throw InvalidQRCodeException();
             }
         }
+    }
 
+    fun replace(newUrl: String?, newToken: String?, newCookies: Map<String, String>?): LoginData {
+        return LoginData(
+            newUrl ?: url,
+            newToken ?: token,
+            newCookies ?: cookies,
+        )
     }
 }
