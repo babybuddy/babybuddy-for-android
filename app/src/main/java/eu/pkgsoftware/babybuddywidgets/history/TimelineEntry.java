@@ -99,13 +99,24 @@ public class TimelineEntry {
         BabyBuddyClient.FeedingEntry feeding = (BabyBuddyClient.FeedingEntry) entry;
 
         binding.feedingBreastImage.setVisibility(View.GONE);
+        binding.feedingBreastLeftImage.setVisibility(View.GONE);
+        binding.feedingBreastRightImage.setVisibility(View.GONE);
         binding.feedingBottleImage.setVisibility(View.GONE);
         binding.solidFoodImage.setVisibility(View.GONE);
 
         switch (feeding.feedingType) {
             case BREAST_MILK:
-                binding.feedingBreastImage.setVisibility(View.VISIBLE);
-                break;
+                if (feeding.feedingMethod.value == 1) {
+                    binding.feedingBreastLeftImage.setVisibility(View.VISIBLE);
+                    break;
+                } else if (feeding.feedingMethod.value == 2) {
+                    binding.feedingBreastRightImage.setVisibility(View.VISIBLE);
+                    break;
+                }
+                else if (feeding.feedingMethod.value == 3) {
+                    binding.feedingBreastImage.setVisibility(View.VISIBLE);
+                    break;
+                }
             case FORTIFIED_BREAST_MILK:
             case FORMULA:
                 binding.feedingBottleImage.setVisibility(View.VISIBLE);
@@ -118,7 +129,7 @@ public class TimelineEntry {
         }
 
         String message = defaultPhraseFields(
-            Phrase.from("{start_date}  {start_time} - {end_time}\n{notes}")
+                Phrase.from("{start_date}  {start_time} - {end_time}\n{notes}")
         ).format().toString().trim();
 
         binding.feedingText.setText(message.trim());
