@@ -159,6 +159,30 @@
                 app:tintMode="src_in"
                 app:tint="@color/fixed_color_button_text_color"
                 app:srcCompat="@drawable/pkg_breast" />
+            <ImageView
+                android:id="@+id/feedingBreastLeftImage"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:layout_weight="0"
+                android:background="#FFBBBB"
+                android:minHeight="48dp"
+                android:minWidth="48dp"
+                android:padding="0dp"
+                app:tintMode="src_in"
+                app:tint="@color/fixed_color_button_text_color"
+                app:srcCompat="@drawable/pkg_breast_left" />
+            <ImageView
+                android:id="@+id/feedingBreastRightImage"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:layout_weight="0"
+                android:background="#FFBBBB"
+                android:minHeight="48dp"
+                android:minWidth="48dp"
+                android:padding="0dp"
+                app:tintMode="src_in"
+                app:tint="@color/fixed_color_button_text_color"
+                app:srcCompat="@drawable/pkg_breast_right" />
 
             <ImageView
                 android:id="@+id/feedingBottleImage"
