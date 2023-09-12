@@ -105,7 +105,7 @@ public class GrabAppToken extends StreamReader {
     private HashMap<String, String> headers;
     private HashMap<String, String> cookies;
 
-    private GrabAppToken(URL url) {
+    public GrabAppToken(URL url) {
         this.url = url;
         this.headers = new HashMap<String, String>();
         this.headers.put("charset", "utf-8");
@@ -135,6 +135,7 @@ public class GrabAppToken extends StreamReader {
             con.setRequestProperty("Cookie", cookieString.toString());
         }
         con.setDoInput(true);
+        con.connect();
         return con;
     }
 
@@ -151,7 +152,7 @@ public class GrabAppToken extends StreamReader {
         return result.toString();
     }
 
-    private void login(String username, String password) throws IOException {
+    public void login(String username, String password) throws IOException {
         HttpURLConnection con = doQuery("login/");
         if (con.getResponseCode() != 200) {
             throw new IOException("Baby Buddy login/ response not 200");
@@ -252,7 +253,7 @@ public class GrabAppToken extends StreamReader {
         );
     }
 
-    private String getFromProfilePage() throws MissingPage, IOException {
+    public String getFromProfilePage() throws MissingPage, IOException {
         HttpURLConnection con = doQuery("api/profile");
         con.setRequestProperty("Accept", "application/json");
         if (con.getResponseCode() == 404) {
@@ -281,7 +282,7 @@ public class GrabAppToken extends StreamReader {
         }
     }
 
-    private String parseFromSettingsPage() throws IOException {
+    public String parseFromSettingsPage() throws IOException {
         HttpURLConnection con = doQuery("user/settings/");
         if (con.getResponseCode() != 200) {
             throw new IOException("Cannot access user settings");
