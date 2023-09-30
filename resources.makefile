@@ -3,7 +3,9 @@
 SPACE := $(null) $(null)
 
 FREE_IMAGES = \
-	resources/feeding-breast.png::pkg_breast
+	resources/feeding-breast.png::pkg_breast \
+	resources/left_breast.png::pkg_breast_left \
+	resources/right_breast.png::pkg_breast_right \
 
 FLATICON_IMAGES = \
 	6056851?size=512::pkg_crawl::-gravity_center_-resize_90%_-extent_512x512:: \
@@ -44,6 +46,12 @@ VARIANTS_BASE_PATH := app/src/main/res/
 #  index:      1-based index into the ::-separted-list
 #  ::-separated-list:
 #              list::of::items::separated::by::double::colons
+# 
+# Example: 
+#   $(call get_field,2,one::two::three)
+#
+# will return:
+#   two
 get_field = $(word $(1),$(subst ::,$(SPACE),$(2)))
 
 DRAWABLE_TARGETS = \
@@ -92,11 +100,19 @@ endef
 $(foreach v,$(DRAWABLE_VARIANTS),$(eval $(call _drawable_variants_macro,$(v))))
 
 
+# Syntax: compose_images_command,targetimage,composedimage
+# 
+# If the composedimage is an empty string, the function does nothing
+compose_images_command = [ -z "$(strip $(2))" ] || ( echo "overlay $(1) with $(2)" ; cp "$(1)" "$(1).tmp.png" && composite "$(1).tmp.png" "$(2)" "$(1)" && rm "$(1).tmp.png" )
+
+
 # Free images that are part of the repository
 define _prepare_free_image =
 
 resources/tmp/$$(call get_field,2,$(1)).png: $$(call get_field,1,$(1))
+	@[ -z "$$(call get_field,3,$(1))" ] || [ "$$(call get_field,3,$(1))" = "_" ] || ( echo "Error: 3rd conversion argument not (yet) supported for free images" ; exit 1 )
 	cp "$$<" "$$@"
+	$$(call compose_images_command,$$@,$$(call get_field,4,$(1))) || rm "$$@"
 
 endef
 
@@ -137,8 +153,7 @@ endif
 resources/nonfree/$$(call get_field,2,$(1)).png: resources/nonfree/raw_$$(image_id).png resources/nonfree/$$(call get_field,2,$(1)).marker
 	convert "$$<" $$(subst $$(SPACE)$$(SPACE),_,$$(subst _,$(SPACE),$$(call get_field,3,$(1)))) "$$@.tmp.png"
 	convert "$$@.tmp.png" +clone -alpha off -compose Copy__Opacity -composite -channel A -negate "$$@"
-	[ -z "$$(strip $$(call get_field,4,$(1)))" ] || ( cp "$$@" "$$@.tmp.png" && composite "$$@.tmp.png" "$$(call get_field,4,$(1))" "$$@" )
-	rm "$$@.tmp.png"
+	$$(call compose_images_command,$$@,$$(call get_field,4,$(1)))
 	
 endef
 
