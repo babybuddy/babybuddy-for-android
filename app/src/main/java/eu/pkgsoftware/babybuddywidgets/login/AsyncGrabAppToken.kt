@@ -1,49 +1,67 @@
 package eu.pkgsoftware.babybuddywidgets.login
 
+import eu.pkgsoftware.babybuddywidgets.login.GrabAppToken.MissingPage
 import kotlinx.coroutines.newSingleThreadContext
 import java.net.URL
 
 import kotlinx.coroutines.*
+import kotlinx.coroutines.channels.Channel
+import java.io.IOException
+import java.util.concurrent.CompletableFuture
 import kotlin.coroutines.CoroutineContext
 import kotlin.coroutines.coroutineContext
+import kotlin.coroutines.resume
+import kotlin.coroutines.resumeWithException
 import kotlin.coroutines.suspendCoroutine
 
 class AsyncGrabAppToken(val url: URL) {
     private val grabAppToken = GrabAppToken(url)
 
-    private suspend fun suspendExecution(r: Runnable) {
-        suspendCoroutine<Unit> {
-            var outerException: Exception? = null
-
-            val t = object : Thread() {
-                override fun run() {
-                    try {
-
-                    }
-                    catch (e: Exception) {
-                        outerException = e
-                    }
-                }
-            }
-            t.join()
-        }
-    }
-
     suspend fun login(username: String, password: String) {
         coroutineScope {
-            launch(Dispatchers.Default) {
-                delay(5000)
+            launch(Dispatchers.Unconfined) {
                 grabAppToken.login(username, password)
             }.join()
         }
     }
 
-    suspend fun getFromProfilePage() {
+    suspend fun fromProfilePage(): String? {
+        val resultChannel = Channel<String?>()
         coroutineScope {
-            launch(Dispatchers.Default) {
-                delay(5000)
-                grabAppToken.login(username, password)
+            launch(Dispatchers.Unconfined) {
+                try {
+                    val s = grabAppToken.getFromProfilePage()
+                    resultChannel.send(s)
+                }
+                catch (e: MissingPage) {
+                    resultChannel.send(null)
+                }
+                catch (e: IOException) {
+                    e.printStackTrace()
+                    resultChannel.send(null)
+                }
             }.join()
         }
+        return resultChannel.receive()
+    }
+
+    suspend fun parseFromSettingsPage(): String? {
+        val resultChannel = Channel<String?>()
+        coroutineScope {
+            launch(Dispatchers.Unconfined) {
+                try {
+                    val s = grabAppToken.parseFromSettingsPage()
+                    resultChannel.send(s)
+                }
+                catch (e: MissingPage) {
+                    resultChannel.send(null)
+                }
+                catch (e: IOException) {
+                    e.printStackTrace()
+                    resultChannel.send(null)
+                }
+            }.join()
+        }
+        return resultChannel.receive()
     }
 }
