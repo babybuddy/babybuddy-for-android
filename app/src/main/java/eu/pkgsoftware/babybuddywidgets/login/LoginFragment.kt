@@ -20,9 +20,14 @@ import eu.pkgsoftware.babybuddywidgets.BaseFragment
 import eu.pkgsoftware.babybuddywidgets.DismissedCallback
 import eu.pkgsoftware.babybuddywidgets.R
 import eu.pkgsoftware.babybuddywidgets.databinding.LoginFragmentBinding
+import eu.pkgsoftware.babybuddywidgets.login.GrabAppToken.MissingPage
+import eu.pkgsoftware.babybuddywidgets.utils.AsyncPromise
+import eu.pkgsoftware.babybuddywidgets.utils.AsyncPromiseFailure
 import eu.pkgsoftware.babybuddywidgets.utils.Promise
 import eu.pkgsoftware.babybuddywidgets.utils.RunOnceAfterLayoutUpdate
+import kotlinx.coroutines.launch
 import java.io.IOException
+import java.net.URL
 
 class LoginFragment : BaseFragment() {
     private lateinit var binding: LoginFragmentBinding
@@ -186,41 +191,51 @@ class LoginFragment : BaseFragment() {
         mainActivity.removeMenuProvider(menu)
     }
 
+    private suspend fun grabToken(asyncGrabber: AsyncGrabAppToken): String {
+        asyncGrabber.login(loginNameEdit.text.toString(), loginPasswordEdit.text.toString())
+        var result: String? = null
+        result = asyncGrabber.fromProfilePage()
+        if (result == null) {
+            result = asyncGrabber.parseFromSettingsPage()
+        }
+        if (result == null) {
+            throw java.lang.Exception("Token not found")
+        } else {
+            return result
+        }
+    }
+
     private fun performLogin() {
         showProgress()
-        val credStore = mainActivity.credStore
-        credStore.storeServerUrl(addressEdit.text.toString())
-        var token: String? = null
-        token = try {
-            GrabAppToken.grabToken(
-                addressEdit.text.toString(),
-                loginNameEdit.text.toString(),
-                loginPasswordEdit.text.toString()
-            )
-        } catch (e: IOException) {
-            showError(true, "Login failed", e.message)
-            progressDialog.hide()
-            return
-        } catch (e: Exception) {
-            showError(true, "Login failed", "Internal error message: " + e.message)
-            progressDialog.hide()
-            return
-        }
-        credStore.storeAppToken(token)
-        Utils(mainActivity).testLoginToken(
-            object : Promise<Any, String> {
-                override fun succeeded(o: Any) {
-                    progressDialog.hide()
-                    moveToLoggedIn()
-                }
+        mainActivity.scope.launch {
+            val credStore = mainActivity.credStore
+            credStore.storeServerUrl(addressEdit.text.toString())
+            var token: String? = null
+            token = try {
+                grabToken(AsyncGrabAppToken(URL(addressEdit.text.toString())))
+            } catch (e: IOException) {
+                showError(true, "Login failed", e.message)
+                return@launch
+            } catch (e: Exception) {
+                showError(true, "Login failed", "Internal error message: " + e.message)
+                return@launch
+            }
+            credStore.storeAppToken(token)
 
-                override fun failed(s: String) {
-                    progressDialog.hide()
-                    credStore.storeAppToken(null)
-                    showError(true, "Login failed", s)
+            try {
+                AsyncPromise.call<Any, String> {
+                    Utils(mainActivity).testLoginToken(it)
                 }
             }
-        )
+            catch (e: AsyncPromiseFailure) {
+                credStore.storeAppToken(null)
+                showError(true, "Login failed", e.value.toString())
+                return@launch
+            }
+            moveToLoggedIn()
+        }.invokeOnCompletion {
+            progressDialog.hide()
+        }
     }
 
     private fun moveToLoggedIn() {

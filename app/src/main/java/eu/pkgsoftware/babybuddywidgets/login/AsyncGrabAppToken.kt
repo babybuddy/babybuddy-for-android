@@ -27,41 +27,57 @@ class AsyncGrabAppToken(val url: URL) {
 
     suspend fun fromProfilePage(): String? {
         val resultChannel = Channel<String?>()
+        val exceptionChannel = Channel<Exception?>()
         coroutineScope {
             launch(Dispatchers.Unconfined) {
                 try {
                     val s = grabAppToken.getFromProfilePage()
                     resultChannel.send(s)
                 }
-                catch (e: MissingPage) {
-                    resultChannel.send(null)
+                catch (_: MissingPage) {
                 }
                 catch (e: IOException) {
                     e.printStackTrace()
-                    resultChannel.send(null)
+                    exceptionChannel.send(e)
                 }
+                resultChannel.send(null)
             }.join()
         }
-        return resultChannel.receive()
+
+        val result = resultChannel.receive()
+        exceptionChannel.tryReceive().getOrNull()?.let {
+            throw it
+        }
+        resultChannel.close()
+        exceptionChannel.close()
+        return result
     }
 
     suspend fun parseFromSettingsPage(): String? {
         val resultChannel = Channel<String?>()
+        val exceptionChannel = Channel<Exception?>()
         coroutineScope {
             launch(Dispatchers.Unconfined) {
                 try {
                     val s = grabAppToken.parseFromSettingsPage()
                     resultChannel.send(s)
                 }
-                catch (e: MissingPage) {
-                    resultChannel.send(null)
+                catch (_: MissingPage) {
                 }
                 catch (e: IOException) {
                     e.printStackTrace()
-                    resultChannel.send(null)
+                    exceptionChannel.send(e)
                 }
+                resultChannel.send(null)
             }.join()
         }
-        return resultChannel.receive()
+
+        val result = resultChannel.receive()
+        exceptionChannel.tryReceive().getOrNull()?.let {
+            throw it
+        }
+        resultChannel.close()
+        exceptionChannel.close()
+        return result
     }
 }
