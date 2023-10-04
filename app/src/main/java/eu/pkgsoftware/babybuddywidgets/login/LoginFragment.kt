@@ -23,6 +23,7 @@ import eu.pkgsoftware.babybuddywidgets.databinding.LoginFragmentBinding
 import eu.pkgsoftware.babybuddywidgets.login.GrabAppToken.MissingPage
 import eu.pkgsoftware.babybuddywidgets.utils.AsyncPromise
 import eu.pkgsoftware.babybuddywidgets.utils.AsyncPromiseFailure
+import eu.pkgsoftware.babybuddywidgets.utils.CancelParallel
 import eu.pkgsoftware.babybuddywidgets.utils.Promise
 import eu.pkgsoftware.babybuddywidgets.utils.RunOnceAfterLayoutUpdate
 import kotlinx.coroutines.launch
@@ -35,10 +36,13 @@ class LoginFragment : BaseFragment() {
     private lateinit var addressEdit: EditText
     private lateinit var loginNameEdit: EditText
     private lateinit var loginPasswordEdit: EditText
+
     private val menu = LoggedOutMenu(this)
+    private val cancelParallelLogin = CancelParallel()
+
     private fun updateLoginButton() {
-        loginButton!!.isEnabled =
-            addressEdit!!.text.length > 0 && loginNameEdit!!.text.length > 0 && loginPasswordEdit!!.text.length > 0
+        loginButton.isEnabled =
+            addressEdit.text.length > 0 && loginNameEdit.text.length > 0 && loginPasswordEdit.text.length > 0
     }
 
     override fun onCreate(savedInstanceState: Bundle?) {
@@ -206,34 +210,36 @@ class LoginFragment : BaseFragment() {
     }
 
     private fun performLogin() {
-        showProgress()
         mainActivity.scope.launch {
-            val credStore = mainActivity.credStore
-            credStore.storeServerUrl(addressEdit.text.toString())
-            var token: String? = null
-            token = try {
-                grabToken(AsyncGrabAppToken(URL(addressEdit.text.toString())))
-            } catch (e: IOException) {
-                showError(true, "Login failed", e.message)
-                return@launch
-            } catch (e: Exception) {
-                e.printStackTrace()
-                showError(true, "Login failed", "Internal error message: " + e.message)
-                return@launch
-            }
-            credStore.storeAppToken(token)
-
-            try {
-                AsyncPromise.call<Any, String> {
-                    Utils(mainActivity).testLoginToken(it)
+            showProgress()
+            cancelParallelLogin.cancelParallel {
+                val credStore = mainActivity.credStore
+                credStore.storeServerUrl(addressEdit.text.toString())
+                var token: String? = null
+                token = try {
+                    grabToken(AsyncGrabAppToken(URL(addressEdit.text.toString())))
+                } catch (e: IOException) {
+                    showError(true, "Login failed", e.message)
+                    return@cancelParallel
+                } catch (e: Exception) {
+                    e.printStackTrace()
+                    showError(true, "Login failed", "Internal error message: " + e.message)
+                    return@cancelParallel
                 }
+                credStore.storeAppToken(token)
+
+                try {
+                    AsyncPromise.call<Any, String> {
+                        Utils(mainActivity).testLoginToken(it)
+                    }
+                }
+                catch (e: AsyncPromiseFailure) {
+                    credStore.storeAppToken(null)
+                    showError(true, "Login failed", e.value.toString())
+                    return@cancelParallel
+                }
+                moveToLoggedIn()
             }
-            catch (e: AsyncPromiseFailure) {
-                credStore.storeAppToken(null)
-                showError(true, "Login failed", e.value.toString())
-                return@launch
-            }
-            moveToLoggedIn()
         }.invokeOnCompletion {
             progressDialog.hide()
         }
