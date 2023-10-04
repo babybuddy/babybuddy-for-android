@@ -19,65 +19,38 @@ class AsyncGrabAppToken(val url: URL) {
 
     suspend fun login(username: String, password: String) {
         coroutineScope {
-            launch(Dispatchers.Unconfined) {
+            launch(Dispatchers.Default) {
                 grabAppToken.login(username, password)
             }.join()
         }
     }
 
     suspend fun fromProfilePage(): String? {
-        val resultChannel = Channel<String?>()
-        val exceptionChannel = Channel<Exception?>()
+        var result: String? = null
         coroutineScope {
-            launch(Dispatchers.Unconfined) {
+            launch(Dispatchers.Default) {
                 try {
-                    val s = grabAppToken.getFromProfilePage()
-                    resultChannel.send(s)
+                    result = grabAppToken.getFromProfilePage()
                 }
                 catch (_: MissingPage) {
                 }
-                catch (e: IOException) {
-                    e.printStackTrace()
-                    exceptionChannel.send(e)
-                }
-                resultChannel.send(null)
             }.join()
         }
-
-        val result = resultChannel.receive()
-        exceptionChannel.tryReceive().getOrNull()?.let {
-            throw it
-        }
-        resultChannel.close()
-        exceptionChannel.close()
         return result
     }
 
     suspend fun parseFromSettingsPage(): String? {
-        val resultChannel = Channel<String?>()
-        val exceptionChannel = Channel<Exception?>()
+        var result: String? = null
         coroutineScope {
-            launch(Dispatchers.Unconfined) {
+            launch(Dispatchers.Default) {
                 try {
-                    val s = grabAppToken.parseFromSettingsPage()
-                    resultChannel.send(s)
+                    result = grabAppToken.getFromProfilePage()
+                    throw java.lang.Exception("Shizzle")
                 }
                 catch (_: MissingPage) {
                 }
-                catch (e: IOException) {
-                    e.printStackTrace()
-                    exceptionChannel.send(e)
-                }
-                resultChannel.send(null)
             }.join()
         }
-
-        val result = resultChannel.receive()
-        exceptionChannel.tryReceive().getOrNull()?.let {
-            throw it
-        }
-        resultChannel.close()
-        exceptionChannel.close()
         return result
     }
 }

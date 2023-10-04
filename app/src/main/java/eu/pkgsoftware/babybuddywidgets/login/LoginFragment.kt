@@ -217,6 +217,7 @@ class LoginFragment : BaseFragment() {
                 showError(true, "Login failed", e.message)
                 return@launch
             } catch (e: Exception) {
+                e.printStackTrace()
                 showError(true, "Login failed", "Internal error message: " + e.message)
                 return@launch
             }

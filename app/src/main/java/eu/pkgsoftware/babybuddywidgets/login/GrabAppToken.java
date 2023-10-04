@@ -135,7 +135,6 @@ public class GrabAppToken extends StreamReader {
             con.setRequestProperty("Cookie", cookieString.toString());
         }
         con.setDoInput(true);
-        con.connect();
         return con;
     }
 
