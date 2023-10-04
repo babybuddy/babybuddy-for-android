@@ -186,10 +186,14 @@ public class LoggedInFragment extends BaseFragment {
         credStore.storePrefs();
 
         binding.babyViewPagerSwitcher.setAdapter(emptyBabyPagerAdapter);
+        closeAdapter();
+    }
+
+    private void closeAdapter() {
         if (babyAdapter != null) {
             babyAdapter.close();
+            babyAdapter = null;
         }
-        babyAdapter = null;
     }
 
     private BabyBuddyClient.Child selectedChild() {
