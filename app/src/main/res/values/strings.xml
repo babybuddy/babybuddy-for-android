@@ -21,7 +21,7 @@
 
     <string name="app_name">Baby Buddy</string>
 
-    <string name="about_text">This Android application is Open Source software created by &lt;a href=\'http://www.craftware.info\'&gt;Paul Konstantin Gerke&lt;/a&gt; and licensed under the MIT License (see below).\n\nThe source code of the application is available at &lt;a href=\'https://github.com/MrApplejuice/BabyBuddyAndroid/\'&gt;https://github.com/MrApplejuice/BabyBuddyAndroid/&lt;/a&gt;.\n\nThe application uses third-party media under attribution licenes listed below.</string>
+    <string name="about_text">This Android application is Open Source software created by &lt;a href=\'http://www.craftware.info\'&gt;Paul Konstantin Gerke&lt;/a&gt; and licensed under the MIT License (see below).\n\nThe source code of the application is available at &lt;a href=\'https://github.com/babybuddy/babybuddy-for-android/\'&gt;https://github.com/babybuddy/babybuddy-for-android/&lt;/a&gt;.\n\nThe application uses third-party media under attribution licenes listed below.</string>
     <string name="about_external_media_resources_title">Third party media</string>
     <string name="about_external_libraries_title">Third party libraries</string>
 
