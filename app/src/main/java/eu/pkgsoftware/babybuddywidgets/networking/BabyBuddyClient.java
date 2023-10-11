@@ -9,6 +9,7 @@ import org.json.JSONException;
 import org.json.JSONObject;
 
 import java.io.IOException;
+import java.io.InputStream;
 import java.io.OutputStream;
 import java.io.UnsupportedEncodingException;
 import java.lang.reflect.Array;
@@ -579,7 +580,13 @@ public class BabyBuddyClient extends StreamReader {
                     int responseCode = query.getResponseCode();
                     if ((responseCode < 200) || (responseCode >= 300)) {
                         String message = query.getResponseMessage();
-                        String messageText = loadHttpData(query.getErrorStream());
+                        InputStream errorStream = query.getErrorStream();
+                        String messageText;
+                        if (errorStream == null) {
+                            messageText = "[no message]";
+                        } else {
+                            messageText = loadHttpData(errorStream);
+                        }
                         GlobalDebugObject.log(
                             QUERY_STR + " response error: " + responseCode + "; messageText = " + messageText
                         );
