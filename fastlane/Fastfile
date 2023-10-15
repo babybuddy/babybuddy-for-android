@@ -21,18 +21,54 @@ platform :android do
     gradle(task: "test")
   end
 
-  desc "Submit a new Beta Build to Crashlytics Beta"
-  lane :beta do
-    gradle(task: "clean assembleRelease")
-    crashlytics
-  
-    # sh "your_script.sh"
-    # You can also use other beta testing services here
+  desc "Update version"
+  lane :updateVersion do
+    new_version = prompt(text: "What to version? ")
+    android_set_version_code(
+      gradle_file: "app/build.gradle",
+      version_code: android_get_version_code(gradle_file: "app/build.gradle").to_i + 1,
+    )
+    android_set_version_name(
+      gradle_file: "app/build.gradle",
+      version_name: new_version,
+    )
   end
 
-  desc "Deploy a new version to the Google Play"
-  lane :deploy do
-    gradle(task: "clean assembleRelease")
-    upload_to_play_store
+  desc "Build release bundle for Google Play"
+  lane :buildPlaystore do
+    password = prompt(
+      text: "Signing password for Google Play: ",
+      secure_text: true
+    )
+    gradle(
+      task: "clean bundle",
+      build_type: 'Release',
+      print_command: true,
+      properties: {
+        "android.injected.signing.store.file" => File.expand_path("../../release.jks"),
+        "android.injected.signing.store.password" => password,
+        "android.injected.signing.key.alias" => "key0",
+        "android.injected.signing.key.password" => password,
+      }
+    )
+  end
+  
+  desc "Build release apk for GitHub"
+  lane :buildGithub do
+    password = prompt(
+      text: "Signing password for GitHub release: ",
+      secure_text: true
+    )
+    gradle(
+      task: "clean assemble",
+      build_type: 'Release',
+      print_command: true,
+      properties: {
+        "android.injected.signing.store.file" => File.expand_path("../../release-personal.jks"),
+        "android.injected.signing.store.password" => password,
+        "android.injected.signing.key.alias" => "key0",
+        "android.injected.signing.key.password" => password,
+      }
+    )
   end
 end
