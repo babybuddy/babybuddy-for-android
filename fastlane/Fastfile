@@ -1,0 +1,74 @@
+# This file contains the fastlane.tools configuration
+# You can find the documentation at https://docs.fastlane.tools
+#
+# For a list of all available actions, check out
+#
+#     https://docs.fastlane.tools/actions
+#
+# For a list of all available plugins, check out
+#
+#     https://docs.fastlane.tools/plugins/available-plugins
+#
+
+# Uncomment the line if you want fastlane to automatically update itself
+# update_fastlane
+
+default_platform(:android)
+
+platform :android do
+  desc "Runs all the tests"
+  lane :test do
+    gradle(task: "test")
+  end
+
+  desc "Update version"
+  lane :updateVersion do
+    new_version = prompt(text: "What to version? ")
+    android_set_version_code(
+      gradle_file: "app/build.gradle",
+      version_code: android_get_version_code(gradle_file: "app/build.gradle").to_i + 1,
+    )
+    android_set_version_name(
+      gradle_file: "app/build.gradle",
+      version_name: new_version,
+    )
+  end
+
+  desc "Build release bundle for Google Play"
+  lane :buildPlaystore do
+    password = prompt(
+      text: "Signing password for Google Play: ",
+      secure_text: true
+    )
+    gradle(
+      task: "clean bundle",
+      build_type: 'Release',
+      print_command: true,
+      properties: {
+        "android.injected.signing.store.file" => File.expand_path("../../release.jks"),
+        "android.injected.signing.store.password" => password,
+        "android.injected.signing.key.alias" => "key0",
+        "android.injected.signing.key.password" => password,
+      }
+    )
+  end
+  
+  desc "Build release apk for GitHub"
+  lane :buildGithub do
+    password = prompt(
+      text: "Signing password for GitHub release: ",
+      secure_text: true
+    )
+    gradle(
+      task: "clean assemble",
+      build_type: 'Release',
+      print_command: true,
+      properties: {
+        "android.injected.signing.store.file" => File.expand_path("../../release-personal.jks"),
+        "android.injected.signing.store.password" => password,
+        "android.injected.signing.key.alias" => "key0",
+        "android.injected.signing.key.password" => password,
+      }
+    )
+  end
+end

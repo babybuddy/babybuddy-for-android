@@ -1,0 +1,5 @@
+- New: QR code logins for babybuddy servers
+- New: Experimental support for babybuddy hosted on homeassistant
+- New: Icons updated to distinguish between left side vs right side breast feeding sessions
+- Bug fix: Logging to a babybuddy server in should not freeze the app anymore.
+- Bug fix: The app sometimes could crash when re-opening the app after minimizing it.
