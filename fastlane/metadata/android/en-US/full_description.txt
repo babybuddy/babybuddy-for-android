@@ -1,0 +1,22 @@
+This app allows you to quickly log activities on the <a href="https://github.com/babybuddy/babybuddy">Open-Source website Baby Buddy (https://github.com/babybuddy/babybuddy)</a>. You need to host your own Baby Buddy server to use the app. 
+
+With the app you can log events with fewer button-presses than when using the web interface: Quickly track your baby's feedings, sleep phases, tummy-time sessions, and diaper changes and use the history for an easy overview of the latest events.  
+
+The app is optimized to be used by multiple people on multiple devices so that event tracking can be shared among different caregivers.
+
+<h2><b>Third Party Attributions</b></h2>
+
+The application contains the following media from www.flaticon.com, licensed under their attributions license for free use:
+- <a href="https://www.flaticon.com/free-icons/poop">Poop icons created by Good Ware - Flaticon</a>
+- <a href="https://www.flaticon.com/free-icons/diaper">Diaper icons created by Good Ware - Flaticon</a>
+- <a href="https://www.flaticon.com/free-icons/sleep">Sleep icons created by Good Ware - Flaticon</a>
+- <a href="https://www.flaticon.com/free-icons/humidity">Humidity icons created by bqlqn - Flaticon</a>
+- <a href="https://www.flaticon.com/free-icons/note">Note icons created by Freepik - Flaticon</a>
+- <a href="https://www.flaticon.com/free-icons/crawl">Crawl icons created by Freepik - Flaticon</a>
+- <a href="https://www.flaticon.com/free-icons/baby-food">Baby food icons created by Freepik - Flaticon</a>
+- <a href="https://www.flaticon.com/free-icons/baby-bottle">Baby bottle icons created by juicy_fish - Flaticon</a>
+
+<h2><b>License and project page</b></h2>
+
+This software is open source software developed under the MIT License. The license and source code are available on GitHub:
+- <a href="https://github.com/MrApplejuice/BabyBuddyAndroid/">https://github.com/MrApplejuice/BabyBuddyAndroid/</a>

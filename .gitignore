@@ -20,6 +20,7 @@ local.properties
 /flaticon-apikey
 /flaticon-token
 
+service-account-key.json
 
 # Non-free images - do not add to repository!
 pkg_bottle.png
