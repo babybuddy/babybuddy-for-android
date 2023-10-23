@@ -34,6 +34,11 @@ platform :android do
     )
   end
 
+  desc "Update screenshots"
+  lane: :screenshots do
+    capture_android_screenshots
+  end
+
   desc "Build release bundle for Google Play"
   lane :buildPlaystore do
     password = prompt(
