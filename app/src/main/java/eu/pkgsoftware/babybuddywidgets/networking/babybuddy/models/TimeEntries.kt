@@ -9,8 +9,6 @@ import eu.pkgsoftware.babybuddywidgets.networking.babybuddy.DateTimeDeserializer
 import eu.pkgsoftware.babybuddywidgets.networking.babybuddy.DateOnlyDeserializer
 import java.util.Date
 
-val EVENTS_OFFSET = 10000
-
 interface TimeEntry {
     val type: String
     val typeId: Int
@@ -86,7 +84,7 @@ data class ChangeEntry(
     @JsonProperty("amount", required = true) val amount: Double?,
 ) : TimeEntry {
     override val type: String = EVENTS.CHANGE
-    override val typeId: Int = EVENTS_OFFSET + EVENTS.index(type)
+    override val typeId: Int = EVENTS.index(type)
     override val end: Date? = null
 }
 
@@ -98,7 +96,7 @@ data class NoteEntry(
     @JsonProperty("note", required = true) override val notes: String,
 ) : TimeEntry {
     override val type: String = EVENTS.NOTE
-    override val typeId: Int = EVENTS_OFFSET + EVENTS.index(type)
+    override val typeId: Int = EVENTS.index(type)
     override val end: Date? = null
 }
 
@@ -111,7 +109,7 @@ data class BmiEntry(
     @JsonProperty("bmi", required = true) val bmi: Double,
 ) : TimeEntry {
     override val type: String = EVENTS.BMI
-    override val typeId: Int = EVENTS_OFFSET + EVENTS.index(type)
+    override val typeId: Int = EVENTS.index(type)
     override val end: Date? = null
 }
 
@@ -124,7 +122,7 @@ data class TemperatureEntry(
     @JsonProperty("temperature", required = true) val temperature: Double,
 ) : TimeEntry {
     override val type: String = EVENTS.TEMPERATURE
-    override val typeId: Int = EVENTS_OFFSET + EVENTS.index(type)
+    override val typeId: Int = EVENTS.index(type)
     override val end: Date? = null
 }
 
@@ -137,7 +135,7 @@ data class WeightEntry(
     @JsonProperty("weight", required = true) val weight: Double,
 ) : TimeEntry {
     override val type: String = EVENTS.WEIGHT
-    override val typeId: Int = EVENTS_OFFSET + EVENTS.index(type)
+    override val typeId: Int = EVENTS.index(type)
     override val end: Date? = null
 }
 
@@ -150,7 +148,7 @@ data class HeightEntry(
     @JsonProperty("height", required = true) val height: Double,
 ) : TimeEntry {
     override val type: String = EVENTS.HEIGHT
-    override val typeId: Int = EVENTS_OFFSET + EVENTS.index(type)
+    override val typeId: Int = EVENTS.index(type)
     override val end: Date? = null
 }
 
@@ -163,7 +161,7 @@ data class HeadCircumferenceEntry(
     @JsonProperty("head_circumference", required = true) val head_circumference: Double,
 ) : TimeEntry {
     override val type: String = EVENTS.HEAD_CIRCUMFERENCE
-    override val typeId: Int = EVENTS_OFFSET + EVENTS.index(type)
+    override val typeId: Int = EVENTS.index(type)
     override val end: Date? = null
 }
 
