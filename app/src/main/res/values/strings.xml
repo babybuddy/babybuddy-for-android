@@ -3,6 +3,7 @@
         <item>Feeding</item>
         <item>Sleep</item>
         <item>Tummy time</item>
+        <item>Pumping</item>
     </array>
     <array name="feedingTypes" translatable="false">
         <item>Breast milk</item>

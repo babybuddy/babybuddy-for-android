@@ -25,6 +25,8 @@ Search HTML for "api_key_regenerate", <div>, then find the first "code like"
 text node before that input.
  */
 
+import com.fasterxml.jackson.databind.ObjectMapper;
+
 import org.json.JSONException;
 import org.json.JSONObject;
 
@@ -44,6 +46,7 @@ import java.util.regex.Pattern;
 
 import eu.pkgsoftware.babybuddywidgets.networking.StreamReader;
 import eu.pkgsoftware.babybuddywidgets.networking.UserFormInteractions;
+import eu.pkgsoftware.babybuddywidgets.networking.babybuddy.models.Profile;
 
 public class GrabAppToken extends StreamReader {
     public static class MissingPage extends Exception {
@@ -263,22 +266,9 @@ public class GrabAppToken extends StreamReader {
         }
 
         String json = loadHttpData(con);
-        JSONObject o = null;
-        try {
-            o = new JSONObject(json);
-        } catch (JSONException e) {
-            throw new IOException("Invalid JSON response");
-        }
-
-        if (!o.has("api_key")) {
-            throw new MissingPage();
-        }
-
-        try {
-            return o.getString("api_key");
-        } catch (JSONException e) {
-            throw new IOException("api_key has wrong type");
-        }
+        ObjectMapper mapper = new ObjectMapper();
+        Profile profile = mapper.readValue(json, Profile.class);
+        return profile.getApiKey();
     }
 
     public String parseFromSettingsPage() throws IOException {

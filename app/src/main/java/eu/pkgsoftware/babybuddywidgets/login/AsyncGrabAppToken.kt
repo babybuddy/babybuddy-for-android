@@ -44,8 +44,7 @@ class AsyncGrabAppToken(val url: URL) {
         coroutineScope {
             launch(Dispatchers.Default) {
                 try {
-                    result = grabAppToken.getFromProfilePage()
-                    throw java.lang.Exception("Shizzle")
+                    result = grabAppToken.parseFromSettingsPage()
                 }
                 catch (_: MissingPage) {
                 }
