@@ -67,11 +67,21 @@ public class BabyBuddyClient extends StreamReader {
 
     public static class EVENTS {
         public static final String CHANGE = "changes";
+        public static final String NOTE = "notes";
+        public static final String TEMPERATURE = "temperature";
+        public static final String WEIGHT = "weight";
+        public static final String BMI = "bmi";
+        public static final String HEIGHT = "height";
 
-        public static final String[] ALL = new String[1];
+        public static final String[] ALL = new String[6];
 
         static {
             ALL[0] = CHANGE;
+            ALL[1] = NOTE;
+            ALL[2] = TEMPERATURE;
+            ALL[3] = WEIGHT;
+            ALL[4] = BMI;
+            ALL[5] = HEIGHT;
         }
 
         public static int index(String s) {

@@ -4,7 +4,6 @@ import com.fasterxml.jackson.core.JsonParser
 import com.fasterxml.jackson.core.JsonToken
 import com.fasterxml.jackson.databind.DeserializationContext
 import com.fasterxml.jackson.databind.deser.std.StdDeserializer
-import eu.pkgsoftware.babybuddywidgets.networking.BabyBuddyClient
 import java.io.IOException
 import java.text.ParseException
 import java.text.SimpleDateFormat
@@ -12,10 +11,11 @@ import java.util.Date
 
 var SystemServerTimeOffset = -1000L
 
-val DATE_FORMAT_STRING = "yyyy-MM-dd'T'HH:mm:ssX"
+val DATE_TIME_FORMAT_STRING = "yyyy-MM-dd'T'HH:mm:ssX"
+val DATE_ONLY_FORMAT_STRING = "yyyy-MM-dd"
 
-fun parseNullOrDate(s: String): Date? {
-    val sdf = SimpleDateFormat(BabyBuddyClient.DATE_FORMAT_STRING)
+fun parseNullOrDate(s: String, format: String): Date? {
+    val sdf = SimpleDateFormat(format)
 
     try {
         var strDate = s
@@ -39,10 +39,10 @@ fun serverTimeToClientTime(d: Date): Date {
 }
 
 
-class DateDeserializer : StdDeserializer<Date>(Date::class.java) {
+class DateTimeDeserializer : StdDeserializer<Date>(Date::class.java) {
     override fun deserialize(p: JsonParser, ctxt: DeserializationContext?): Date {
         p.text?.let {
-            parseNullOrDate(it)?.let {
+            parseNullOrDate(it, DATE_TIME_FORMAT_STRING)?.let {
                 return serverTimeToClientTime(it)
             }
         }
@@ -50,17 +50,13 @@ class DateDeserializer : StdDeserializer<Date>(Date::class.java) {
     }
 }
 
-class OptDateDeserializer : StdDeserializer<Date?>(Date::class.java) {
-    override fun deserialize(p: JsonParser, ctxt: DeserializationContext?): Date? {
-        if (p.currentToken == JsonToken.VALUE_NULL) {
-            return null
-        }
+class DateOnlyDeserializer : StdDeserializer<Date>(Date::class.java) {
+    override fun deserialize(p: JsonParser, ctxt: DeserializationContext?): Date {
         p.text?.let {
-            parseNullOrDate(it)?.let {
-                return serverTimeToClientTime(it)
+            parseNullOrDate(it, DATE_ONLY_FORMAT_STRING)?.let {
+                return it
             }
         }
         throw IOException("Invalid date string ${p.text}")
     }
 }
-
