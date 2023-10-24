@@ -4,8 +4,10 @@ import com.fasterxml.jackson.databind.ObjectMapper
 import eu.pkgsoftware.babybuddywidgets.networking.babybuddy.models.BmiEntry
 import eu.pkgsoftware.babybuddywidgets.networking.babybuddy.models.ChangeEntry
 import eu.pkgsoftware.babybuddywidgets.networking.babybuddy.models.FeedingEntry
+import eu.pkgsoftware.babybuddywidgets.networking.babybuddy.models.HeadCircumferenceEntry
 import eu.pkgsoftware.babybuddywidgets.networking.babybuddy.models.HeightEntry
 import eu.pkgsoftware.babybuddywidgets.networking.babybuddy.models.NoteEntry
+import eu.pkgsoftware.babybuddywidgets.networking.babybuddy.models.PumpingEntry
 import eu.pkgsoftware.babybuddywidgets.networking.babybuddy.models.SleepEntry
 import eu.pkgsoftware.babybuddywidgets.networking.babybuddy.models.TemperatureEntry
 import eu.pkgsoftware.babybuddywidgets.networking.babybuddy.models.TummyTimeEntry
@@ -66,6 +68,26 @@ class ClientV2Test {
 
         val mapper = ObjectMapper()
         val feeding: FeedingEntry = mapper.readValue(s, FeedingEntry::class.java)
+    }
+
+    @Test
+    fun pumpingObjectSerialization() {
+        val s: String = """
+        {
+            "id": 2,
+            "child": 1,
+            "amount": 0.0,
+            "start": "2023-10-24T23:49:40+02:00",
+            "end": "2023-10-24T23:55:40+02:00",
+            "duration": "00:06:00",
+            "notes": "",
+            "tags": [
+                "Listened to Music"
+            ]
+        }"""
+
+        val mapper = ObjectMapper()
+        val pumping: PumpingEntry = mapper.readValue(s, PumpingEntry::class.java)
     }
 
     @Test
@@ -172,5 +194,23 @@ class ClientV2Test {
 
         val mapper = ObjectMapper()
         val height: HeightEntry = mapper.readValue(s, HeightEntry::class.java)
+    }
+
+    @Test
+    fun headCircumferenceObjectSerialization() {
+        val s: String = """
+        {
+            "id": 5,
+            "child": 1,
+            "head_circumference": 12.12,
+            "date": "2022-03-05",
+            "notes": "",
+            "tags": [
+                "Holla"
+            ]
+        }"""
+
+        val mapper = ObjectMapper()
+        val headcircumference: HeadCircumferenceEntry = mapper.readValue(s, HeadCircumferenceEntry::class.java)
     }
 }

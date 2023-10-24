@@ -46,13 +46,15 @@ public class BabyBuddyClient extends StreamReader {
         public static final String SLEEP = "sleep";
         public static final String TUMMY_TIME = "tummy-times";
         public static final String FEEDING = "feedings";
+        public static final String PUMPING = "pumping";
 
-        public static final String[] ALL = new String[3];
+        public static final String[] ALL = new String[4];
 
         static {
             ALL[0] = FEEDING;
             ALL[1] = SLEEP;
             ALL[2] = TUMMY_TIME;
+            ALL[3] = PUMPING;
         }
 
         public static int index(String s) {
@@ -72,8 +74,9 @@ public class BabyBuddyClient extends StreamReader {
         public static final String WEIGHT = "weight";
         public static final String BMI = "bmi";
         public static final String HEIGHT = "height";
+        public static final String HEAD_CIRCUMFERENCE = "head-circumference";
 
-        public static final String[] ALL = new String[6];
+        public static final String[] ALL = new String[7];
 
         static {
             ALL[0] = CHANGE;
@@ -82,6 +85,7 @@ public class BabyBuddyClient extends StreamReader {
             ALL[3] = WEIGHT;
             ALL[4] = BMI;
             ALL[5] = HEIGHT;
+            ALL[6] = HEAD_CIRCUMFERENCE;
         }
 
         public static int index(String s) {

@@ -62,6 +62,19 @@ data class FeedingEntry(
 }
 
 @JsonIgnoreProperties(ignoreUnknown = true)
+data class PumpingEntry(
+    @JsonProperty("id", required = true) override val id: Int,
+    @JsonProperty("child", required = true) override val childId: Int,
+    @JsonProperty("start", required = true) @JsonDeserialize(using = DateTimeDeserializer::class) override val start: Date,
+    @JsonProperty("end", required = true) @JsonDeserialize(using = DateTimeDeserializer::class) override val end: Date,
+    @JsonProperty("notes", required = true) override val notes: String,
+    @JsonProperty("amount", required = true) val amount: Double,
+) : TimeEntry {
+    override val type: String = ACTIVITIES.PUMPING
+    override val typeId: Int = ACTIVITIES.index(type)
+}
+
+@JsonIgnoreProperties(ignoreUnknown = true)
 data class ChangeEntry(
     @JsonProperty("id", required = true) override val id: Int,
     @JsonProperty("child", required = true) override val childId: Int,
@@ -136,7 +149,20 @@ data class HeightEntry(
     @JsonProperty("notes", required = true) override val notes: String,
     @JsonProperty("height", required = true) val height: Double,
 ) : TimeEntry {
-    override val type: String = EVENTS.WEIGHT
+    override val type: String = EVENTS.HEIGHT
+    override val typeId: Int = EVENTS_OFFSET + EVENTS.index(type)
+    override val end: Date? = null
+}
+
+@JsonIgnoreProperties(ignoreUnknown = true)
+data class HeadCircumferenceEntry(
+    @JsonProperty("id", required = true) override val id: Int,
+    @JsonProperty("child", required = true) override val childId: Int,
+    @JsonProperty("date", required = true) @JsonDeserialize(using = DateOnlyDeserializer::class) override val start: Date,
+    @JsonProperty("notes", required = true) override val notes: String,
+    @JsonProperty("head_circumference", required = true) val head_circumference: Double,
+) : TimeEntry {
+    override val type: String = EVENTS.HEAD_CIRCUMFERENCE
     override val typeId: Int = EVENTS_OFFSET + EVENTS.index(type)
     override val end: Date? = null
 }
