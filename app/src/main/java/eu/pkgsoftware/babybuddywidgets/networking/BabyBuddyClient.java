@@ -36,6 +36,7 @@ import androidx.annotation.NonNull;
 import eu.pkgsoftware.babybuddywidgets.Constants;
 import eu.pkgsoftware.babybuddywidgets.CredStore;
 import eu.pkgsoftware.babybuddywidgets.debugging.GlobalDebugObject;
+import eu.pkgsoftware.babybuddywidgets.networking.babybuddy.Client;
 
 public class BabyBuddyClient extends StreamReader {
     public static final String DATE_FORMAT_STRING = "yyyy-MM-dd'T'HH:mm:ssX";
@@ -494,6 +495,8 @@ public class BabyBuddyClient extends StreamReader {
     private Looper mainLoop;
     private long serverDateOffset = -1000;
 
+    public final Client v2client;
+
     private void updateServerDateTime(HttpURLConnection con) {
         String dateString = con.getHeaderField("Date");
         if (dateString == null) {
@@ -546,6 +549,7 @@ public class BabyBuddyClient extends StreamReader {
         this.mainLoop = mainLoop;
         this.credStore = credStore;
         this.syncMessage = new Handler(mainLoop);
+        this.v2client = new Client(credStore);
     }
 
     private final Random requestIdGenerator = new Random();

@@ -74,6 +74,7 @@ class MainActivity : AppCompatActivity() {
                         credStore
                     )
                     internalClient = newClient
+                    testV2Calls()
                     return newClient
                 } else {
                     return it
@@ -341,5 +342,12 @@ class MainActivity : AppCompatActivity() {
             )
         }
         return timerControls[childId]!!
+    }
+
+    fun testV2Calls() {
+        scope.launch {
+            val p = client.v2client.getProfile()
+            println("profile username = ${p.user.username}")
+        }
     }
 }
