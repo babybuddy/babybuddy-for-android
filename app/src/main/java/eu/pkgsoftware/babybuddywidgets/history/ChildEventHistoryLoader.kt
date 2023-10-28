@@ -22,7 +22,12 @@ class ChildEventHistoryLoader(
     private val visibilityCheck: VisibilityCheck,
     private val progressBar: ProgressBar
 ) {
-    private val activityCollectionGate = (ACTIVITIES.ALL + EVENTS.ALL).toMutableList()
+    private val activityCollectionGate = mutableListOf(
+        ACTIVITIES.FEEDING,
+        ACTIVITIES.SLEEP,
+        ACTIVITIES.TUMMY_TIME,
+        EVENTS.CHANGE,
+    )
 
     private var timelineObserver: TimelineObserver? = null
     private val timeEntryLookup = mutableMapOf<ContinuousListItem, TimeEntry>()
