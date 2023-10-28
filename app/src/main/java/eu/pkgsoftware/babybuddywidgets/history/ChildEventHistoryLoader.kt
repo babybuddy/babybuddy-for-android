@@ -15,6 +15,13 @@ import eu.pkgsoftware.babybuddywidgets.networking.ChildrenStateTracker.TimelineL
 import eu.pkgsoftware.babybuddywidgets.networking.ChildrenStateTracker.TimelineObserver
 import kotlinx.coroutines.*
 
+val IMPLEMENTED_EVENTS = listOf(
+    ACTIVITIES.FEEDING,
+    ACTIVITIES.SLEEP,
+    ACTIVITIES.TUMMY_TIME,
+    EVENTS.CHANGE,
+)
+
 class ChildEventHistoryLoader(
     private val fragment: BaseFragment,
     private val container: LinearLayout,
@@ -22,12 +29,7 @@ class ChildEventHistoryLoader(
     private val visibilityCheck: VisibilityCheck,
     private val progressBar: ProgressBar
 ) {
-    private val activityCollectionGate = mutableListOf(
-        ACTIVITIES.FEEDING,
-        ACTIVITIES.SLEEP,
-        ACTIVITIES.TUMMY_TIME,
-        EVENTS.CHANGE,
-    )
+    private val activityCollectionGate = IMPLEMENTED_EVENTS.toMutableList()
 
     private var timelineObserver: TimelineObserver? = null
     private val timeEntryLookup = mutableMapOf<ContinuousListItem, TimeEntry>()
@@ -66,7 +68,7 @@ class ChildEventHistoryLoader(
         };
         result.timeEntry = e
         result.setModifiedCallback {
-            activityCollectionGate.addAll(ACTIVITIES.ALL + EVENTS.ALL)
+            activityCollectionGate.addAll(IMPLEMENTED_EVENTS)
             timelineObserver?.forceUpdate()
         }
         container.addView(result.view)
@@ -174,18 +176,19 @@ class ChildEventHistoryLoader(
 
         val to = timelineObserver ?: return
 
-        for (clsName in ACTIVITIES.ALL) {
-            to.queryOffsets[clsName] = listIntegrator.suggestClassQueryOffset(clsName)
-        }
-        for (clsName in EVENTS.ALL) {
-            to.queryOffsets[clsName] = listIntegrator.suggestClassQueryOffset(clsName)
+        for (clsName in IMPLEMENTED_EVENTS) {
+            if (clsName in ACTIVITIES.ALL) {
+                to.queryOffsets[clsName] = listIntegrator.suggestClassQueryOffset(clsName)
+            } else {
+                to.queryOffsets[clsName] = listIntegrator.suggestClassQueryOffset(clsName)
+            }
         }
     }
 
     fun forceRefresh() {
         updateJob?.cancel("forceRefresh()")
         activityCollectionGate.clear()
-        activityCollectionGate.addAll(ACTIVITIES.ALL + EVENTS.ALL)
+        activityCollectionGate.addAll(IMPLEMENTED_EVENTS)
         timelineObserver?.forceUpdate()
     }
 }
