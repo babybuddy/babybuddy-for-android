@@ -8,8 +8,11 @@ import eu.pkgsoftware.babybuddywidgets.networking.BabyBuddyClient.EVENTS
 import eu.pkgsoftware.babybuddywidgets.networking.babybuddy.DateTimeDeserializer
 import eu.pkgsoftware.babybuddywidgets.networking.babybuddy.DateOnlyDeserializer
 import java.util.Date
+import kotlin.reflect.KClass
+import kotlin.reflect.full.findAnnotations
 
-annotation class ActivityNameAnnotation(val name: String)
+annotation class ActivityName(val name: String)
+annotation class UIPath(val path: String)
 
 interface TimeEntry {
     val type: String
@@ -17,13 +20,14 @@ interface TimeEntry {
     val id: Int
     val childId: Int
     val start: Date
-    val end: Date?
+    val end: Date
     val notes: String
 }
 
 
+@UIPath("sleep")
+@ActivityName(ACTIVITIES.SLEEP)
 @JsonIgnoreProperties(ignoreUnknown = true)
-@ActivityNameAnnotation(ACTIVITIES.SLEEP)
 data class SleepEntry(
     @JsonProperty("id", required = true) override val id: Int,
     @JsonProperty("child", required = true) override val childId: Int,
@@ -35,6 +39,8 @@ data class SleepEntry(
     override val typeId: Int = ACTIVITIES.index(type)
 }
 
+@UIPath("tummy-time")
+@ActivityName(ACTIVITIES.TUMMY_TIME)
 @JsonIgnoreProperties(ignoreUnknown = true)
 data class TummyTimeEntry(
     @JsonProperty("id", required = true) override val id: Int,
@@ -47,6 +53,8 @@ data class TummyTimeEntry(
     override val typeId: Int = ACTIVITIES.index(type)
 }
 
+@UIPath("feedings")
+@ActivityName(ACTIVITIES.FEEDING)
 @JsonIgnoreProperties(ignoreUnknown = true)
 data class FeedingEntry(
     @JsonProperty("id", required = true) override val id: Int,
@@ -62,6 +70,8 @@ data class FeedingEntry(
     override val typeId: Int = ACTIVITIES.index(type)
 }
 
+@UIPath("pumping")
+@ActivityName(ACTIVITIES.PUMPING)
 @JsonIgnoreProperties(ignoreUnknown = true)
 data class PumpingEntry(
     @JsonProperty("id", required = true) override val id: Int,
@@ -75,6 +85,8 @@ data class PumpingEntry(
     override val typeId: Int = ACTIVITIES.index(type)
 }
 
+@UIPath("changes")
+@ActivityName(EVENTS.CHANGE)
 @JsonIgnoreProperties(ignoreUnknown = true)
 data class ChangeEntry(
     @JsonProperty("id", required = true) override val id: Int,
@@ -88,9 +100,11 @@ data class ChangeEntry(
 ) : TimeEntry {
     override val type: String = EVENTS.CHANGE
     override val typeId: Int = EVENTS.index(type)
-    override val end: Date? = null
+    override val end: Date = start
 }
 
+@UIPath("notes")
+@ActivityName(EVENTS.NOTE)
 @JsonIgnoreProperties(ignoreUnknown = true)
 data class NoteEntry(
     @JsonProperty("id", required = true) override val id: Int,
@@ -100,9 +114,11 @@ data class NoteEntry(
 ) : TimeEntry {
     override val type: String = EVENTS.NOTE
     override val typeId: Int = EVENTS.index(type)
-    override val end: Date? = null
+    override val end: Date = start
 }
 
+@UIPath("bmi")
+@ActivityName(EVENTS.BMI)
 @JsonIgnoreProperties(ignoreUnknown = true)
 data class BmiEntry(
     @JsonProperty("id", required = true) override val id: Int,
@@ -113,9 +129,11 @@ data class BmiEntry(
 ) : TimeEntry {
     override val type: String = EVENTS.BMI
     override val typeId: Int = EVENTS.index(type)
-    override val end: Date? = null
+    override val end: Date = start
 }
 
+@UIPath("temperature")
+@ActivityName(EVENTS.TEMPERATURE)
 @JsonIgnoreProperties(ignoreUnknown = true)
 data class TemperatureEntry(
     @JsonProperty("id", required = true) override val id: Int,
@@ -126,9 +144,11 @@ data class TemperatureEntry(
 ) : TimeEntry {
     override val type: String = EVENTS.TEMPERATURE
     override val typeId: Int = EVENTS.index(type)
-    override val end: Date? = null
+    override val end: Date = start
 }
 
+@UIPath("weight")
+@ActivityName(EVENTS.WEIGHT)
 @JsonIgnoreProperties(ignoreUnknown = true)
 data class WeightEntry(
     @JsonProperty("id", required = true) override val id: Int,
@@ -139,9 +159,11 @@ data class WeightEntry(
 ) : TimeEntry {
     override val type: String = EVENTS.WEIGHT
     override val typeId: Int = EVENTS.index(type)
-    override val end: Date? = null
+    override val end: Date = start
 }
 
+@UIPath("height")
+@ActivityName(EVENTS.HEIGHT)
 @JsonIgnoreProperties(ignoreUnknown = true)
 data class HeightEntry(
     @JsonProperty("id", required = true) override val id: Int,
@@ -152,9 +174,11 @@ data class HeightEntry(
 ) : TimeEntry {
     override val type: String = EVENTS.HEIGHT
     override val typeId: Int = EVENTS.index(type)
-    override val end: Date? = null
+    override val end: Date = start
 }
 
+@UIPath("head-circumference")
+@ActivityName(EVENTS.HEAD_CIRCUMFERENCE)
 @JsonIgnoreProperties(ignoreUnknown = true)
 data class HeadCircumferenceEntry(
     @JsonProperty("id", required = true) override val id: Int,
@@ -165,7 +189,7 @@ data class HeadCircumferenceEntry(
 ) : TimeEntry {
     override val type: String = EVENTS.HEAD_CIRCUMFERENCE
     override val typeId: Int = EVENTS.index(type)
-    override val end: Date? = null
+    override val end: Date = start
 }
 
 // Generic wrappers
@@ -177,3 +201,11 @@ data class PaginatedEntries<T>(
     @JsonProperty("previous", required = true) val prevUrl: String?,
     @JsonProperty("results", required = true) val entries: List<T>,
 )
+
+fun classActivityName(cls: KClass<*>): String {
+    val a = cls.findAnnotations(ActivityName::class)
+    if (a.isEmpty()) {
+        throw IncorrectApiConfiguration("@ActivityName missing for ${cls.qualifiedName}")
+    }
+    return a[0].name;
+}
