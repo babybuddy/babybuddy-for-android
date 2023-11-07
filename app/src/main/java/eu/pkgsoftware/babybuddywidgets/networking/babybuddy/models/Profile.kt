@@ -1,7 +1,9 @@
 package eu.pkgsoftware.babybuddywidgets.networking.babybuddy.models
 
+import com.fasterxml.jackson.annotation.JsonIgnoreProperties
 import com.fasterxml.jackson.annotation.JsonProperty
 
+@JsonIgnoreProperties(ignoreUnknown = true)
 data class UserSubstruct(
     @JsonProperty("id") val id: Int,
     @JsonProperty("username") val username: String,
@@ -11,6 +13,7 @@ data class UserSubstruct(
     @JsonProperty("is_staff") val isStaff: Boolean
 )
 
+@JsonIgnoreProperties(ignoreUnknown = true)
 data class Profile(
     @JsonProperty("user") val user: UserSubstruct,
     @JsonProperty("language") val language: String,

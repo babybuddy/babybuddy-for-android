@@ -2,24 +2,25 @@ package eu.pkgsoftware.babybuddywidgets.networking.babybuddy
 
 import eu.pkgsoftware.babybuddywidgets.CredStore
 import eu.pkgsoftware.babybuddywidgets.networking.RequestCodeFailure
-import eu.pkgsoftware.babybuddywidgets.networking.babybuddy.models.ActivityNameAnnotation
 import eu.pkgsoftware.babybuddywidgets.networking.babybuddy.models.ApiInterface
 import eu.pkgsoftware.babybuddywidgets.networking.babybuddy.models.PaginatedEntries
 import eu.pkgsoftware.babybuddywidgets.networking.babybuddy.models.Profile
-import eu.pkgsoftware.babybuddywidgets.networking.babybuddy.models.SleepEntry
-import eu.pkgsoftware.babybuddywidgets.networking.babybuddy.models.TimeEntry
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.withContext
-import kotlin.reflect.full.findAnnotation
-import kotlin.reflect.KClass
 import okhttp3.Interceptor
 import okhttp3.OkHttpClient
 import okhttp3.Response
 import retrofit2.Call
 import retrofit2.Retrofit
 import retrofit2.converter.jackson.JacksonConverterFactory
-import java.lang.reflect.Method
 import kotlin.Exception
+import kotlin.reflect.KClass
+import kotlin.reflect.KFunction
+import kotlin.reflect.KTypeProjection
+import kotlin.reflect.KVariance
+import kotlin.reflect.full.createType
+import kotlin.reflect.full.functions
+import kotlin.reflect.jvm.javaMethod
 
 class AuthInterceptor(private val authToken: String) : Interceptor {
     override fun intercept(chain: Interceptor.Chain): Response {
@@ -77,31 +78,30 @@ class Client(val credStore: CredStore) {
         return T::class
     }
 
-    suspend fun <T : TimeEntry> getEntries(itemClass: KClass<T>, offset: Int = 0, limit: Int = 100): PaginatedResult<T> {
+    suspend fun <T : Any> getEntries(itemClass: KClass<T>, offset: Int = 0, limit: Int = 100): PaginatedResult<T> {
         return withContext(Dispatchers.IO) {
-            val refAnnotation = itemClass.findAnnotation<ActivityNameAnnotation>()
-            if (refAnnotation == null) {
-                throw RuntimeException("annotation missing");
-            }
+            val desiredReturnType = Call::class.createType(
+                arguments = listOf(KTypeProjection(
+                    KVariance.INVARIANT,
+                    PaginatedEntries::class.createType(
+                        arguments = listOf(KTypeProjection(KVariance.INVARIANT, itemClass.createType()))
+                    )
+                ))
+            )
 
-            var selectedMethod: Method? = null
-            for (method in ApiInterface::class.java.methods) {
-                for (an in method.getAnnotationsByType(ActivityNameAnnotation::class.java)) {
-                    if (an.name == refAnnotation.name) {
-                        selectedMethod = method
-                    }
+            var selected: KFunction<*>? = null
+            for (func in ApiInterface::class.functions) {
+                if (func.returnType == desiredReturnType) {
+                    selected = func
                 }
             }
-
-            if (selectedMethod == null) {
+            if (selected == null) {
                 throw RuntimeException("getter is missing");
             }
 
-
-            if (selectedMethod.returnType != getKClass<Call<PaginatedEntries<T>>>().java) {
-                throw RuntimeException("method has incorrect return type");
-            }
-            val call: Call<PaginatedEntries<T>> = selectedMethod.invoke(api, offset, limit) as Call<PaginatedEntries<T>>
+            val call: Call<PaginatedEntries<T>> = selected.javaMethod!!.invoke(
+                api, offset, limit
+            ) as Call<PaginatedEntries<T>>
             val r = call.execute()
 
 
