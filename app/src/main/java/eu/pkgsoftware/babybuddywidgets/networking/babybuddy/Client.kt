@@ -53,24 +53,25 @@ class Client(val credStore: CredStore) {
 
     private val api = retrofit.create(ApiInterface::class.java)
 
+    private fun <T> executeCall(call: Call<T>): T {
+        val r = call.execute()
+
+        return if (r.isSuccessful) {
+            val p = r.body() ?: throw InvalidBody()
+            p
+        } else {
+            throw RequestCodeFailure(
+                r.code(),
+                "Failed",
+                r.errorBody()?.charStream()?.readText() ?: "[no message]",
+            )
+        }
+    }
+
     suspend fun getProfile(): Profile {
         return withContext(Dispatchers.IO) {
             val call = api.getProfile()
-            val r = call.execute()
-
-            if (r.isSuccessful) {
-                val p = r.body()
-                if (p == null) {
-                    throw InvalidBody()
-                }
-                p
-            } else {
-                throw RequestCodeFailure(
-                    r.code(),
-                    "Failed",
-                    r.errorBody()?.charStream()?.readText() ?: "[no message]",
-                )
-            }
+            executeCall(call)
         }
     }
 
@@ -102,22 +103,8 @@ class Client(val credStore: CredStore) {
             val call: Call<PaginatedEntries<T>> = selected.javaMethod!!.invoke(
                 api, offset, limit
             ) as Call<PaginatedEntries<T>>
-            val r = call.execute()
-
-
-            if (r.isSuccessful) {
-                val p = r.body()
-                if (p == null) {
-                    throw InvalidBody()
-                }
-                PaginatedResult(p.entries, offset, p.count)
-            } else {
-                throw RequestCodeFailure(
-                    r.code(),
-                    "Failed",
-                    r.errorBody()?.charStream()?.readText() ?: "[no message]",
-                )
-            }
+            val callResult = executeCall(call)
+            PaginatedResult(callResult.entries, offset, callResult.count)
         }
     }
 }
