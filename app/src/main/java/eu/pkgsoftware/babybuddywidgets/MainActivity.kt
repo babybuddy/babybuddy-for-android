@@ -17,6 +17,7 @@ import eu.pkgsoftware.babybuddywidgets.databinding.ActivityMainBinding
 import eu.pkgsoftware.babybuddywidgets.networking.BabyBuddyClient
 import eu.pkgsoftware.babybuddywidgets.networking.BabyBuddyClient.Child
 import eu.pkgsoftware.babybuddywidgets.networking.BabyBuddyClient.GenericSubsetResponseHeader
+import eu.pkgsoftware.babybuddywidgets.networking.babybuddy.models.SleepEntry
 import eu.pkgsoftware.babybuddywidgets.utils.AsyncClientRequest
 import kotlinx.coroutines.*
 import org.json.JSONArray
@@ -345,9 +346,13 @@ class MainActivity : AppCompatActivity() {
     }
 
     fun testV2Calls() {
+        println("PaulK XXXXXXXXXXXXX testV2Calls!!!")
         scope.launch {
             val p = client.v2client.getProfile()
-            println("profile username = ${p.user.username}")
+            println("PaulK profile username = ${p.user.username}")
+
+            val sleeps2 = client.v2client.getEntries(SleepEntry::class)
+            println("PaulK num sleeps generic = ${sleeps2.totalCount}")
         }
     }
 }

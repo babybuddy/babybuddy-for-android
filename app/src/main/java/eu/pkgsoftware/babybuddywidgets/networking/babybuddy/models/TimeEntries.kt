@@ -9,6 +9,8 @@ import eu.pkgsoftware.babybuddywidgets.networking.babybuddy.DateTimeDeserializer
 import eu.pkgsoftware.babybuddywidgets.networking.babybuddy.DateOnlyDeserializer
 import java.util.Date
 
+annotation class ActivityNameAnnotation(val name: String)
+
 interface TimeEntry {
     val type: String
     val typeId: Int
@@ -21,6 +23,7 @@ interface TimeEntry {
 
 
 @JsonIgnoreProperties(ignoreUnknown = true)
+@ActivityNameAnnotation(ACTIVITIES.SLEEP)
 data class SleepEntry(
     @JsonProperty("id", required = true) override val id: Int,
     @JsonProperty("child", required = true) override val childId: Int,
@@ -165,3 +168,10 @@ data class HeadCircumferenceEntry(
     override val end: Date? = null
 }
 
+@JsonIgnoreProperties(ignoreUnknown = true)
+data class PaginatedEntries<T>(
+    @JsonProperty("count", required = true)val count: Int,
+    @JsonProperty("next", required = true) val nextUrl: String?,
+    @JsonProperty("previous", required = true) val prevUrl: String?,
+    @JsonProperty("results", required = true) val entries: List<T>,
+)
