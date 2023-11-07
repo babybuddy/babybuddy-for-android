@@ -168,6 +168,8 @@ data class HeadCircumferenceEntry(
     override val end: Date? = null
 }
 
+// Generic wrappers
+
 @JsonIgnoreProperties(ignoreUnknown = true)
 data class PaginatedEntries<T>(
     @JsonProperty("count", required = true)val count: Int,
