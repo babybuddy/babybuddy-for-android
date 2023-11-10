@@ -9,6 +9,7 @@ import eu.pkgsoftware.babybuddywidgets.networking.babybuddy.models.PaginatedEntr
 import eu.pkgsoftware.babybuddywidgets.networking.babybuddy.models.Profile
 import eu.pkgsoftware.babybuddywidgets.networking.babybuddy.models.TimeEntry
 import eu.pkgsoftware.babybuddywidgets.networking.babybuddy.models.UIPath
+import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.NonCancellable
 import kotlinx.coroutines.withContext
@@ -18,8 +19,12 @@ import okhttp3.Response
 import retrofit2.Call
 import retrofit2.Retrofit
 import retrofit2.converter.jackson.JacksonConverterFactory
+import java.io.IOException
 import java.net.MalformedURLException
+import java.net.SocketException
 import java.net.URL
+import kotlin.coroutines.CoroutineContext
+import kotlin.coroutines.startCoroutine
 import kotlin.reflect.KClass
 import kotlin.reflect.KFunction
 import kotlin.reflect.KTypeProjection

@@ -30,6 +30,9 @@ class ChildEventHistoryLoader(
     private val visibilityCheck: VisibilityCheck,
     private val progressBar: ProgressBar
 ) {
+    val HISTORY_ITEM_COUNT = 50
+    val POLL_INTERVAL = 5000
+
     private val activityCollectionGate = IMPLEMENTED_EVENT_CLASSES.toMutableList()
     private val scope = fragment.mainActivity.scope
 
@@ -40,19 +43,22 @@ class ChildEventHistoryLoader(
 
     private var updateJob: Job? = null
 
-    private val queryOffsets = IMPLEMENTED_EVENT_CLASSES.map { it as KClass<*> to 0 }.toMap().toMutableMap()
+    private val queryOffsets = mutableMapOf<KClass<*>, Int>()
 
     init {
         forceRefresh()
     }
 
-    private fun forceUpdate() {
-        updateJob?.cancel("forceUpdate() triggered")
+    private fun startFetch() {
         scope.launch {
             IMPLEMENTED_EVENT_CLASSES.map {
                 async {
+                    // TODO: Add exception handling and show "connecting" error
                     val r = fragment.mainActivity.client.v2client.getEntries(
-                        it, queryOffsets[it]!!, childId=childId
+                        it,
+                        offset = queryOffsets.getOrDefault(it, 0),
+                        limit = HISTORY_ITEM_COUNT,
+                        childId=childId,
                     )
                     addTimelineItems(r.offset, r.totalCount, it, r.entries as List<TimeEntry>)
                 }
@@ -68,7 +74,7 @@ class ChildEventHistoryLoader(
         };
         result.timeEntry = e
         result.setModifiedCallback {
-            forceUpdate()
+            startFetch()
         }
         container.addView(result.view)
         currentList.add(result)
@@ -101,12 +107,30 @@ class ChildEventHistoryLoader(
         val updateJob = this.updateJob
         if ((updateJob == null) || (!updateJob.isActive)) {
             if (activityCollectionGate.isEmpty()) {
-                this.updateJob = fragment.mainActivity.scope.launch { deferredUpdate() }
+                this.updateJob = scope.launch {
+                    updateJobImpl()
+                }
             }
         }
     }
 
-    suspend fun deferredUpdate() {
+    private suspend fun updateJobImpl() {
+        println("updateJobImpl ${childId}")
+        try {
+            deferredUpdate()
+        }
+        finally {
+            delay(POLL_INTERVAL.toLong())
+            scope.launch {
+                println("updateJobImpl internal ${childId}")
+                this@ChildEventHistoryLoader.updateJob?.join()
+                startFetch()
+            }
+        }
+        println("updateJobImpl exit ${childId}")
+    }
+
+    private suspend fun deferredUpdate() {
         val items = listIntegrator.items
         var i = 0
         val visibleCount = listIntegrator.computeValidCount()
@@ -151,10 +175,12 @@ class ChildEventHistoryLoader(
     }
 
     fun close() {
+        updateJob?.cancel()
         listIntegrator.clear()
         removedViews.clear()
         container.removeAllViews()
         timeEntryLookup.clear()
+        queryOffsets.clear()
     }
 
     fun updateTop() {
@@ -177,6 +203,6 @@ class ChildEventHistoryLoader(
         updateJob?.cancel("forceRefresh()")
         activityCollectionGate.clear()
         activityCollectionGate.addAll(IMPLEMENTED_EVENT_CLASSES)
-        forceUpdate()
+        startFetch()
     }
 }
