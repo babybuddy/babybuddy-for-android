@@ -76,7 +76,6 @@ class MainActivity : AppCompatActivity() {
                         credStore
                     )
                     internalClient = newClient
-                    testV2Calls()
                     return newClient
                 } else {
                     return it
@@ -344,28 +343,5 @@ class MainActivity : AppCompatActivity() {
             )
         }
         return timerControls[childId]!!
-    }
-
-    fun testV2Calls() {
-        println("PaulK XXXXXXXXXXXXX testV2Calls!!!")
-        scope.launch {
-            try {
-                val p = client.v2client.getProfile()
-                println("PaulK profile username = ${p.user.username}")
-
-                val sleeps2 = client.v2client.getEntries(SleepEntry::class)
-                println("PaulK num sleeps generic = ${sleeps2.totalCount}")
-
-                val children = client.v2client.getEntries(
-                    eu.pkgsoftware.babybuddywidgets.networking.babybuddy.models.Child::class,
-                    offset = 1
-                )
-                println("PaulK num children = ${children.totalCount}, queries = ${children.entries}")
-
-            } catch (e: Exception) {
-                println("SAFE CAPTURE")
-                e.printStackTrace()
-            }
-        }
     }
 }
