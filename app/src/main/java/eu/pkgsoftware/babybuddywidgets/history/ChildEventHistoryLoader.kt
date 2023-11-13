@@ -7,6 +7,7 @@ import eu.pkgsoftware.babybuddywidgets.BaseFragment
 import eu.pkgsoftware.babybuddywidgets.VisibilityCheck
 import eu.pkgsoftware.babybuddywidgets.logic.ContinuousListItem
 import eu.pkgsoftware.babybuddywidgets.logic.EndAwareContinuousListIntegrator
+import eu.pkgsoftware.babybuddywidgets.networking.babybuddy.exponentialBackoff
 import eu.pkgsoftware.babybuddywidgets.networking.babybuddy.models.ChangeEntry
 import eu.pkgsoftware.babybuddywidgets.networking.babybuddy.models.SleepEntry
 import eu.pkgsoftware.babybuddywidgets.networking.babybuddy.models.TimeEntry
@@ -53,13 +54,14 @@ class ChildEventHistoryLoader(
         scope.launch {
             IMPLEMENTED_EVENT_CLASSES.map {
                 async {
-                    // TODO: Add exception handling and show "connecting" error
-                    val r = fragment.mainActivity.client.v2client.getEntries(
-                        it,
-                        offset = queryOffsets.getOrDefault(it, 0),
-                        limit = HISTORY_ITEM_COUNT,
-                        childId=childId,
-                    )
+                    val r = exponentialBackoff(fragment.disconnectDialog.getInterface()) {
+                        fragment.mainActivity.client.v2client.getEntries(
+                            it,
+                            offset = queryOffsets.getOrDefault(it, 0),
+                            limit = HISTORY_ITEM_COUNT,
+                            childId=childId,
+                        )
+                    }
                     addTimelineItems(r.offset, r.totalCount, it, r.entries as List<TimeEntry>)
                 }
             }

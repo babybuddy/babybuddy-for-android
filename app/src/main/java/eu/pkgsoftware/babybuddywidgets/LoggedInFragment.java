@@ -19,6 +19,7 @@ import eu.pkgsoftware.babybuddywidgets.databinding.LoggedInFragmentBinding;
 import eu.pkgsoftware.babybuddywidgets.debugging.GlobalDebugObject;
 import eu.pkgsoftware.babybuddywidgets.networking.BabyBuddyClient;
 import eu.pkgsoftware.babybuddywidgets.networking.ChildrenStateTracker;
+import eu.pkgsoftware.babybuddywidgets.networking.babybuddy.ConnectingDialogInterface;
 
 public class LoggedInFragment extends BaseFragment {
     public static int childIndexBySlug(BabyBuddyClient.Child[] children, String slug) {
@@ -45,6 +46,8 @@ public class LoggedInFragment extends BaseFragment {
 
     private ChildrenStateTracker stateTracker = null;
     private BabyBuddyClient.Child[] children = null;
+
+    private ConnectingDialogInterface disconnectInterface = null;
 
     @Override
     public void onCreate(@Nullable Bundle savedInstanceState) {
@@ -122,6 +125,8 @@ public class LoggedInFragment extends BaseFragment {
     public void onResume() {
         super.onResume();
 
+        disconnectInterface = disconnectDialog.getInterface();
+
         stateTracker = new ChildrenStateTracker(client, getMainActivity().getMainLooper());
         stateTracker.new ChildListObserver((children) -> {
             if (stateTracker == null) {
@@ -146,27 +151,9 @@ public class LoggedInFragment extends BaseFragment {
         stateTracker.setConnectionStateListener(
             (connected, disconnectedFor) -> {
                 if (connected) {
-                    progressDialog.hide();
-                    hideError();
-                } else if (disconnectedFor >= 10000) {
-                    progressDialog.hide();
-                    showQuestion(
-                        false,
-                        "Connection error",
-                        "Server cannot be reached or login failed.",
-                        "Keep trying",
-                        "Logout",
-                        (b) -> {
-                            if (b) {
-                                showProgress("Connecting to server...");
-                                stateTracker.resetDisconnectTimer();
-                            } else {
-                                logout();
-                            }
-                        }
-                    );
+                    disconnectInterface.hideConnecting();
                 } else {
-                    showProgress("Connecting to server...");
+                    disconnectInterface.showConnecting(disconnectedFor);
                 }
             }
         );
@@ -177,6 +164,8 @@ public class LoggedInFragment extends BaseFragment {
     @Override
     public void onPause() {
         super.onPause();
+
+        disconnectInterface.hideConnecting();
 
         progressDialog.hide();
 
