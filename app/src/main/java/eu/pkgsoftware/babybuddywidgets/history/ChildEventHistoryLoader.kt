@@ -42,7 +42,8 @@ class ChildEventHistoryLoader(
     private val currentList = mutableListOf<TimelineEntry>()
     private val removedViews = mutableListOf<TimelineEntry>()
 
-    private var updateJob: Job? = null
+    private var updateUiJob: Job? = null
+    private var fetchJob: Job? = null
 
     private val queryOffsets = mutableMapOf<KClass<*>, Int>()
 
@@ -51,19 +52,22 @@ class ChildEventHistoryLoader(
     }
 
     private fun startFetch() {
-        scope.launch {
-            IMPLEMENTED_EVENT_CLASSES.map {
-                async {
-                    val r = exponentialBackoff(fragment.disconnectDialog.getInterface()) {
-                        fragment.mainActivity.client.v2client.getEntries(
-                            it,
-                            offset = queryOffsets.getOrDefault(it, 0),
-                            limit = HISTORY_ITEM_COUNT,
-                            childId=childId,
-                        )
+        val fetchJob = this.fetchJob
+        if ((fetchJob == null) || (!fetchJob.isActive)) {
+            this.fetchJob = scope.launch {
+                IMPLEMENTED_EVENT_CLASSES.map {
+                    async {
+                        val r = exponentialBackoff(fragment.disconnectDialog.getInterface()) {
+                            fragment.mainActivity.client.v2client.getEntries(
+                                it,
+                                offset = queryOffsets.getOrDefault(it, 0),
+                                limit = HISTORY_ITEM_COUNT,
+                                childId=childId,
+                            )
+                        }
+                        addTimelineItems(r.offset, r.totalCount, it, r.entries as List<TimeEntry>)
                     }
-                    addTimelineItems(r.offset, r.totalCount, it, r.entries as List<TimeEntry>)
-                }
+                }.awaitAll()
             }
         }
     }
@@ -106,30 +110,27 @@ class ChildEventHistoryLoader(
 
         queryOffsets[type] = listIntegrator.suggestClassQueryOffset(classActivityName(type))
 
-        val updateJob = this.updateJob
-        if ((updateJob == null) || (!updateJob.isActive)) {
+        val updateUiJob = this.updateUiJob
+        if ((updateUiJob == null) || (!updateUiJob.isActive)) {
             if (activityCollectionGate.isEmpty()) {
-                this.updateJob = scope.launch {
-                    updateJobImpl()
+                this.updateUiJob = scope.launch {
+                    updateUiJobImpl()
                 }
             }
         }
     }
 
-    private suspend fun updateJobImpl() {
-        println("updateJobImpl ${childId}")
+    private suspend fun updateUiJobImpl() {
         try {
             deferredUpdate()
         }
         finally {
             delay(POLL_INTERVAL.toLong())
             scope.launch {
-                println("updateJobImpl internal ${childId}")
-                this@ChildEventHistoryLoader.updateJob?.join()
+                this@ChildEventHistoryLoader.updateUiJob?.join()
                 startFetch()
             }
         }
-        println("updateJobImpl exit ${childId}")
     }
 
     private suspend fun deferredUpdate() {
@@ -177,7 +178,8 @@ class ChildEventHistoryLoader(
     }
 
     fun close() {
-        updateJob?.cancel()
+        updateUiJob?.cancel()
+        fetchJob?.cancel()
         listIntegrator.clear()
         removedViews.clear()
         container.removeAllViews()
@@ -202,7 +204,8 @@ class ChildEventHistoryLoader(
     }
 
     fun forceRefresh() {
-        updateJob?.cancel("forceRefresh()")
+        updateUiJob?.cancel("forceRefresh()")
+        fetchJob?.cancel("forceRefresh()")
         activityCollectionGate.clear()
         activityCollectionGate.addAll(IMPLEMENTED_EVENT_CLASSES)
         startFetch()

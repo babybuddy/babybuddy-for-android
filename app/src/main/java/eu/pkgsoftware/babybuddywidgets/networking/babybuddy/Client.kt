@@ -58,7 +58,7 @@ class Client(val credStore: CredStore) {
         .build()
 
     val retrofit = Retrofit.Builder()
-        .baseUrl(credStore.serverUrl.replace("/*$", "") + "/api/")
+        .baseUrl(credStore.serverUrl.trimEnd('/') + "/api/")
         .addConverterFactory(JacksonConverterFactory.create())
         .client(httpClient)
         .build()
@@ -80,7 +80,7 @@ class Client(val credStore: CredStore) {
     }
 
     fun pathToUrl(path: String): URL {
-        val prefix = credStore.serverUrl.replace("/*$".toRegex(), "")
+        val prefix = credStore.serverUrl.trimEnd('/')
         val trimmedPath = path.trimStart('/')
         return URL("$prefix/$trimmedPath")
     }
@@ -126,7 +126,7 @@ class Client(val credStore: CredStore) {
             }
 
             val call: Call<PaginatedEntries<T>> = selected.javaMethod!!.invoke(
-                api, offset, limit, extraArgs
+                api, offset, limit, lExtraArgs
             ) as Call<PaginatedEntries<T>>
             val callResult = executeCall(call)
             PaginatedResult(callResult.entries, offset, callResult.count)
