@@ -6,7 +6,6 @@ import com.squareup.phrase.Phrase;
 
 import java.net.MalformedURLException;
 import java.text.DateFormat;
-import java.util.Arrays;
 import java.util.Date;
 import java.util.Objects;
 
@@ -95,6 +94,28 @@ public class TimelineEntry {
         binding.sleepText.setText(message.trim());
     }
 
+    private void configureNote() {
+        hideAllSubviews();
+        binding.noteTimeView.setVisibility(View.VISIBLE);
+
+        String message = defaultPhraseFields(
+            Phrase.from("{start_date}  {start_time}\n{notes}")
+        ).format().toString().trim();
+
+        binding.noteTimeEntryText.setText(message.trim());
+    }
+
+    private void configurePumping() {
+        hideAllSubviews();
+        binding.pumpingTimeView.setVisibility(View.VISIBLE);
+
+        String message = defaultPhraseFields(
+            Phrase.from("{start_date}  {start_time} - {end_time}\n{notes}")
+        ).format().toString().trim();
+
+        binding.pumpingTimeNotes.setText(message.trim());
+    }
+
     private void configureFeeding() {
         hideAllSubviews();
         binding.feedingView.setVisibility(View.VISIBLE);
@@ -117,8 +138,7 @@ public class TimelineEntry {
                 } else if (feedingMethod.value == 2) {
                     binding.feedingBreastRightImage.setVisibility(View.VISIBLE);
                     break;
-                }
-                else if (feedingMethod.value == 3) {
+                } else if (feedingMethod.value == 3) {
                     binding.feedingBreastImage.setVisibility(View.VISIBLE);
                     break;
                 }
@@ -134,7 +154,7 @@ public class TimelineEntry {
         }
 
         String message = defaultPhraseFields(
-                Phrase.from("{start_date}  {start_time} - {end_time}\n{notes}")
+            Phrase.from("{start_date}  {start_time} - {end_time}\n{notes}")
         ).format().toString().trim();
 
         binding.feedingText.setText(message.trim());
@@ -173,7 +193,7 @@ public class TimelineEntry {
                     return;
                 }
                 BabyBuddyClient client = fragment.getMainActivity().getClient();
-                /*client.removeTimelineEntry(thisEntry, new BabyBuddyClient.RequestCallback<Boolean>() {
+                /* TODO  client.removeTimelineEntry(thisEntry, new BabyBuddyClient.RequestCallback<Boolean>() {
                     @Override
                     public void error(@NotNull Exception error) {
                     }
@@ -219,6 +239,10 @@ public class TimelineEntry {
                 configureSleep();
             } else if (BabyBuddyClient.ACTIVITIES.FEEDING.equals(entry.getType())) {
                 configureFeeding();
+            } else if (BabyBuddyClient.EVENTS.NOTE.equals(entry.getType())) {
+                configureNote();
+            } else if (BabyBuddyClient.ACTIVITIES.PUMPING.equals(entry.getType())) {
+                configurePumping();
             } else {
                 configureDefaultView();
             }

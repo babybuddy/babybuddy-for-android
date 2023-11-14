@@ -29,6 +29,64 @@
         </LinearLayout>
 
         <LinearLayout
+            android:id="@+id/noteTimeView"
+            android:layout_width="match_parent"
+            android:layout_height="match_parent"
+            android:layout_weight="0"
+            android:gravity="center_vertical"
+            android:orientation="horizontal">
+
+            <ImageView
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:layout_weight="0"
+                android:background="#CCCCCC"
+                android:minHeight="48dp"
+                android:minWidth="48dp"
+                android:padding="4dp"
+                app:srcCompat="@drawable/pkg_notes"
+                app:tint="@color/fixed_color_button_text_color"
+                app:tintMode="src_in" />
+
+            <TextView
+                android:id="@+id/noteTimeEntryText"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:layout_weight="1"
+                android:paddingLeft="8dp"
+                android:text="TextView" />
+        </LinearLayout>
+
+        <LinearLayout
+            android:id="@+id/pumpingTimeView"
+            android:layout_width="match_parent"
+            android:layout_height="match_parent"
+            android:layout_weight="0"
+            android:gravity="center_vertical"
+            android:orientation="horizontal">
+
+            <ImageView
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:layout_weight="0"
+                android:background="#FF33CC"
+                android:minHeight="48dp"
+                android:minWidth="48dp"
+                android:padding="4dp"
+                app:srcCompat="@drawable/pkg_pumping"
+                app:tint="@color/fixed_color_button_text_color"
+                app:tintMode="src_in" />
+
+            <TextView
+                android:id="@+id/pumpingTimeNotes"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:layout_weight="1"
+                android:paddingLeft="8dp"
+                android:text="TextView" />
+        </LinearLayout>
+
+        <LinearLayout
             android:id="@+id/tummyTimeView"
             android:layout_width="match_parent"
             android:layout_height="wrap_content"

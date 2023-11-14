@@ -13,6 +13,8 @@ import eu.pkgsoftware.babybuddywidgets.networking.babybuddy.models.SleepEntry
 import eu.pkgsoftware.babybuddywidgets.networking.babybuddy.models.TimeEntry
 import eu.pkgsoftware.babybuddywidgets.networking.babybuddy.models.TummyTimeEntry
 import eu.pkgsoftware.babybuddywidgets.networking.babybuddy.models.FeedingEntry
+import eu.pkgsoftware.babybuddywidgets.networking.babybuddy.models.NoteEntry
+import eu.pkgsoftware.babybuddywidgets.networking.babybuddy.models.PumpingEntry
 import eu.pkgsoftware.babybuddywidgets.networking.babybuddy.models.classActivityName
 import kotlinx.coroutines.*
 import kotlin.reflect.KClass
@@ -22,6 +24,8 @@ val IMPLEMENTED_EVENT_CLASSES = listOf(
     SleepEntry::class,
     TummyTimeEntry::class,
     ChangeEntry::class,
+    NoteEntry::class,
+    PumpingEntry::class,
 )
 
 class ChildEventHistoryLoader(
