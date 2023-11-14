@@ -7,13 +7,22 @@ import eu.pkgsoftware.babybuddywidgets.BaseFragment
 import eu.pkgsoftware.babybuddywidgets.VisibilityCheck
 import eu.pkgsoftware.babybuddywidgets.logic.ContinuousListItem
 import eu.pkgsoftware.babybuddywidgets.logic.EndAwareContinuousListIntegrator
-import eu.pkgsoftware.babybuddywidgets.networking.BabyBuddyClient.ACTIVITIES
-import eu.pkgsoftware.babybuddywidgets.networking.BabyBuddyClient.EVENTS
-import eu.pkgsoftware.babybuddywidgets.networking.BabyBuddyClient.TimeEntry
-import eu.pkgsoftware.babybuddywidgets.networking.ChildrenStateTracker
-import eu.pkgsoftware.babybuddywidgets.networking.ChildrenStateTracker.TimelineListener
-import eu.pkgsoftware.babybuddywidgets.networking.ChildrenStateTracker.TimelineObserver
+import eu.pkgsoftware.babybuddywidgets.networking.babybuddy.exponentialBackoff
+import eu.pkgsoftware.babybuddywidgets.networking.babybuddy.models.ChangeEntry
+import eu.pkgsoftware.babybuddywidgets.networking.babybuddy.models.SleepEntry
+import eu.pkgsoftware.babybuddywidgets.networking.babybuddy.models.TimeEntry
+import eu.pkgsoftware.babybuddywidgets.networking.babybuddy.models.TummyTimeEntry
+import eu.pkgsoftware.babybuddywidgets.networking.babybuddy.models.FeedingEntry
+import eu.pkgsoftware.babybuddywidgets.networking.babybuddy.models.classActivityName
 import kotlinx.coroutines.*
+import kotlin.reflect.KClass
+
+val IMPLEMENTED_EVENT_CLASSES = listOf(
+    FeedingEntry::class,
+    SleepEntry::class,
+    TummyTimeEntry::class,
+    ChangeEntry::class,
+)
 
 class ChildEventHistoryLoader(
     private val fragment: BaseFragment,
@@ -22,35 +31,45 @@ class ChildEventHistoryLoader(
     private val visibilityCheck: VisibilityCheck,
     private val progressBar: ProgressBar
 ) {
-    private val activityCollectionGate = (ACTIVITIES.ALL + EVENTS.ALL).toMutableList()
+    val HISTORY_ITEM_COUNT = 50
+    val POLL_INTERVAL = 5000
 
-    private var timelineObserver: TimelineObserver? = null
+    private val activityCollectionGate = IMPLEMENTED_EVENT_CLASSES.toMutableList()
+    private val scope = fragment.mainActivity.scope
+
     private val timeEntryLookup = mutableMapOf<ContinuousListItem, TimeEntry>()
     private val listIntegrator = EndAwareContinuousListIntegrator()
     private val currentList = mutableListOf<TimelineEntry>()
     private val removedViews = mutableListOf<TimelineEntry>()
 
-    private var updateJob: Job? = null
+    private var updateUiJob: Job? = null
+    private var fetchJob: Job? = null
 
-    fun createTimelineObserver(stateTracker: ChildrenStateTracker) {
-        close()
-        timelineObserver = stateTracker.TimelineObserver(childId, object : TimelineListener {
-            override fun sleepRecordsObtained(offset: Int, totalCount: Int, entries: Array<TimeEntry>) {
-                addTimelineItems(offset, totalCount, ACTIVITIES.SLEEP, entries)
-            }
+    private val queryOffsets = mutableMapOf<KClass<*>, Int>()
 
-            override fun tummyTimeRecordsObtained(offset: Int, totalCount: Int, entries: Array<TimeEntry>) {
-                addTimelineItems(offset, totalCount, ACTIVITIES.TUMMY_TIME, entries)
-            }
+    init {
+        forceRefresh()
+    }
 
-            override fun feedingRecordsObtained(offset: Int, totalCount: Int, entries: Array<TimeEntry>) {
-                addTimelineItems(offset, totalCount, ACTIVITIES.FEEDING, entries)
+    private fun startFetch() {
+        val fetchJob = this.fetchJob
+        if ((fetchJob == null) || (!fetchJob.isActive)) {
+            this.fetchJob = scope.launch {
+                IMPLEMENTED_EVENT_CLASSES.map {
+                    async {
+                        val r = exponentialBackoff(fragment.disconnectDialog.getInterface()) {
+                            fragment.mainActivity.client.v2client.getEntries(
+                                it,
+                                offset = queryOffsets.getOrDefault(it, 0),
+                                limit = HISTORY_ITEM_COUNT,
+                                childId=childId,
+                            )
+                        }
+                        addTimelineItems(r.offset, r.totalCount, it, r.entries as List<TimeEntry>)
+                    }
+                }.awaitAll()
             }
-
-            override fun changeRecordsObtained(offset: Int, totalCount: Int, entries: Array<TimeEntry>) {
-                addTimelineItems(offset, totalCount, EVENTS.CHANGE, entries)
-            }
-        })
+        }
     }
 
     private fun newTimelineEntry(e: TimeEntry?): TimelineEntry {
@@ -61,8 +80,7 @@ class ChildEventHistoryLoader(
         };
         result.timeEntry = e
         result.setModifiedCallback {
-            activityCollectionGate.addAll(ACTIVITIES.ALL + EVENTS.ALL)
-            timelineObserver?.forceUpdate()
+            startFetch()
         }
         container.addView(result.view)
         currentList.add(result)
@@ -79,31 +97,43 @@ class ChildEventHistoryLoader(
         return result
     }
 
-    private fun addTimelineItems(offset: Int, totalCount: Int, type: String, _entries: Array<TimeEntry>) {
-        val to = timelineObserver ?: return
-
+    private suspend fun addTimelineItems(offset: Int, totalCount: Int, type: KClass<*>, entries: List<TimeEntry>) {
         activityCollectionGate.remove(type)
 
         // Put this in separate thread!
         listIntegrator.updateItemsWithCount(
             offset,
             totalCount,
-            type,
-            _entries.map { timeEntryToContinuousListItem(it) }.toTypedArray()
+            classActivityName(type),
+            entries.map { timeEntryToContinuousListItem(it) }.toTypedArray()
         )
 
-        val newOffset = listIntegrator.suggestClassQueryOffset(type)
-        to.queryOffsets[type] = newOffset
+        queryOffsets[type] = listIntegrator.suggestClassQueryOffset(classActivityName(type))
 
-        val updateJob = this.updateJob
-        if ((updateJob == null) || (!updateJob.isActive)) {
+        val updateUiJob = this.updateUiJob
+        if ((updateUiJob == null) || (!updateUiJob.isActive)) {
             if (activityCollectionGate.isEmpty()) {
-                this.updateJob = fragment.mainActivity.scope.launch { deferredUpdate() }
+                this.updateUiJob = scope.launch {
+                    updateUiJobImpl()
+                }
             }
         }
     }
 
-    suspend fun deferredUpdate() {
+    private suspend fun updateUiJobImpl() {
+        try {
+            deferredUpdate()
+        }
+        finally {
+            delay(POLL_INTERVAL.toLong())
+            scope.launch {
+                this@ChildEventHistoryLoader.updateUiJob?.join()
+                startFetch()
+            }
+        }
+    }
+
+    private suspend fun deferredUpdate() {
         val items = listIntegrator.items
         var i = 0
         val visibleCount = listIntegrator.computeValidCount()
@@ -148,12 +178,13 @@ class ChildEventHistoryLoader(
     }
 
     fun close() {
-        timelineObserver?.close()
-        timelineObserver = null
+        updateUiJob?.cancel()
+        fetchJob?.cancel()
         listIntegrator.clear()
         removedViews.clear()
         container.removeAllViews()
         timeEntryLookup.clear()
+        queryOffsets.clear()
     }
 
     fun updateTop() {
@@ -167,20 +198,16 @@ class ChildEventHistoryLoader(
             i++
         }
 
-        val to = timelineObserver ?: return
-
-        for (clsName in ACTIVITIES.ALL) {
-            to.queryOffsets[clsName] = listIntegrator.suggestClassQueryOffset(clsName)
-        }
-        for (clsName in EVENTS.ALL) {
-            to.queryOffsets[clsName] = listIntegrator.suggestClassQueryOffset(clsName)
+        for (cls in IMPLEMENTED_EVENT_CLASSES) {
+            queryOffsets[cls] = listIntegrator.suggestClassQueryOffset(classActivityName(cls))
         }
     }
 
     fun forceRefresh() {
-        updateJob?.cancel("forceRefresh()")
+        updateUiJob?.cancel("forceRefresh()")
+        fetchJob?.cancel("forceRefresh()")
         activityCollectionGate.clear()
-        activityCollectionGate.addAll(ACTIVITIES.ALL + EVENTS.ALL)
-        timelineObserver?.forceUpdate()
+        activityCollectionGate.addAll(IMPLEMENTED_EVENT_CLASSES)
+        startFetch()
     }
 }

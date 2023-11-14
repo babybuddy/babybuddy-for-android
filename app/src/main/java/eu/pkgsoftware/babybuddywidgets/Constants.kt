@@ -5,7 +5,19 @@ object Constants {
         BREAST_MILK(0, "breast milk"),
         FORMULA(1, "formula"),
         FORTIFIED_BREAST_MILK(2,"fortified breast milk"),
-        SOLID_FOOD(3, "solid food"),
+        SOLID_FOOD(3, "solid food");
+
+        companion object {
+            @JvmStatic
+            fun byValue(value: Int): FeedingTypeEnum {
+                return FeedingTypeEnum.values().first { it.value == value }
+            }
+
+            @JvmStatic
+            fun byPostName(name: String): FeedingTypeEnum {
+                return FeedingTypeEnum.values().first { it.post_name == name }
+            }
+        }
     }
 
     enum class FeedingMethodEnum(@JvmField var value: Int, @JvmField var post_name: String) {
@@ -14,7 +26,19 @@ object Constants {
         RIGHT_BREAST(2, "right breast"),
         BOTH_BREASTS(3, "both breasts"),
         PARENT_FED(4, "parent fed"),
-        SELF_FED(5, "self fed"),
+        SELF_FED(5, "self fed");
+
+        companion object {
+            @JvmStatic
+            fun byValue(value: Int): FeedingMethodEnum {
+                return FeedingMethodEnum.values().first { it.value == value }
+            }
+
+            @JvmStatic
+            fun byPostName(name: String): FeedingMethodEnum {
+                return FeedingMethodEnum.values().first { it.post_name == name }
+            }
+        }
     }
 
     @JvmField

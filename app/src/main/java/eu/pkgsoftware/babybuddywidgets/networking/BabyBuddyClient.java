@@ -36,6 +36,7 @@ import androidx.annotation.NonNull;
 import eu.pkgsoftware.babybuddywidgets.Constants;
 import eu.pkgsoftware.babybuddywidgets.CredStore;
 import eu.pkgsoftware.babybuddywidgets.debugging.GlobalDebugObject;
+import eu.pkgsoftware.babybuddywidgets.networking.babybuddy.Client;
 
 public class BabyBuddyClient extends StreamReader {
     public static final String DATE_FORMAT_STRING = "yyyy-MM-dd'T'HH:mm:ssX";
@@ -45,13 +46,15 @@ public class BabyBuddyClient extends StreamReader {
         public static final String SLEEP = "sleep";
         public static final String TUMMY_TIME = "tummy-times";
         public static final String FEEDING = "feedings";
+        public static final String PUMPING = "pumping";
 
-        public static final String[] ALL = new String[3];
+        public static final String[] ALL = new String[4];
 
         static {
             ALL[0] = FEEDING;
             ALL[1] = SLEEP;
             ALL[2] = TUMMY_TIME;
+            ALL[3] = PUMPING;
         }
 
         public static int index(String s) {
@@ -66,11 +69,23 @@ public class BabyBuddyClient extends StreamReader {
 
     public static class EVENTS {
         public static final String CHANGE = "changes";
+        public static final String NOTE = "notes";
+        public static final String TEMPERATURE = "temperature";
+        public static final String WEIGHT = "weight";
+        public static final String BMI = "bmi";
+        public static final String HEIGHT = "height";
+        public static final String HEAD_CIRCUMFERENCE = "head-circumference";
 
-        public static final String[] ALL = new String[1];
+        public static final String[] ALL = new String[7];
 
         static {
             ALL[0] = CHANGE;
+            ALL[1] = NOTE;
+            ALL[2] = TEMPERATURE;
+            ALL[3] = WEIGHT;
+            ALL[4] = BMI;
+            ALL[5] = HEIGHT;
+            ALL[6] = HEAD_CIRCUMFERENCE;
         }
 
         public static int index(String s) {
@@ -494,6 +509,8 @@ public class BabyBuddyClient extends StreamReader {
     private Looper mainLoop;
     private long serverDateOffset = -1000;
 
+    public final Client v2client;
+
     private void updateServerDateTime(HttpURLConnection con) {
         String dateString = con.getHeaderField("Date");
         if (dateString == null) {
@@ -546,6 +563,7 @@ public class BabyBuddyClient extends StreamReader {
         this.mainLoop = mainLoop;
         this.credStore = credStore;
         this.syncMessage = new Handler(mainLoop);
+        this.v2client = new Client(credStore);
     }
 
     private final Random requestIdGenerator = new Random();

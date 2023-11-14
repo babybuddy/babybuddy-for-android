@@ -3,6 +3,7 @@
         <item>Feeding</item>
         <item>Sleep</item>
         <item>Tummy time</item>
+        <item>Pumping</item>
     </array>
     <array name="feedingTypes" translatable="false">
         <item>Breast milk</item>
@@ -142,6 +143,10 @@
         Only the timers that are supported by the app are shown now. Timer controls and manual timer
         associations of timers with activities were removed.
     </string>
+
+    <!-- Disconnect dialog -->
+    <string name="disconnect_dialog_progress_message">Connecting to server…</string>
+    <string name="disconnect_dialog_logout">Logout</string>
 
     <!-- Debugging -->
     <string name="export_debug_logs_title">Export Debug Logs</string>
