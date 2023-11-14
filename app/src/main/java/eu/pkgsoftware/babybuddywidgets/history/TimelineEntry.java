@@ -4,17 +4,20 @@ import android.view.View;
 
 import com.squareup.phrase.Phrase;
 
-import org.jetbrains.annotations.NotNull;
-
 import java.net.MalformedURLException;
 import java.text.DateFormat;
+import java.util.Arrays;
 import java.util.Date;
 import java.util.Objects;
 
 import eu.pkgsoftware.babybuddywidgets.BaseFragment;
+import eu.pkgsoftware.babybuddywidgets.Constants;
 import eu.pkgsoftware.babybuddywidgets.R;
 import eu.pkgsoftware.babybuddywidgets.databinding.TimelineItemBinding;
 import eu.pkgsoftware.babybuddywidgets.networking.BabyBuddyClient;
+import eu.pkgsoftware.babybuddywidgets.networking.babybuddy.models.ChangeEntry;
+import eu.pkgsoftware.babybuddywidgets.networking.babybuddy.models.FeedingEntry;
+import eu.pkgsoftware.babybuddywidgets.networking.babybuddy.models.TimeEntry;
 
 public class TimelineEntry {
     public static final DateFormat DATE_FORMAT = DateFormat.getDateInstance(DateFormat.SHORT);
@@ -23,7 +26,7 @@ public class TimelineEntry {
     private final BaseFragment fragment;
     private final TimelineItemBinding binding;
 
-    private BabyBuddyClient.TimeEntry entry = null;
+    private TimeEntry entry = null;
 
     private Runnable modifiedCallback = null;
 
@@ -36,12 +39,12 @@ public class TimelineEntry {
 
     private Phrase defaultPhraseFields(Phrase phrase) {
         return phrase
-            .putOptional("type", entry.type)
-            .putOptional("start_date", DATE_FORMAT.format(entry.start))
-            .putOptional("start_time", TIME_FORMAT.format(entry.start))
-            .putOptional("end_date", DATE_FORMAT.format(entry.end))
-            .putOptional("end_time", TIME_FORMAT.format(entry.end))
-            .putOptional("notes", entry.notes.trim());
+            .putOptional("type", entry.getType())
+            .putOptional("start_date", DATE_FORMAT.format(entry.getStart()))
+            .putOptional("start_time", TIME_FORMAT.format(entry.getStart()))
+            .putOptional("end_date", DATE_FORMAT.format(entry.getEnd()))
+            .putOptional("end_time", TIME_FORMAT.format(entry.getEnd()))
+            .putOptional("notes", entry.getNotes().trim());
     }
 
     private void configureDefaultView() {
@@ -70,9 +73,9 @@ public class TimelineEntry {
         hideAllSubviews();
         binding.diaperView.setVisibility(View.VISIBLE);
 
-        BabyBuddyClient.ChangeEntry change = (BabyBuddyClient.ChangeEntry) entry;
-        binding.diaperWetImage.setVisibility(change.wet ? View.VISIBLE : View.GONE);
-        binding.diaperSolidImage.setVisibility(change.solid ? View.VISIBLE : View.GONE);
+        ChangeEntry change = (ChangeEntry) entry;
+        binding.diaperWetImage.setVisibility(change.getWet() ? View.VISIBLE : View.GONE);
+        binding.diaperSolidImage.setVisibility(change.getSolid() ? View.VISIBLE : View.GONE);
 
         String message = defaultPhraseFields(
             Phrase.from("{start_date}  {start_time}\n{notes}")
@@ -96,7 +99,7 @@ public class TimelineEntry {
         hideAllSubviews();
         binding.feedingView.setVisibility(View.VISIBLE);
 
-        BabyBuddyClient.FeedingEntry feeding = (BabyBuddyClient.FeedingEntry) entry;
+        FeedingEntry feeding = (FeedingEntry) entry;
 
         binding.feedingBreastImage.setVisibility(View.GONE);
         binding.feedingBreastLeftImage.setVisibility(View.GONE);
@@ -104,16 +107,18 @@ public class TimelineEntry {
         binding.feedingBottleImage.setVisibility(View.GONE);
         binding.solidFoodImage.setVisibility(View.GONE);
 
-        switch (feeding.feedingType) {
+        switch (Constants.FeedingTypeEnum.byPostName(feeding.getFeedingType())) {
             case BREAST_MILK:
-                if (feeding.feedingMethod.value == 1) {
+                final Constants.FeedingMethodEnum feedingMethod =
+                    Constants.FeedingMethodEnum.byPostName(feeding.getFeedingMethod());
+                if (feedingMethod.value == 1) {
                     binding.feedingBreastLeftImage.setVisibility(View.VISIBLE);
                     break;
-                } else if (feeding.feedingMethod.value == 2) {
+                } else if (feedingMethod.value == 2) {
                     binding.feedingBreastRightImage.setVisibility(View.VISIBLE);
                     break;
                 }
-                else if (feeding.feedingMethod.value == 3) {
+                else if (feedingMethod.value == 3) {
                     binding.feedingBreastImage.setVisibility(View.VISIBLE);
                     break;
                 }
@@ -139,7 +144,7 @@ public class TimelineEntry {
         if (entry != null) {
             BabyBuddyClient client = fragment.getMainActivity().getClient();
             try {
-                fragment.showUrlInBrowser(client.pathToUrl(entry.getUserPath()).toString());
+                fragment.showUrlInBrowser(client.v2client.entryUserPath(entry).toString());
                 return true;
             } catch (MalformedURLException e) {
                 e.printStackTrace();
@@ -153,7 +158,7 @@ public class TimelineEntry {
         if (entry == null) {
             return;
         }
-        final BabyBuddyClient.TimeEntry thisEntry = entry;
+        final TimeEntry thisEntry = entry;
 
         fragment.showQuestion(
             true,
@@ -168,7 +173,7 @@ public class TimelineEntry {
                     return;
                 }
                 BabyBuddyClient client = fragment.getMainActivity().getClient();
-                client.removeTimelineEntry(thisEntry, new BabyBuddyClient.RequestCallback<Boolean>() {
+                /*client.removeTimelineEntry(thisEntry, new BabyBuddyClient.RequestCallback<Boolean>() {
                     @Override
                     public void error(@NotNull Exception error) {
                     }
@@ -180,12 +185,12 @@ public class TimelineEntry {
                             modifiedCallback.run();
                         }
                     }
-                });
+                });*/
             }
         );
     }
 
-    public TimelineEntry(BaseFragment fragment, BabyBuddyClient.TimeEntry entry) {
+    public TimelineEntry(BaseFragment fragment, TimeEntry entry) {
         this.fragment = fragment;
 
         binding = TimelineItemBinding.inflate(fragment.getMainActivity().getLayoutInflater());
@@ -195,7 +200,7 @@ public class TimelineEntry {
         binding.removeButton.setOnClickListener((v) -> removeClick());
     }
 
-    public void setTimeEntry(BabyBuddyClient.TimeEntry entry) {
+    public void setTimeEntry(TimeEntry entry) {
         if (Objects.equals(this.entry, entry)) {
             return;
         }
@@ -206,13 +211,13 @@ public class TimelineEntry {
         } else {
             binding.getRoot().setVisibility(View.VISIBLE);
 
-            if (BabyBuddyClient.ACTIVITIES.TUMMY_TIME.equals(entry.type)) {
+            if (BabyBuddyClient.ACTIVITIES.TUMMY_TIME.equals(entry.getType())) {
                 configureTummyTime();
-            } else if (BabyBuddyClient.EVENTS.CHANGE.equals(entry.type)) {
+            } else if (BabyBuddyClient.EVENTS.CHANGE.equals(entry.getType())) {
                 configureChange();
-            } else if (BabyBuddyClient.ACTIVITIES.SLEEP.equals(entry.type)) {
+            } else if (BabyBuddyClient.ACTIVITIES.SLEEP.equals(entry.getType())) {
                 configureSleep();
-            } else if (BabyBuddyClient.ACTIVITIES.FEEDING.equals(entry.type)) {
+            } else if (BabyBuddyClient.ACTIVITIES.FEEDING.equals(entry.getType())) {
                 configureFeeding();
             } else {
                 configureDefaultView();
@@ -220,7 +225,7 @@ public class TimelineEntry {
         }
     }
 
-    public BabyBuddyClient.TimeEntry getTimeEntry() {
+    public TimeEntry getTimeEntry() {
         return entry;
     }
 
@@ -229,7 +234,7 @@ public class TimelineEntry {
     }
 
     public Date getDate() {
-        return entry.end;
+        return entry.getEnd();
     }
 
     public void setModifiedCallback(Runnable r) {

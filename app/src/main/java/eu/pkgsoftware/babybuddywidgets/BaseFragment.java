@@ -16,6 +16,7 @@ import android.view.inputmethod.InputMethodManager;
 import androidx.annotation.NonNull;
 import androidx.annotation.Nullable;
 import androidx.fragment.app.Fragment;
+import eu.pkgsoftware.babybuddywidgets.networking.CoordinatedDisconnectDialog;
 
 public class BaseFragment extends Fragment {
     public interface DialogCallback {
@@ -23,6 +24,8 @@ public class BaseFragment extends Fragment {
     }
 
     private AlertDialog dialog = null;
+    public CoordinatedDisconnectDialog disconnectDialog;
+
     protected ProgressDialog progressDialog;
 
     public AlertDialog showError(boolean override, String title, String errorMessage) {
@@ -133,6 +136,10 @@ public class BaseFragment extends Fragment {
         progressDialog = new ProgressDialog(getContext());
         progressDialog.setProgressStyle(ProgressDialog.STYLE_SPINNER);
         progressDialog.hide();
+
+        disconnectDialog = new CoordinatedDisconnectDialog(
+            this, getMainActivity().getCredStore()
+        );
     }
 
     public void showProgress(String message) {

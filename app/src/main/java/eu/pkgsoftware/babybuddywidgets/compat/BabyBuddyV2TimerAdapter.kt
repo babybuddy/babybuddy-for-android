@@ -3,10 +3,11 @@ package eu.pkgsoftware.babybuddywidgets.compat
 import android.content.res.Resources
 import eu.pkgsoftware.babybuddywidgets.CredStore
 import eu.pkgsoftware.babybuddywidgets.R
+import eu.pkgsoftware.babybuddywidgets.history.IMPLEMENTED_EVENT_CLASSES
 import eu.pkgsoftware.babybuddywidgets.networking.BabyBuddyClient.ACTIVITIES
-import eu.pkgsoftware.babybuddywidgets.networking.BabyBuddyClient.Child
 import eu.pkgsoftware.babybuddywidgets.networking.BabyBuddyClient.Timer
 import eu.pkgsoftware.babybuddywidgets.networking.RequestCodeFailure
+import eu.pkgsoftware.babybuddywidgets.networking.babybuddy.models.classActivityName
 import eu.pkgsoftware.babybuddywidgets.timers.TimerControlInterface
 import eu.pkgsoftware.babybuddywidgets.timers.TimersUpdatedCallback
 import eu.pkgsoftware.babybuddywidgets.timers.TranslatedException
@@ -15,6 +16,8 @@ import java.util.Locale
 
 data class WrappedTimer(val mappedActivityIndex: Int, val timer: Timer) {
 }
+
+val IMPLEMENTED_ACTIVITIES = IMPLEMENTED_EVENT_CLASSES.map {classActivityName(it) }.filter { it in ACTIVITIES.ALL }.toList()
 
 class BabyBuddyV2TimerAdapter(
     val childId: Int,
@@ -67,13 +70,13 @@ class BabyBuddyV2TimerAdapter(
     }
 
     init {
-        virtualTimers = (0 until ACTIVITIES.ALL.size).map {
+        virtualTimers = (0 until IMPLEMENTED_ACTIVITIES.size).map {
             val t = Timer()
             t.id = it + ACTIVITIES.ALL.size * childId
             t.user_id = 0
             t.child_id = childId
             t.active = false
-            t.name = ACTIVITIES.ALL[it]
+            t.name = IMPLEMENTED_ACTIVITIES[it]
             t.start = null
             t.end = null
             t
@@ -99,7 +102,7 @@ class BabyBuddyV2TimerAdapter(
                         continue
                     }
                     val newTimer = timerToVirtualTimer(actTimer.timer) ?: continue
-                    timerList[ACTIVITIES.index(newTimer.name)] = newTimer
+                    timerList[IMPLEMENTED_ACTIVITIES.indexOf(newTimer.name)] = newTimer
                 }
 
                 callback.newTimerListLoaded(timerList.toTypedArray())
@@ -126,9 +129,9 @@ class BabyBuddyV2TimerAdapter(
 
     fun timerToVirtualTimer(timer: Timer): Timer? {
         val mappedActName = mapBabyBuddyNameToActivity(timer.name) ?: return null
-        val activityIndex = ACTIVITIES.index(mappedActName)
+        val virtActivityIndex = IMPLEMENTED_ACTIVITIES.indexOf(mappedActName)
 
-        val virtTimer = virtualTimers[activityIndex]
+        val virtTimer = virtualTimers[virtActivityIndex]
         val newTimer = timer.clone()
         newTimer.name = virtTimer.name
         newTimer.id = virtTimer.id
