@@ -1,6 +1,7 @@
 package eu.pkgsoftware.babybuddywidgets.networking.babybuddy
 
 import eu.pkgsoftware.babybuddywidgets.CredStore
+import eu.pkgsoftware.babybuddywidgets.debugging.GlobalDebugObject
 import eu.pkgsoftware.babybuddywidgets.networking.RequestCodeFailure
 import eu.pkgsoftware.babybuddywidgets.networking.babybuddy.models.ApiInterface
 import eu.pkgsoftware.babybuddywidgets.networking.babybuddy.models.ChildKey
@@ -9,9 +10,7 @@ import eu.pkgsoftware.babybuddywidgets.networking.babybuddy.models.PaginatedEntr
 import eu.pkgsoftware.babybuddywidgets.networking.babybuddy.models.Profile
 import eu.pkgsoftware.babybuddywidgets.networking.babybuddy.models.TimeEntry
 import eu.pkgsoftware.babybuddywidgets.networking.babybuddy.models.UIPath
-import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
-import kotlinx.coroutines.NonCancellable
 import kotlinx.coroutines.withContext
 import okhttp3.Interceptor
 import okhttp3.OkHttpClient
@@ -19,12 +18,9 @@ import okhttp3.Response
 import retrofit2.Call
 import retrofit2.Retrofit
 import retrofit2.converter.jackson.JacksonConverterFactory
-import java.io.IOException
 import java.net.MalformedURLException
-import java.net.SocketException
 import java.net.URL
-import kotlin.coroutines.CoroutineContext
-import kotlin.coroutines.startCoroutine
+import kotlin.random.Random
 import kotlin.reflect.KClass
 import kotlin.reflect.KFunction
 import kotlin.reflect.KTypeProjection
@@ -33,6 +29,10 @@ import kotlin.reflect.full.createType
 import kotlin.reflect.full.findAnnotation
 import kotlin.reflect.full.functions
 import kotlin.reflect.jvm.javaMethod
+
+fun genRequestId(): String {
+    return Random.nextInt(0xFFFFFF + 1).toString(16).padStart(6, '0')
+}
 
 class AuthInterceptor(private val authToken: String) : Interceptor {
     override fun intercept(chain: Interceptor.Chain): Response {
@@ -99,9 +99,17 @@ class Client(val credStore: CredStore) {
     }
 
     suspend fun getProfile(): Profile {
+        val REQID = genRequestId()
         return withContext(Dispatchers.IO) {
-            val call = api.getProfile()
-            executeCall(call)
+            GlobalDebugObject.log("${REQID} V2Client::getProfile")
+            try {
+                val call = api.getProfile()
+                return@withContext executeCall(call)
+            }
+            catch (e: Exception) {
+                GlobalDebugObject.log("${REQID} V2Client::getProfile !exception! ${e.message}")
+                throw e
+            }
         }
     }
 
@@ -112,24 +120,36 @@ class Client(val credStore: CredStore) {
         childId: Int? = null,
         extraArgs: Map<String, String> = mapOf(),
     ): PaginatedResult<T> {
+        val REQID = genRequestId()
+
         return withContext(Dispatchers.IO) {
-            val selected: KFunction<*> = selectPaginatedGetterFunction(itemClass)
-                ?: throw IncorrectApiConfiguration("getter for ${itemClass.qualifiedName} is missing")
+            try {
+                GlobalDebugObject.log("${REQID} V2Client::getEntries ${itemClass.simpleName} childId=${childId} offset=${offset} limit=${limit}")
 
-            val lExtraArgs = extraArgs.toMutableMap()
-            if (childId != null) {
-                val childKeyAnn = selected.findAnnotation<ChildKey>()
-                    ?: throw IncorrectApiConfiguration(
-                        "ChildKey annotation for ${selected.name} is missing"
-                    )
-                lExtraArgs[childKeyAnn.name] = childId.toString()
+                val selected: KFunction<*> = selectPaginatedGetterFunction(itemClass)
+                    ?: throw IncorrectApiConfiguration("getter for ${itemClass.qualifiedName} is missing")
+
+                val lExtraArgs = extraArgs.toMutableMap()
+                if (childId != null) {
+                    val childKeyAnn = selected.findAnnotation<ChildKey>()
+                        ?: throw IncorrectApiConfiguration(
+                            "ChildKey annotation for ${selected.name} is missing"
+                        )
+                    lExtraArgs[childKeyAnn.name] = childId.toString()
+                }
+
+                val call: Call<PaginatedEntries<T>> = selected.javaMethod!!.invoke(
+                    api, offset, limit, lExtraArgs
+                ) as Call<PaginatedEntries<T>>
+                val callResult = executeCall(call)
+
+                GlobalDebugObject.log("${REQID} V2Client::getEntries ${itemClass.simpleName} retrieved ${callResult.count} results")
+                PaginatedResult(callResult.entries, offset, callResult.count)
             }
-
-            val call: Call<PaginatedEntries<T>> = selected.javaMethod!!.invoke(
-                api, offset, limit, lExtraArgs
-            ) as Call<PaginatedEntries<T>>
-            val callResult = executeCall(call)
-            PaginatedResult(callResult.entries, offset, callResult.count)
+            catch (e: Exception) {
+                GlobalDebugObject.log("${REQID} V2Client::getEntries ${itemClass.simpleName} !exception! ${e.message}")
+                throw e
+            }
         }
     }
 
