@@ -92,7 +92,7 @@ class Client(val credStore: CredStore) {
     @Throws(MalformedURLException::class)
     fun entryUserPath(entry: TimeEntry): URL {
         val uiPath = classUIPath(entry::class)
-        return pathToUrl("$uiPath/")
+        return pathToUrl("$uiPath/${entry.id}/")
     }
 
     suspend fun getProfile(): Profile {
