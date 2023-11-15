@@ -69,7 +69,7 @@ class ChildEventHistoryLoader(
                                     it,
                                     offset = queryOffsets.getOrDefault(it, 0),
                                     limit = HISTORY_ITEM_COUNT,
-                                    childId=childId,
+                                    childId = childId,
                                 )
                             }
                             addTimelineItems(r.offset, r.totalCount, it, r.entries)
@@ -91,7 +91,7 @@ class ChildEventHistoryLoader(
         };
         result.entry = e
         result.setModifiedCallback {
-            startFetch()
+            forceRefresh()
         }
         container.addView(result.view)
         currentList.add(result)
@@ -108,7 +108,12 @@ class ChildEventHistoryLoader(
         return result
     }
 
-    private suspend fun addTimelineItems(offset: Int, totalCount: Int, type: KClass<*>, entries: List<TimeEntry>) {
+    private suspend fun addTimelineItems(
+        offset: Int,
+        totalCount: Int,
+        type: KClass<*>,
+        entries: List<TimeEntry>
+    ) {
         activityCollectionGate.remove(type)
 
         // Put this in separate thread!
