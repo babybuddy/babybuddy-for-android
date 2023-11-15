@@ -5,8 +5,10 @@ import android.widget.LinearLayout
 import android.widget.ProgressBar
 import eu.pkgsoftware.babybuddywidgets.BaseFragment
 import eu.pkgsoftware.babybuddywidgets.VisibilityCheck
+import eu.pkgsoftware.babybuddywidgets.debugging.GlobalDebugObject
 import eu.pkgsoftware.babybuddywidgets.logic.ContinuousListItem
 import eu.pkgsoftware.babybuddywidgets.logic.EndAwareContinuousListIntegrator
+import eu.pkgsoftware.babybuddywidgets.networking.RequestCodeFailure
 import eu.pkgsoftware.babybuddywidgets.networking.babybuddy.exponentialBackoff
 import eu.pkgsoftware.babybuddywidgets.networking.babybuddy.models.ChangeEntry
 import eu.pkgsoftware.babybuddywidgets.networking.babybuddy.models.SleepEntry
@@ -61,15 +63,20 @@ class ChildEventHistoryLoader(
             this.fetchJob = scope.launch {
                 IMPLEMENTED_EVENT_CLASSES.map {
                     async {
-                        val r = exponentialBackoff(fragment.disconnectDialog.getInterface()) {
-                            fragment.mainActivity.client.v2client.getEntries(
-                                it,
-                                offset = queryOffsets.getOrDefault(it, 0),
-                                limit = HISTORY_ITEM_COUNT,
-                                childId=childId,
-                            )
+                        try {
+                            val r = exponentialBackoff(fragment.disconnectDialog.getInterface()) {
+                                fragment.mainActivity.client.v2client.getEntries(
+                                    it,
+                                    offset = queryOffsets.getOrDefault(it, 0),
+                                    limit = HISTORY_ITEM_COUNT,
+                                    childId=childId,
+                                )
+                            }
+                            addTimelineItems(r.offset, r.totalCount, it, r.entries)
                         }
-                        addTimelineItems(r.offset, r.totalCount, it, r.entries as List<TimeEntry>)
+                        catch (e: RequestCodeFailure) {
+                            GlobalDebugObject.log("ChildEventHistoryLoader retrieval of ${it.simpleName} failed with code ${e.code}")
+                        }
                     }
                 }.awaitAll()
             }
@@ -82,7 +89,7 @@ class ChildEventHistoryLoader(
         } else {
             TimelineEntry(fragment, e)
         };
-        result.timeEntry = e
+        result.entry = e
         result.setModifiedCallback {
             startFetch()
         }
@@ -151,9 +158,9 @@ class ChildEventHistoryLoader(
                     newTimelineEntry(entry)
                 };
             if (it.dirty) {
-                listItem.timeEntry = null
+                listItem.entry = null
             } else {
-                listItem.timeEntry = entry
+                listItem.entry = entry
             }
             listItem.view.visibility = if (i < visibleCount) {
                 View.VISIBLE

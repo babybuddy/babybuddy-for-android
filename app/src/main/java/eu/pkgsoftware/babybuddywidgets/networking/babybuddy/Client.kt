@@ -9,7 +9,8 @@ import eu.pkgsoftware.babybuddywidgets.networking.babybuddy.models.IncorrectApiC
 import eu.pkgsoftware.babybuddywidgets.networking.babybuddy.models.PaginatedEntries
 import eu.pkgsoftware.babybuddywidgets.networking.babybuddy.models.Profile
 import eu.pkgsoftware.babybuddywidgets.networking.babybuddy.models.TimeEntry
-import eu.pkgsoftware.babybuddywidgets.networking.babybuddy.models.UIPath
+import eu.pkgsoftware.babybuddywidgets.networking.babybuddy.models.classAPIPath
+import eu.pkgsoftware.babybuddywidgets.networking.babybuddy.models.classUIPath
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.withContext
 import okhttp3.Interceptor
@@ -65,9 +66,12 @@ class Client(val credStore: CredStore) {
 
     private val api = retrofit.create(ApiInterface::class.java)
 
-    private fun <T> executeCall(call: Call<T>): T {
+    private fun <T> executeCall(call: Call<T>, ignoredBody: T? = null): T {
         val r = call.execute()
         return if (r.isSuccessful) {
+            if (ignoredBody != null) {
+                return ignoredBody
+            }
             val p = r.body() ?: throw InvalidBody()
             p
         } else {
@@ -85,17 +89,10 @@ class Client(val credStore: CredStore) {
         return URL("$prefix/$trimmedPath")
     }
 
-    inline fun <reified T : Any> getKClass(): KClass<T> {
-        return T::class
-    }
-
     @Throws(MalformedURLException::class)
     fun entryUserPath(entry: TimeEntry): URL {
-        val uiPath = entry.javaClass.getAnnotationsByType(UIPath::class.java)
-        if (uiPath.isEmpty()) {
-            throw IncorrectApiConfiguration("UIPath is missing for ${entry.javaClass.name}")
-        }
-        return pathToUrl(uiPath[0].path + "/")
+        val uiPath = classUIPath(entry::class)
+        return pathToUrl("$uiPath/")
     }
 
     suspend fun getProfile(): Profile {
@@ -148,6 +145,28 @@ class Client(val credStore: CredStore) {
             }
             catch (e: Exception) {
                 GlobalDebugObject.log("${REQID} V2Client::getEntries ${itemClass.simpleName} !exception! ${e.message}")
+                throw e
+            }
+        }
+    }
+
+    suspend fun <T : TimeEntry> deleteEntry(item: T) {
+        val REQID = genRequestId()
+        val klass = item.javaClass.kotlin
+
+        return withContext(Dispatchers.IO) {
+            try {
+
+                GlobalDebugObject.log("${REQID} V2Client::deleteEntry ${klass.simpleName} id=${item.id}")
+                val apiPath = classAPIPath(klass)
+
+                val call = api.genericDeleteEntry(apiPath, item.id)
+                executeCall(call, ignoredBody = Unit)
+
+                GlobalDebugObject.log("${REQID} V2Client::deleteEntry ${klass.simpleName} deleted")
+            }
+            catch (e: Exception) {
+                GlobalDebugObject.log("${REQID} V2Client::deleteEntry ${klass.simpleName} !exception! ${e.message}")
                 throw e
             }
         }
