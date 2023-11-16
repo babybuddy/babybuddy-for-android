@@ -3,11 +3,9 @@ package eu.pkgsoftware.babybuddywidgets.compat
 import android.content.res.Resources
 import eu.pkgsoftware.babybuddywidgets.CredStore
 import eu.pkgsoftware.babybuddywidgets.R
-import eu.pkgsoftware.babybuddywidgets.history.IMPLEMENTED_EVENT_CLASSES
 import eu.pkgsoftware.babybuddywidgets.networking.BabyBuddyClient.ACTIVITIES
 import eu.pkgsoftware.babybuddywidgets.networking.BabyBuddyClient.Timer
 import eu.pkgsoftware.babybuddywidgets.networking.RequestCodeFailure
-import eu.pkgsoftware.babybuddywidgets.networking.babybuddy.models.classActivityName
 import eu.pkgsoftware.babybuddywidgets.timers.TimerControlInterface
 import eu.pkgsoftware.babybuddywidgets.timers.TimersUpdatedCallback
 import eu.pkgsoftware.babybuddywidgets.timers.TranslatedException
@@ -17,7 +15,7 @@ import java.util.Locale
 data class WrappedTimer(val mappedActivityIndex: Int, val timer: Timer) {
 }
 
-val IMPLEMENTED_ACTIVITIES = IMPLEMENTED_EVENT_CLASSES.map {classActivityName(it) }.filter { it in ACTIVITIES.ALL }.toList()
+val IMPLEMENTED_ACTIVITIES = listOf(ACTIVITIES.FEEDING, ACTIVITIES.SLEEP, ACTIVITIES.TUMMY_TIME)
 
 class BabyBuddyV2TimerAdapter(
     val childId: Int,

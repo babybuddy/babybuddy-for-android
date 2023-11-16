@@ -34,3 +34,7 @@ of the sections below.
 ## Solid food (pkg_solid_food)
 
 <a href="https://www.flaticon.com/free-icons/baby-food" title="baby food icons">Baby food icons created by Freepik - Flaticon</a>
+
+## Breast pump (pkg_pumping)
+
+<a href="https://www.flaticon.com/free-icons/breast-pump" title="breast-pump icons">Breast-pump icons created by srip - Flaticon</a>

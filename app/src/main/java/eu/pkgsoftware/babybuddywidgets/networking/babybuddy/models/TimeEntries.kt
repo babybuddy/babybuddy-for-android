@@ -12,6 +12,7 @@ import kotlin.reflect.KClass
 import kotlin.reflect.full.findAnnotations
 
 annotation class ActivityName(val name: String)
+annotation class APIPath(val path: String)
 annotation class UIPath(val path: String)
 
 interface TimeEntry {
@@ -26,6 +27,7 @@ interface TimeEntry {
 
 
 @UIPath("sleep")
+@APIPath("sleep")
 @ActivityName(ACTIVITIES.SLEEP)
 @JsonIgnoreProperties(ignoreUnknown = true)
 data class SleepEntry(
@@ -40,6 +42,7 @@ data class SleepEntry(
 }
 
 @UIPath("tummy-time")
+@APIPath("tummy-times")
 @ActivityName(ACTIVITIES.TUMMY_TIME)
 @JsonIgnoreProperties(ignoreUnknown = true)
 data class TummyTimeEntry(
@@ -54,6 +57,7 @@ data class TummyTimeEntry(
 }
 
 @UIPath("feedings")
+@APIPath("feedings")
 @ActivityName(ACTIVITIES.FEEDING)
 @JsonIgnoreProperties(ignoreUnknown = true)
 data class FeedingEntry(
@@ -71,21 +75,26 @@ data class FeedingEntry(
 }
 
 @UIPath("pumping")
+@APIPath("pumping")
 @ActivityName(ACTIVITIES.PUMPING)
 @JsonIgnoreProperties(ignoreUnknown = true)
 data class PumpingEntry(
     @JsonProperty("id", required = true) override val id: Int,
     @JsonProperty("child", required = true) override val childId: Int,
-    @JsonProperty("start", required = true) @JsonDeserialize(using = DateTimeDeserializer::class) override val start: Date,
-    @JsonProperty("end", required = true) @JsonDeserialize(using = DateTimeDeserializer::class) override val end: Date,
+    @JsonProperty("start", required = false) @JsonDeserialize(using = DateTimeDeserializer::class) val _start: Date?,
+    @JsonProperty("end", required = false) @JsonDeserialize(using = DateTimeDeserializer::class) val _end: Date?,
     @JsonProperty("notes", required = true) override val notes: String,
     @JsonProperty("amount", required = true) val amount: Double,
+    @JsonProperty("time", required = false) @JsonDeserialize(using = DateTimeDeserializer::class) private val _legacyTime: Date?
 ) : TimeEntry {
     override val type: String = ACTIVITIES.PUMPING
     override val typeId: Int = ACTIVITIES.index(type)
+    override val start: Date = _start ?: _legacyTime!!
+    override val end: Date = _end ?: _legacyTime!!
 }
 
 @UIPath("changes")
+@APIPath("changes")
 @ActivityName(EVENTS.CHANGE)
 @JsonIgnoreProperties(ignoreUnknown = true)
 data class ChangeEntry(
@@ -104,6 +113,7 @@ data class ChangeEntry(
 }
 
 @UIPath("notes")
+@APIPath("notes")
 @ActivityName(EVENTS.NOTE)
 @JsonIgnoreProperties(ignoreUnknown = true)
 data class NoteEntry(
@@ -118,6 +128,7 @@ data class NoteEntry(
 }
 
 @UIPath("bmi")
+@APIPath("bmi")
 @ActivityName(EVENTS.BMI)
 @JsonIgnoreProperties(ignoreUnknown = true)
 data class BmiEntry(
@@ -133,6 +144,7 @@ data class BmiEntry(
 }
 
 @UIPath("temperature")
+@APIPath("temperature")
 @ActivityName(EVENTS.TEMPERATURE)
 @JsonIgnoreProperties(ignoreUnknown = true)
 data class TemperatureEntry(
@@ -148,6 +160,7 @@ data class TemperatureEntry(
 }
 
 @UIPath("weight")
+@APIPath("weight")
 @ActivityName(EVENTS.WEIGHT)
 @JsonIgnoreProperties(ignoreUnknown = true)
 data class WeightEntry(
@@ -163,6 +176,7 @@ data class WeightEntry(
 }
 
 @UIPath("height")
+@APIPath("height")
 @ActivityName(EVENTS.HEIGHT)
 @JsonIgnoreProperties(ignoreUnknown = true)
 data class HeightEntry(
@@ -178,6 +192,7 @@ data class HeightEntry(
 }
 
 @UIPath("head-circumference")
+@APIPath("head-circumference")
 @ActivityName(EVENTS.HEAD_CIRCUMFERENCE)
 @JsonIgnoreProperties(ignoreUnknown = true)
 data class HeadCircumferenceEntry(
@@ -208,4 +223,21 @@ fun classActivityName(cls: KClass<*>): String {
         throw IncorrectApiConfiguration("@ActivityName missing for ${cls.qualifiedName}")
     }
     return a[0].name;
+}
+
+fun classUIPath(cls: KClass<*>): String {
+    val a = cls.findAnnotations(UIPath::class)
+    if (a.isEmpty()) {
+        throw IncorrectApiConfiguration("@UIPath missing for ${cls.qualifiedName}")
+    }
+    return a[0].path;
+}
+
+
+fun classAPIPath(cls: KClass<*>): String {
+    val a = cls.findAnnotations(APIPath::class)
+    if (a.isEmpty()) {
+        throw IncorrectApiConfiguration("@APIPath missing for ${cls.qualifiedName}")
+    }
+    return a[0].path;
 }

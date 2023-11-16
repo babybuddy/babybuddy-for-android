@@ -19,6 +19,7 @@ FLATICON_IMAGES = \
 	4063767?size=512::pkg_no_poop::-gravity_center_-resize_100%_-extent_512x512::resources/intermed_cross.png \
 	3313952?size=512::pkg_not_wet::-gravity_center_-resize_80%_-extent_512x512::resources/intermed_cross.png \
 	1001371?size=512::pkg_no_notes::-gravity_center_-resize_90%_-extent_512x512::resources/intermed_cross.png \
+	1848187?size=512::pkg_pumping::-gravity_center_-resize_90%_-extent_512x512:: \
 
 # Replace again!
 # 1001371 -> 768818??size=512::pkg_notes::-gravity_center_-extent_512x512 \

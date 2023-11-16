@@ -1,18 +1,35 @@
 <?xml version="1.0" encoding="utf-8"?>
-<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+<androidx.constraintlayout.widget.ConstraintLayout xmlns:android="http://schemas.android.com/apk/res/android"
     xmlns:app="http://schemas.android.com/apk/res-auto"
+    xmlns:tools="http://schemas.android.com/tools"
     android:layout_width="match_parent"
-    android:layout_height="match_parent"
-    android:gravity="center_vertical"
-    android:orientation="horizontal"
-    android:padding="8dp">
+    android:layout_height="wrap_content"
+    android:orientation="horizontal">
+
+    <ImageButton
+        android:id="@+id/removeButton"
+        android:layout_width="48dp"
+        android:layout_height="48dp"
+        android:layout_marginEnd="8dp"
+        android:background="#FF5555"
+        android:baselineAlignBottom="false"
+        android:padding="4dp"
+        android:src="@android:drawable/ic_menu_delete"
+        app:layout_constraintBottom_toBottomOf="@+id/viewGroup"
+        app:layout_constraintEnd_toEndOf="parent"
+        app:layout_constraintStart_toEndOf="@+id/viewGroup"
+        app:layout_constraintTop_toTopOf="@+id/viewGroup" />
 
     <LinearLayout
         android:id="@+id/viewGroup"
-        android:layout_width="match_parent"
+        android:layout_width="0dp"
         android:layout_height="wrap_content"
-        android:layout_weight="1"
-        android:orientation="vertical">
+        android:layout_marginEnd="8dp"
+        android:orientation="vertical"
+        android:padding="4dp"
+        app:layout_constraintEnd_toStartOf="@+id/removeButton"
+        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintTop_toTopOf="parent">
 
         <LinearLayout
             android:id="@+id/defaultView"
@@ -25,6 +42,64 @@
                 android:layout_width="0dp"
                 android:layout_height="wrap_content"
                 android:layout_weight="1"
+                android:text="TextView" />
+        </LinearLayout>
+
+        <LinearLayout
+            android:id="@+id/noteTimeView"
+            android:layout_width="match_parent"
+            android:layout_height="match_parent"
+            android:layout_weight="0"
+            android:gravity="center_vertical"
+            android:orientation="horizontal">
+
+            <ImageView
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:layout_weight="0"
+                android:background="#CCCCCC"
+                android:minHeight="48dp"
+                android:minWidth="48dp"
+                android:padding="4dp"
+                app:srcCompat="@drawable/pkg_notes"
+                app:tint="@color/fixed_color_button_text_color"
+                app:tintMode="src_in" />
+
+            <TextView
+                android:id="@+id/noteTimeEntryText"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:layout_weight="1"
+                android:paddingLeft="8dp"
+                android:text="TextView" />
+        </LinearLayout>
+
+        <LinearLayout
+            android:id="@+id/pumpingTimeView"
+            android:layout_width="match_parent"
+            android:layout_height="match_parent"
+            android:layout_weight="0"
+            android:gravity="center_vertical"
+            android:orientation="horizontal">
+
+            <ImageView
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:layout_weight="0"
+                android:background="#FF33CC"
+                android:minHeight="48dp"
+                android:minWidth="48dp"
+                android:padding="4dp"
+                app:srcCompat="@drawable/pkg_pumping"
+                app:tint="@color/fixed_color_button_text_color"
+                app:tintMode="src_in" />
+
+            <TextView
+                android:id="@+id/pumpingTimeNotes"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:layout_weight="1"
+                android:paddingLeft="8dp"
                 android:text="TextView" />
         </LinearLayout>
 
@@ -44,9 +119,9 @@
                 android:minHeight="48dp"
                 android:minWidth="48dp"
                 android:padding="4dp"
-                app:tintMode="src_in"
+                app:srcCompat="@drawable/pkg_crawl"
                 app:tint="@color/fixed_color_button_text_color"
-                app:srcCompat="@drawable/pkg_crawl" />
+                app:tintMode="src_in" />
 
             <TextView
                 android:id="@+id/tummytimeMilestoneText"
@@ -73,9 +148,9 @@
                 android:minHeight="48dp"
                 android:minWidth="48dp"
                 android:padding="4dp"
-                app:tintMode="src_in"
+                app:srcCompat="@drawable/pkg_diaper"
                 app:tint="@color/fixed_color_button_text_color"
-                app:srcCompat="@drawable/pkg_diaper" />
+                app:tintMode="src_in" />
 
             <ImageView
                 android:id="@+id/diaperWetImage"
@@ -85,9 +160,9 @@
                 android:minHeight="16dp"
                 android:minWidth="16dp"
                 android:padding="4dp"
-                app:tintMode="src_in"
+                app:srcCompat="@drawable/pkg_wet"
                 app:tint="?android:attr/textColorSecondary"
-                app:srcCompat="@drawable/pkg_wet" />
+                app:tintMode="src_in" />
 
             <ImageView
                 android:id="@+id/diaperSolidImage"
@@ -97,9 +172,9 @@
                 android:minHeight="16dp"
                 android:minWidth="16dp"
                 android:padding="4dp"
-                app:tintMode="src_in"
+                app:srcCompat="@drawable/pkg_poop"
                 app:tint="?android:attr/textColorSecondary"
-                app:srcCompat="@drawable/pkg_poop" />
+                app:tintMode="src_in" />
 
             <TextView
                 android:id="@+id/diaperText"
@@ -126,9 +201,9 @@
                 android:minHeight="48dp"
                 android:minWidth="48dp"
                 android:padding="4dp"
-                app:tintMode="src_in"
+                app:srcCompat="@drawable/pkg_sleep"
                 app:tint="@color/fixed_color_button_text_color"
-                app:srcCompat="@drawable/pkg_sleep" />
+                app:tintMode="src_in" />
 
             <TextView
                 android:id="@+id/sleepText"
@@ -156,9 +231,10 @@
                 android:minHeight="48dp"
                 android:minWidth="48dp"
                 android:padding="4dp"
-                app:tintMode="src_in"
+                app:srcCompat="@drawable/pkg_breast"
                 app:tint="@color/fixed_color_button_text_color"
-                app:srcCompat="@drawable/pkg_breast" />
+                app:tintMode="src_in" />
+
             <ImageView
                 android:id="@+id/feedingBreastLeftImage"
                 android:layout_width="wrap_content"
@@ -168,9 +244,10 @@
                 android:minHeight="48dp"
                 android:minWidth="48dp"
                 android:padding="0dp"
-                app:tintMode="src_in"
+                app:srcCompat="@drawable/pkg_breast_left"
                 app:tint="@color/fixed_color_button_text_color"
-                app:srcCompat="@drawable/pkg_breast_left" />
+                app:tintMode="src_in" />
+
             <ImageView
                 android:id="@+id/feedingBreastRightImage"
                 android:layout_width="wrap_content"
@@ -180,9 +257,9 @@
                 android:minHeight="48dp"
                 android:minWidth="48dp"
                 android:padding="0dp"
-                app:tintMode="src_in"
+                app:srcCompat="@drawable/pkg_breast_right"
                 app:tint="@color/fixed_color_button_text_color"
-                app:srcCompat="@drawable/pkg_breast_right" />
+                app:tintMode="src_in" />
 
             <ImageView
                 android:id="@+id/feedingBottleImage"
@@ -193,9 +270,9 @@
                 android:minHeight="48dp"
                 android:minWidth="48dp"
                 android:padding="4dp"
-                app:tintMode="src_in"
+                app:srcCompat="@drawable/pkg_bottle"
                 app:tint="@color/fixed_color_button_text_color"
-                app:srcCompat="@drawable/pkg_bottle" />
+                app:tintMode="src_in" />
 
             <ImageView
                 android:id="@+id/solidFoodImage"
@@ -206,9 +283,9 @@
                 android:minHeight="48dp"
                 android:minWidth="48dp"
                 android:padding="4dp"
-                app:tintMode="src_in"
+                app:srcCompat="@drawable/pkg_solid_food"
                 app:tint="@color/fixed_color_button_text_color"
-                app:srcCompat="@drawable/pkg_solid_food" />
+                app:tintMode="src_in" />
 
             <TextView
                 android:id="@+id/feedingText"
@@ -220,17 +297,15 @@
         </LinearLayout>
     </LinearLayout>
 
-    <ImageButton
-        android:id="@+id/removeButton"
-        android:layout_width="48dp"
-        android:layout_height="48dp"
-        android:layout_marginBottom="0dp"
-        android:layout_marginEnd="0dp"
-        android:layout_marginStart="8dp"
-        android:layout_weight="0"
-        android:background="#FF5555"
-        android:baselineAlignBottom="false"
-        android:src="@android:drawable/ic_menu_delete"
-        app:srcCompat="@android:drawable/ic_menu_delete" />
+    <eu.pkgsoftware.babybuddywidgets.widgets.LongClickBackgroundBubble
+        android:id="@+id/longclickBubble"
+        style="@style/LongClickBubble"
+        android:layout_width="0dp"
+        android:layout_height="0dp"
+        android:translationZ="1dp"
+        app:layout_constraintBottom_toBottomOf="parent"
+        app:layout_constraintEnd_toEndOf="parent"
+        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintTop_toTopOf="parent" />
 
-</LinearLayout>
+</androidx.constraintlayout.widget.ConstraintLayout>

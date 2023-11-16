@@ -9,6 +9,7 @@
     <item>pkg_sleep</item>
     <item>pkg_bottle</item>
     <item>pkg_solid_food</item>
+    <item>pkg_pumping</item>
   </string-array>
   <string-array name='autostring_about_icon_titles'>
     <item>Poop icons created by Good Ware - Flaticon</item>
@@ -19,6 +20,7 @@
     <item>Sleep icons created by Good Ware - Flaticon</item>
     <item>Baby bottle icons created by juicy_fish - Flaticon</item>
     <item>Baby food icons created by Freepik - Flaticon</item>
+    <item>Breast-pump icons created by srip - Flaticon</item>
   </string-array>
   <string-array name='autostring_about_icon_links'>
     <item>https://www.flaticon.com/free-icons/poop</item>
@@ -29,6 +31,7 @@
     <item>https://www.flaticon.com/free-icons/sleep</item>
     <item>https://www.flaticon.com/free-icons/baby-bottle</item>
     <item>https://www.flaticon.com/free-icons/baby-food</item>
+    <item>https://www.flaticon.com/free-icons/breast-pump</item>
   </string-array>
   <string name='autostring_about_license_title'>Licensed under The MIT License (MIT)</string>
   <string name='autostring_about_license_text'>Copyright © 2022 Paul Konstantin Gerke (and contributors)\n\nPermission is hereby granted, free of charge, to any person obtaining a copy of this software and  associated documentation files (the “Software”), to deal in the Software without restriction,  including without limitation the rights to use, copy, modify, merge, publish, distribute,  sublicense, and/or sell copies of the Software, and to permit persons to whom the Software is  furnished to do so, subject to the following conditions:\n\nThe above copyright notice and this permission notice shall be included in all copies or  substantial portions of the Software.\n\nTHE SOFTWARE IS PROVIDED “AS IS”, WITHOUT WARRANTY OF ANY KIND, EXPRESS OR IMPLIED, INCLUDING BUT  NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE AND  NONINFRINGEMENT. IN NO EVENT SHALL THE AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM,  DAMAGES OR OTHER LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM, OUT  OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.</string>

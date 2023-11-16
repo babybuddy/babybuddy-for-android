@@ -1,9 +1,9 @@
 package eu.pkgsoftware.babybuddywidgets.networking.babybuddy.models
 
-import eu.pkgsoftware.babybuddywidgets.networking.BabyBuddyClient.ACTIVITIES
-import eu.pkgsoftware.babybuddywidgets.networking.BabyBuddyClient.EVENTS
 import retrofit2.Call
+import retrofit2.http.DELETE
 import retrofit2.http.GET
+import retrofit2.http.Path
 import retrofit2.http.Query
 import retrofit2.http.QueryMap
 
@@ -100,4 +100,10 @@ interface ApiInterface {
         @Query("limit") limit: Int,
         @QueryMap extraArgs: Map<String, String>,
     ): Call<PaginatedEntries<HeadCircumferenceEntry>>
+
+    @DELETE("{type}/{id}/")
+    fun genericDeleteEntry(
+        @Path(value = "type", encoded = true) apiPath: String,
+        @Path(value = "id", encoded = true) id: Int,
+    ): Call<Any>
 }

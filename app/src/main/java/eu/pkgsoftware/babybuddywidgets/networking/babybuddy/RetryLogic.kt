@@ -22,7 +22,11 @@ suspend fun <T : Any> exponentialBackoff(dialog: ConnectingDialogInterface, bloc
             try {
                 return block.invoke()
             }
-            catch (_: RequestCodeFailure) {}
+            catch (e: RequestCodeFailure) {
+                if ((e.code >= 400) and (e.code < 500)) {
+                    throw e
+                }
+            }
             catch (_: IOException) {}
 
             showingConnecting = true
