@@ -28,4 +28,8 @@
         <item name="pillColor">@color/semi_transparent_lightred_background</item>
         <item name="android:textColor">@color/black</item>
     </style>
+
+    <style name="LongClickBubble">
+        <item name="color">@color/very_transparent_light_background</item>
+    </style>
 </resources>

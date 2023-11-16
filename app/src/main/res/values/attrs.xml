@@ -16,4 +16,10 @@
     <declare-styleable name="InfoBubble">
         <attr name="pillColor" format="color">"#FFFFFFFF"</attr>
     </declare-styleable>
+
+    <declare-styleable name="LongClickBackgroundBubble">
+        <attr name="color" format="color">"#000000"</attr>
+        <attr name="time" format="float">1</attr>
+    </declare-styleable>
+
 </resources>

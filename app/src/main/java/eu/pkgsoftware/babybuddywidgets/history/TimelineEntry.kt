@@ -1,6 +1,8 @@
 package eu.pkgsoftware.babybuddywidgets.history
 
+import android.view.MotionEvent
 import android.view.View
+import android.view.ViewConfiguration
 import com.squareup.phrase.Phrase
 import eu.pkgsoftware.babybuddywidgets.BaseFragment
 import eu.pkgsoftware.babybuddywidgets.Constants.FeedingMethodEnum
@@ -72,6 +74,10 @@ class TimelineEntry(private val fragment: BaseFragment, private var _entry: Time
 
     init {
         binding.root.setOnLongClickListener { v: View? -> longClick() }
+        binding.root.setOnTouchListener { v, event ->
+            longClickStartStopHandler(v, event)
+            false
+        }
         binding.removeButton.setOnClickListener { v: View? -> removeClick() }
         updateUi()
     }
@@ -181,7 +187,21 @@ class TimelineEntry(private val fragment: BaseFragment, private var _entry: Time
         binding.feedingText.text = message.trim { it <= ' ' }
     }
 
+    private fun longClickStartStopHandler(v: View, event: MotionEvent) {
+        if (event.action == MotionEvent.ACTION_DOWN) {
+            binding.longclickBubble.startGrow()
+        } else if (event.action in listOf(
+                MotionEvent.ACTION_UP,
+                MotionEvent.ACTION_CANCEL,
+                MotionEvent.ACTION_OUTSIDE,
+            )
+        ) {
+            binding.longclickBubble.stopGrow()
+        }
+    }
+
     private fun longClick(): Boolean {
+        binding.longclickBubble.stopGrow()
         val thisEntry = entry ?: return false
         val client = fragment.mainActivity.client.v2client
         return try {

@@ -81,13 +81,16 @@ data class FeedingEntry(
 data class PumpingEntry(
     @JsonProperty("id", required = true) override val id: Int,
     @JsonProperty("child", required = true) override val childId: Int,
-    @JsonProperty("start", required = true) @JsonDeserialize(using = DateTimeDeserializer::class) override val start: Date,
-    @JsonProperty("end", required = true) @JsonDeserialize(using = DateTimeDeserializer::class) override val end: Date,
+    @JsonProperty("start", required = false) @JsonDeserialize(using = DateTimeDeserializer::class) val _start: Date?,
+    @JsonProperty("end", required = false) @JsonDeserialize(using = DateTimeDeserializer::class) val _end: Date?,
     @JsonProperty("notes", required = true) override val notes: String,
     @JsonProperty("amount", required = true) val amount: Double,
+    @JsonProperty("time", required = false) @JsonDeserialize(using = DateTimeDeserializer::class) private val _legacyTime: Date?
 ) : TimeEntry {
     override val type: String = ACTIVITIES.PUMPING
     override val typeId: Int = ACTIVITIES.index(type)
+    override val start: Date = _start ?: _legacyTime!!
+    override val end: Date = _end ?: _legacyTime!!
 }
 
 @UIPath("changes")
