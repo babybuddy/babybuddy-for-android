@@ -17,15 +17,12 @@ import eu.pkgsoftware.babybuddywidgets.databinding.ActivityMainBinding
 import eu.pkgsoftware.babybuddywidgets.networking.BabyBuddyClient
 import eu.pkgsoftware.babybuddywidgets.networking.BabyBuddyClient.Child
 import eu.pkgsoftware.babybuddywidgets.networking.BabyBuddyClient.GenericSubsetResponseHeader
-import eu.pkgsoftware.babybuddywidgets.networking.babybuddy.models.SleepEntry
+import eu.pkgsoftware.babybuddywidgets.tutorial.TutorialAccess
 import eu.pkgsoftware.babybuddywidgets.utils.AsyncClientRequest
 import kotlinx.coroutines.*
 import org.json.JSONArray
-import java.io.IOException
-import java.lang.RuntimeException
 import java.util.*
 import kotlin.coroutines.resume
-import kotlin.coroutines.resumeWithException
 import kotlin.coroutines.suspendCoroutine
 
 interface StoreFunction<X> : BabyBuddyClient.RequestCallback<X> {

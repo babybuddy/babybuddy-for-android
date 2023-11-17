@@ -1,4 +1,4 @@
-package eu.pkgsoftware.babybuddywidgets
+package eu.pkgsoftware.babybuddywidgets.tutorial
 
 import android.animation.Animator
 import android.animation.ObjectAnimator
@@ -6,12 +6,13 @@ import android.graphics.Rect
 import android.view.KeyEvent
 import android.view.View
 import android.widget.TextView
-import androidx.core.animation.doOnCancel
 import androidx.core.animation.doOnEnd
-import androidx.core.animation.doOnRepeat
 import androidx.core.view.doOnNextLayout
 import androidx.fragment.app.FragmentContainerView
 import androidx.navigation.Navigation
+import eu.pkgsoftware.babybuddywidgets.MainActivity
+import eu.pkgsoftware.babybuddywidgets.R
+import eu.pkgsoftware.babybuddywidgets.Tools
 
 fun interface DismissedCallback {
     fun manuallyDismissed()

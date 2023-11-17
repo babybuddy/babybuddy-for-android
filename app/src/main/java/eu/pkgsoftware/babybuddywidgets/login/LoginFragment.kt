@@ -17,10 +17,9 @@ import android.widget.EditText
 import android.widget.TextView
 import androidx.navigation.Navigation.findNavController
 import eu.pkgsoftware.babybuddywidgets.BaseFragment
-import eu.pkgsoftware.babybuddywidgets.DismissedCallback
+import eu.pkgsoftware.babybuddywidgets.tutorial.DismissedCallback
 import eu.pkgsoftware.babybuddywidgets.R
 import eu.pkgsoftware.babybuddywidgets.databinding.LoginFragmentBinding
-import eu.pkgsoftware.babybuddywidgets.login.GrabAppToken.MissingPage
 import eu.pkgsoftware.babybuddywidgets.utils.AsyncPromise
 import eu.pkgsoftware.babybuddywidgets.utils.AsyncPromiseFailure
 import eu.pkgsoftware.babybuddywidgets.utils.CancelParallel
