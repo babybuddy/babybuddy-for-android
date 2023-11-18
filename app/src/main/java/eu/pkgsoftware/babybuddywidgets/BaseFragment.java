@@ -13,12 +13,16 @@ import android.view.View;
 import android.view.ViewGroup;
 import android.view.inputmethod.InputMethodManager;
 
+import org.jetbrains.annotations.NotNull;
+
+import androidx.annotation.LayoutRes;
 import androidx.annotation.NonNull;
 import androidx.annotation.Nullable;
 import androidx.fragment.app.Fragment;
 import eu.pkgsoftware.babybuddywidgets.networking.CoordinatedDisconnectDialog;
+import eu.pkgsoftware.babybuddywidgets.tutorial.TutorialManagement;
 
-public class BaseFragment extends Fragment {
+public abstract class BaseFragment extends Fragment {
     public interface DialogCallback {
         void call(boolean b);
     }
@@ -125,9 +129,22 @@ public class BaseFragment extends Fragment {
     }
 
     @Override
+    public void onResume() {
+        super.onResume();
+
+        TutorialManagement tMan = getMainActivity().getTutorialManagement();
+        setupTutorialMessages(tMan);
+        tMan.selectActiveFragment(this);
+    }
+
+    @Override
     public void onPause() {
         super.onPause();
+        getMainActivity().getTutorialManagement().deselectActiveFragment(this);
         hideError();
+    }
+
+    protected void setupTutorialMessages(TutorialManagement m) {
     }
 
     public void onViewCreated(@NonNull View view, Bundle savedInstanceState) {
