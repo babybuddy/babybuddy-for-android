@@ -120,25 +120,32 @@ class TutorialAccess(private val activity: MainActivity) {
     fun tutorialMessage(_arrowX: Float, _arrowY: Float, message: String) {
         postInit()
 
-        var arrowX: Float = _arrowX - tutorialArrow.width / 2
+        tutorialArrow.visibility = View.VISIBLE
+        tutorialText.visibility = View.VISIBLE
+        tutorialText.text = message
+
+        moveArrow(_arrowX, _arrowY)
+        startArrowAnimation()
+    }
+
+    fun moveArrow(_arrowX: Float, _arrowY: Float) {
+        var arrowX: Float = _arrowX
         var arrowY: Float = _arrowY
 
         val rootView = tutorialArrow.rootView
         val globalRect = Rect()
         rootView.getGlobalVisibleRect(globalRect)
 
-        arrowX = arrowX - globalRect.left
-        arrowY = arrowY - globalRect.top
+        arrowX -= globalRect.left
+        arrowY -= globalRect.top
 
-        tutorialArrow.x = arrowX.toFloat()
-        tutorialArrow.y = arrowY.toFloat()
+        tutorialArrow.x = arrowX - tutorialArrow.width / 2
+        tutorialArrow.y = arrowY
 
-        tutorialText.text = message
         tutorialText.y = arrowY + tutorialArrow.height.toFloat()
         tutorialText.x = arrowX - tutorialText.width / 2f
 
-        tutorialText.visibility = View.VISIBLE
-        tutorialArrow.visibility = View.VISIBLE
+        println("TUT TEXT: ${tutorialArrow.x},${tutorialArrow.y}")
 
         tutorialText.doOnNextLayout {
             val width = it.width
@@ -150,8 +157,6 @@ class TutorialAccess(private val activity: MainActivity) {
             }
         }
         tutorialText.requestLayout()
-
-        startArrowAnimation()
     }
 
     fun hideTutorial(immediate: Boolean = true) {

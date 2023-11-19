@@ -135,7 +135,7 @@ public class LoggedInFragment extends BaseFragment {
                 @NonNull
                 @Override
                 public PointF getPosition() {
-                    return new PointF(50, 50);
+                    return new PointF(150, 150);
                 }
             }
         ));

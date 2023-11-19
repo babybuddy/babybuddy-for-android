@@ -18,8 +18,11 @@ import org.jetbrains.annotations.NotNull;
 import androidx.annotation.LayoutRes;
 import androidx.annotation.NonNull;
 import androidx.annotation.Nullable;
+import androidx.annotation.StringRes;
 import androidx.fragment.app.Fragment;
 import eu.pkgsoftware.babybuddywidgets.networking.CoordinatedDisconnectDialog;
+import eu.pkgsoftware.babybuddywidgets.tutorial.Trackable;
+import eu.pkgsoftware.babybuddywidgets.tutorial.TutorialEntry;
 import eu.pkgsoftware.babybuddywidgets.tutorial.TutorialManagement;
 
 public abstract class BaseFragment extends Fragment {
@@ -144,7 +147,36 @@ public abstract class BaseFragment extends Fragment {
         hideError();
     }
 
-    protected void setupTutorialMessages(TutorialManagement m) {
+    protected void setupTutorialMessages(@NotNull TutorialManagement m) {
+    }
+
+    protected TutorialEntry makeTutorialEntry(@NotNull String id, @NotNull String text, @NotNull Trackable trackable) {
+        return new TutorialEntry(
+            id,
+            getClass(),
+            text,
+            trackable
+        );
+    }
+
+    protected TutorialEntry makeTutorialEntry(@NotNull String text, @NotNull Trackable trackable) {
+        return new TutorialEntry(
+            text.toLowerCase().replaceAll(" ", "_").substring(0, 12) + "_"+ text.hashCode(),
+            getClass(),
+            text,
+            trackable
+        );
+    }
+
+    protected TutorialEntry makeTutorialEntry(@StringRes int textRes, @NotNull Trackable trackable) {
+        String resName = getResources().getResourceEntryName(textRes);
+        String text = getString(textRes);
+        return new TutorialEntry(
+            resName,
+            getClass(),
+            text,
+            trackable
+        );
     }
 
     public void onViewCreated(@NonNull View view, Bundle savedInstanceState) {

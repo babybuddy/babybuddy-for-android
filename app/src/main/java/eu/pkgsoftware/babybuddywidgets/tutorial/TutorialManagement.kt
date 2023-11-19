@@ -1,8 +1,16 @@
 package eu.pkgsoftware.babybuddywidgets.tutorial
 
+import android.app.Activity
 import android.graphics.PointF
 import eu.pkgsoftware.babybuddywidgets.BaseFragment
 import eu.pkgsoftware.babybuddywidgets.CredStore
+import kotlinx.coroutines.CoroutineScope
+import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.Job
+import kotlinx.coroutines.cancel
+import kotlinx.coroutines.delay
+import kotlinx.coroutines.launch
+import kotlinx.coroutines.withContext
 
 interface Trackable {
     fun getPosition(): PointF
@@ -41,6 +49,9 @@ class TutorialManagement(val credStore: CredStore, val tutorialAccess: TutorialA
             return null
         }
 
+    private var updateJob: Job? = null
+    private val scope = CoroutineScope(Dispatchers.Main)
+
     fun addItem(entry: TutorialEntry) {
         tutorialEntries[entry.id] = entry
         showArrow()
@@ -74,10 +85,17 @@ class TutorialManagement(val credStore: CredStore, val tutorialAccess: TutorialA
 
             currentlyShowing = suggestedItem
             suggestedItem?.let {
-                tutorialAccess.manuallyDismissedCallback
+                // tutorialAccess.manuallyDismissedCallback
 
-                val p = it.trackable.getPosition()
-                tutorialAccess.tutorialMessage(p.x, p.y, it.text)
+                updateJob = scope.launch {
+                    var p = it.trackable.getPosition()
+                    tutorialAccess.tutorialMessage(p.x, p.y, it.text)
+                    while (true) {
+                        delay(100)
+                        p = it.trackable.getPosition()
+                        tutorialAccess.moveArrow(p.x, p.y)
+                    }
+                }
             }
         }
     }
@@ -87,5 +105,7 @@ class TutorialManagement(val credStore: CredStore, val tutorialAccess: TutorialA
             tutorialAccess.hideTutorial(false)
             currentlyShowing = null
         }
+        updateJob?.cancel("deactivateArrow")
+        updateJob = null
     }
 }

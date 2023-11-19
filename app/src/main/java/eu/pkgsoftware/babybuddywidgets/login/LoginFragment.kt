@@ -1,6 +1,7 @@
 package eu.pkgsoftware.babybuddywidgets.login
 
 import android.annotation.SuppressLint
+import android.graphics.PointF
 import android.graphics.Rect
 import android.os.Bundle
 import android.provider.Settings
@@ -17,14 +18,14 @@ import android.widget.EditText
 import android.widget.TextView
 import androidx.navigation.Navigation.findNavController
 import eu.pkgsoftware.babybuddywidgets.BaseFragment
-import eu.pkgsoftware.babybuddywidgets.tutorial.DismissedCallback
 import eu.pkgsoftware.babybuddywidgets.R
 import eu.pkgsoftware.babybuddywidgets.databinding.LoginFragmentBinding
+import eu.pkgsoftware.babybuddywidgets.tutorial.Trackable
+import eu.pkgsoftware.babybuddywidgets.tutorial.TutorialManagement
 import eu.pkgsoftware.babybuddywidgets.utils.AsyncPromise
 import eu.pkgsoftware.babybuddywidgets.utils.AsyncPromiseFailure
 import eu.pkgsoftware.babybuddywidgets.utils.CancelParallel
 import eu.pkgsoftware.babybuddywidgets.utils.Promise
-import eu.pkgsoftware.babybuddywidgets.utils.RunOnceAfterLayoutUpdate
 import kotlinx.coroutines.launch
 import java.io.IOException
 import java.net.URL
@@ -95,33 +96,23 @@ class LoginFragment : BaseFragment() {
         }
         binding.qrCode.isEnabled = false
         updateLoginButton()
-        val mainLayout = mainActivity.findViewById<View>(R.id.main_layout)
-        mainLayout.requestLayout()
-        RunOnceAfterLayoutUpdate(mainLayout, Runnable {
-            val r = Rect()
-            val hintPresentedCount = credStore.getTutorialParameter("help_hint")
-            if (hintPresentedCount >= 2) {
-                return@Runnable
-            }
-            val mainAct = mainActivity
-                ?: return@Runnable   // Hotfix -  can happen when the app restarts from resume-state if the fragment deactivates.
-            val toolbar = mainAct.findViewById<View>(R.id.app_toolbar)
-            toolbar.getGlobalVisibleRect(r)
-            val tutorialAccess = mainActivity.tutorialAccess
-            tutorialAccess.tutorialMessage(
-                (
-                        r.right - dpToPx(20f)).toFloat(),
-                r.top.toFloat(),
-                getString(R.string.tutorial_help_1)
-            )
-            tutorialAccess.manuallyDismissedCallback = DismissedCallback {
-                credStore.setTutorialParameter(
-                    "help_hint",
-                    hintPresentedCount + 1
-                )
-            }
-        })
         return binding.root
+    }
+
+    override fun setupTutorialMessages(m: TutorialManagement) {
+        m.addItem(makeTutorialEntry(
+            R.string.tutorial_help_1,
+            object : Trackable {
+                override fun getPosition(): PointF {
+                    val mainAct = mainActivity
+                    val toolbar = mainAct.findViewById<View>(R.id.app_toolbar)
+                    val r = Rect()
+                    toolbar.getGlobalVisibleRect(r)
+
+                    return PointF((r.right - dpToPx(20f)).toFloat(), r.top.toFloat())
+                }
+            }
+        ))
     }
 
     private fun uiStartLogin() {
