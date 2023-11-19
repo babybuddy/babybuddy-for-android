@@ -103,7 +103,7 @@ class LoginFragment : BaseFragment() {
     private inner class BurgerMenuTutorialEntry(_trackable: Trackable) : TutorialEntry(
         "tutorial_arrow_menu",
         this@LoginFragment.javaClass,
-        getString(R.string.tutorial_help_1),
+        getString(R.string.tutorial_suggest_visit_help),
         _trackable,
     ) {
         override val fullId = "help_hint" // Stupid legacy name...

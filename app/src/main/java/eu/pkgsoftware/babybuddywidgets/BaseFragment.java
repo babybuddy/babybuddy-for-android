@@ -150,7 +150,7 @@ public abstract class BaseFragment extends Fragment {
     protected void setupTutorialMessages(@NotNull TutorialManagement m) {
     }
 
-    protected TutorialEntry makeTutorialEntry(@NotNull String id, @NotNull String text, @NotNull Trackable trackable) {
+    public TutorialEntry makeTutorialEntry(@NotNull String id, @NotNull String text, @NotNull Trackable trackable) {
         return new TutorialEntry(
             id,
             getClass(),
@@ -159,7 +159,7 @@ public abstract class BaseFragment extends Fragment {
         );
     }
 
-    protected TutorialEntry makeTutorialEntry(@NotNull String text, @NotNull Trackable trackable) {
+    public TutorialEntry makeTutorialEntry(@NotNull String text, @NotNull Trackable trackable) {
         return new TutorialEntry(
             text.toLowerCase().replaceAll(" ", "_").substring(0, 12) + "_"+ text.hashCode(),
             getClass(),
@@ -168,7 +168,7 @@ public abstract class BaseFragment extends Fragment {
         );
     }
 
-    protected TutorialEntry makeTutorialEntry(@StringRes int textRes, @NotNull Trackable trackable) {
+    public TutorialEntry makeTutorialEntry(@StringRes int textRes, @NotNull Trackable trackable) {
         String resName = getResources().getResourceEntryName(textRes);
         String text = getString(textRes);
         return new TutorialEntry(

@@ -1,9 +1,12 @@
 package eu.pkgsoftware.babybuddywidgets.history
 
+import android.graphics.PointF
+import android.graphics.Rect
 import android.view.View
 import android.widget.LinearLayout
 import android.widget.ProgressBar
 import eu.pkgsoftware.babybuddywidgets.BaseFragment
+import eu.pkgsoftware.babybuddywidgets.R
 import eu.pkgsoftware.babybuddywidgets.VisibilityCheck
 import eu.pkgsoftware.babybuddywidgets.debugging.GlobalDebugObject
 import eu.pkgsoftware.babybuddywidgets.logic.ContinuousListItem
@@ -18,6 +21,7 @@ import eu.pkgsoftware.babybuddywidgets.networking.babybuddy.models.FeedingEntry
 import eu.pkgsoftware.babybuddywidgets.networking.babybuddy.models.NoteEntry
 import eu.pkgsoftware.babybuddywidgets.networking.babybuddy.models.PumpingEntry
 import eu.pkgsoftware.babybuddywidgets.networking.babybuddy.models.classActivityName
+import eu.pkgsoftware.babybuddywidgets.tutorial.Trackable
 import kotlinx.coroutines.*
 import kotlin.reflect.KClass
 
@@ -52,6 +56,7 @@ class ChildEventHistoryLoader(
     private var fetchJob: Job? = null
 
     private val queryOffsets = mutableMapOf<KClass<*>, Int>()
+    private var tutorialMessageAdded = false
 
     init {
         forceRefresh()
@@ -190,7 +195,28 @@ class ChildEventHistoryLoader(
             container.removeView(removed.view)
         }
 
+        attemptAddingLongClickTutorialMessage()
+
         delay(500)
+    }
+
+    private fun attemptAddingLongClickTutorialMessage() {
+        if (tutorialMessageAdded) return
+        if (container.childCount <= 0) return
+        tutorialMessageAdded = true;
+
+        fragment.mainActivity.tutorialManagement.addItem(
+            fragment.makeTutorialEntry(
+                R.string.tutorial_long_click_notification,
+                object : Trackable {
+                    override fun getPosition(): PointF {
+                        val r = Rect()
+                        container.getGlobalVisibleRect(r)
+                        return PointF((r.left + r.right) / 2f, r.top.toFloat())
+                    }
+                }
+            )
+        )
     }
 
     fun close() {
