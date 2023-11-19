@@ -145,8 +145,6 @@ class TutorialAccess(private val activity: MainActivity) {
         tutorialText.y = arrowY + tutorialArrow.height.toFloat()
         tutorialText.x = arrowX - tutorialText.width / 2f
 
-        println("TUT TEXT: ${tutorialArrow.x},${tutorialArrow.y}")
-
         tutorialText.doOnNextLayout {
             val width = it.width
             if (tutorialText.x < globalRect.left) {

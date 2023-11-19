@@ -9,6 +9,7 @@ import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.Job
 import kotlinx.coroutines.cancel
 import kotlinx.coroutines.delay
+import kotlinx.coroutines.isActive
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
 
@@ -79,26 +80,30 @@ class TutorialManagement(val credStore: CredStore, val tutorialAccess: TutorialA
 
     private fun showArrow() {
         val suggestedItem = suggestedItem
-        if (suggestedItem != currentlyShowing) {
+        if (suggestedItem?.fullId != currentlyShowing?.fullId) {
             deactivateArrow()
-
             currentlyShowing = suggestedItem
-            suggestedItem?.let {
-                tutorialAccess.manuallyDismissedCallback = DismissedCallback {
-                    currentlyShowing?.let {
-                        val c = credStore.getTutorialParameter(it.fullId)
-                        credStore.setTutorialParameter(it.fullId, c + 1)
-                    }
-                }
+            startArrow()
+        }
+    }
 
-                updateJob = scope.launch {
-                    var p = it.trackable.getPosition()
-                    tutorialAccess.tutorialMessage(p.x, p.y, it.text)
-                    while (true) {
-                        delay(100)
-                        p = it.trackable.getPosition()
-                        tutorialAccess.moveArrow(p.x, p.y)
-                    }
+    private fun startArrow() {
+        currentlyShowing?.let {
+            tutorialAccess.manuallyDismissedCallback = DismissedCallback {
+                currentlyShowing?.let {
+                    val c = credStore.getTutorialParameter(it.fullId)
+                    credStore.setTutorialParameter(it.fullId, c + 1)
+                }
+            }
+
+            updateJob?.cancel("cancel running job")
+            updateJob = scope.launch {
+                var p = it.trackable.getPosition()
+                tutorialAccess.tutorialMessage(p.x, p.y, it.text)
+                while (isActive) {
+                    delay(100)
+                    p = it.trackable.getPosition()
+                    tutorialAccess.moveArrow(p.x, p.y)
                 }
             }
         }
@@ -107,9 +112,19 @@ class TutorialManagement(val credStore: CredStore, val tutorialAccess: TutorialA
     private fun deactivateArrow() {
         currentlyShowing?.let {
             tutorialAccess.hideTutorial(false)
+            tutorialAccess.manuallyDismissedCallback = null
             currentlyShowing = null
         }
         updateJob?.cancel("deactivateArrow")
         updateJob = null
+    }
+
+    fun updateArrows() {
+        currentlyShowing?.let {
+            val currentId = it.id
+            tutorialAccess.hideTutorial(true)
+            currentlyShowing = tutorialEntries.getOrDefault(currentId, null)
+            startArrow()
+        }
     }
 }

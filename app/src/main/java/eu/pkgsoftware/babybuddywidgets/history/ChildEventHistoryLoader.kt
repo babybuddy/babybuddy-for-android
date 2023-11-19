@@ -203,7 +203,7 @@ class ChildEventHistoryLoader(
     private fun attemptAddingLongClickTutorialMessage() {
         if (tutorialMessageAdded) return
         if (container.childCount <= 0) return
-        tutorialMessageAdded = true;
+        tutorialMessageAdded = true
 
         fragment.mainActivity.tutorialManagement.addItem(
             fragment.makeTutorialEntry(
@@ -217,6 +217,7 @@ class ChildEventHistoryLoader(
                 }
             )
         )
+        fragment.mainActivity.tutorialManagement.updateArrows()
     }
 
     fun close() {
@@ -227,6 +228,7 @@ class ChildEventHistoryLoader(
         container.removeAllViews()
         timeEntryLookup.clear()
         queryOffsets.clear()
+        tutorialMessageAdded = false
     }
 
     fun updateTop() {

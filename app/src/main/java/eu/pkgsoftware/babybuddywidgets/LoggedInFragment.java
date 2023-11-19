@@ -127,18 +127,6 @@ public class LoggedInFragment extends BaseFragment {
 
     @Override
     protected void setupTutorialMessages(TutorialManagement m) {
-        m.addItem(new TutorialEntry(
-            "testtest",
-            this.getClass(),
-            "Hello World",
-            new Trackable() {
-                @NonNull
-                @Override
-                public PointF getPosition() {
-                    return new PointF(150, 150);
-                }
-            }
-        ));
     }
 
     @Override
