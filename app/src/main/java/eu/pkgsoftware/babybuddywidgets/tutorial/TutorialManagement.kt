@@ -16,16 +16,15 @@ interface Trackable {
     fun getPosition(): PointF
 }
 
-class TutorialEntry(
+open class TutorialEntry(
     val id: String,
     val fragmentClass: Class<*>,
     val text: String,
     val trackable: Trackable
 ) {
-    val fullId = "frag:${fragmentClass.simpleName}-id:${id}"
+    open val fullId = "frag:${fragmentClass.simpleName}-id:${id}"
+    open val maxPresentations = 1
 }
-
-val MAX_PRESENTATIONS = 2
 
 class TutorialManagement(val credStore: CredStore, val tutorialAccess: TutorialAccess) {
     private val tutorialEntries = sortedMapOf<String, TutorialEntry>()
@@ -41,7 +40,7 @@ class TutorialManagement(val credStore: CredStore, val tutorialAccess: TutorialA
                 if (e.fragmentClass != fragClass) {
                     continue
                 }
-                if (credStore.getTutorialParameter(e.fullId) < MAX_PRESENTATIONS) {
+                if (credStore.getTutorialParameter(e.fullId) < e.maxPresentations) {
                     return e
                 }
             }
@@ -85,7 +84,12 @@ class TutorialManagement(val credStore: CredStore, val tutorialAccess: TutorialA
 
             currentlyShowing = suggestedItem
             suggestedItem?.let {
-                // tutorialAccess.manuallyDismissedCallback
+                tutorialAccess.manuallyDismissedCallback = DismissedCallback {
+                    currentlyShowing?.let {
+                        val c = credStore.getTutorialParameter(it.fullId)
+                        credStore.setTutorialParameter(it.fullId, c + 1)
+                    }
+                }
 
                 updateJob = scope.launch {
                     var p = it.trackable.getPosition()

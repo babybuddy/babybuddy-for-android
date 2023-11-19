@@ -21,6 +21,7 @@ import eu.pkgsoftware.babybuddywidgets.BaseFragment
 import eu.pkgsoftware.babybuddywidgets.R
 import eu.pkgsoftware.babybuddywidgets.databinding.LoginFragmentBinding
 import eu.pkgsoftware.babybuddywidgets.tutorial.Trackable
+import eu.pkgsoftware.babybuddywidgets.tutorial.TutorialEntry
 import eu.pkgsoftware.babybuddywidgets.tutorial.TutorialManagement
 import eu.pkgsoftware.babybuddywidgets.utils.AsyncPromise
 import eu.pkgsoftware.babybuddywidgets.utils.AsyncPromiseFailure
@@ -99,20 +100,28 @@ class LoginFragment : BaseFragment() {
         return binding.root
     }
 
-    override fun setupTutorialMessages(m: TutorialManagement) {
-        m.addItem(makeTutorialEntry(
-            R.string.tutorial_help_1,
-            object : Trackable {
-                override fun getPosition(): PointF {
-                    val mainAct = mainActivity
-                    val toolbar = mainAct.findViewById<View>(R.id.app_toolbar)
-                    val r = Rect()
-                    toolbar.getGlobalVisibleRect(r)
+    private inner class BurgerMenuTutorialEntry(_trackable: Trackable) : TutorialEntry(
+        "tutorial_arrow_menu",
+        this@LoginFragment.javaClass,
+        getString(R.string.tutorial_help_1),
+        _trackable,
+    ) {
+        override val fullId = "help_hint" // Stupid legacy name...
+        override val maxPresentations = 2
+    }
 
-                    return PointF((r.right - dpToPx(20f)).toFloat(), r.top.toFloat())
-                }
+    override fun setupTutorialMessages(m: TutorialManagement) {
+        val trackable = object : Trackable {
+            override fun getPosition(): PointF {
+                val mainAct = mainActivity
+                val toolbar = mainAct.findViewById<View>(R.id.app_toolbar)
+                val r = Rect()
+                toolbar.getGlobalVisibleRect(r)
+
+                return PointF((r.right - dpToPx(20f)).toFloat(), r.top.toFloat())
             }
-        ))
+        }
+        m.addItem(BurgerMenuTutorialEntry(trackable))
     }
 
     private fun uiStartLogin() {
@@ -222,8 +231,7 @@ class LoginFragment : BaseFragment() {
                     AsyncPromise.call<Any, String> {
                         Utils(mainActivity).testLoginToken(it)
                     }
-                }
-                catch (e: AsyncPromiseFailure) {
+                } catch (e: AsyncPromiseFailure) {
                     credStore.storeAppToken(null)
                     showError(true, "Login failed", e.value.toString())
                     return@cancelParallel
