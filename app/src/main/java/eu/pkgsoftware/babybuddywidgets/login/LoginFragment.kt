@@ -174,7 +174,7 @@ class LoginFragment : BaseFragment() {
             }
         }
         if (mainActivity.credStore.appToken != null) {
-            progressDialog.hide()
+            progressDialog?.hide()
             moveToLoggedIn()
         } else {
             val qrCode = QRCode(this, null, true)
@@ -239,7 +239,7 @@ class LoginFragment : BaseFragment() {
                 moveToLoggedIn()
             }
         }.invokeOnCompletion {
-            progressDialog.hide()
+            progressDialog?.hide()
         }
     }
 

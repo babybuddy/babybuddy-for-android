@@ -18,6 +18,7 @@ import androidx.core.text.toSpannable
 import androidx.navigation.Navigation.findNavController
 import com.squareup.phrase.Phrase
 import eu.pkgsoftware.babybuddywidgets.BaseFragment
+import eu.pkgsoftware.babybuddywidgets.DialogCallback
 import eu.pkgsoftware.babybuddywidgets.R
 import eu.pkgsoftware.babybuddywidgets.databinding.QrCodeLoginFragmentBinding
 import eu.pkgsoftware.babybuddywidgets.utils.AsyncPromise
@@ -107,14 +108,17 @@ class QRCodeLoginFragment : BaseFragment() {
                     getString(R.string.login_qrcode_camera_access_needed_dialog_title),
                     getString(R.string.login_qrcode_camera_access_needed_dialog_body),
                     getString(R.string.login_qrcode_camera_access_needed_dialog_confirm),
-                    getString(R.string.login_qrcode_camera_access_needed_dialog_cancel)
-                ) {
-                    if (it) {
-                        permissionRequest.launch(Manifest.permission.CAMERA)
-                    } else {
-                        navigateBack()
+                    getString(R.string.login_qrcode_camera_access_needed_dialog_cancel),
+                    object : DialogCallback {
+                        override fun call(b: Boolean) {
+                            if (b) {
+                                permissionRequest.launch(Manifest.permission.CAMERA)
+                            } else {
+                                navigateBack()
+                            }
+                        }
                     }
-                }
+                )
             } else {
                 permissionRequest.launch(Manifest.permission.CAMERA)
             }

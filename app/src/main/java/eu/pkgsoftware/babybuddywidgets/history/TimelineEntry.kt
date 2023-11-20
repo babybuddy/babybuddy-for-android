@@ -7,6 +7,7 @@ import com.squareup.phrase.Phrase
 import eu.pkgsoftware.babybuddywidgets.BaseFragment
 import eu.pkgsoftware.babybuddywidgets.Constants.FeedingMethodEnum
 import eu.pkgsoftware.babybuddywidgets.Constants.FeedingTypeEnum
+import eu.pkgsoftware.babybuddywidgets.DialogCallback
 import eu.pkgsoftware.babybuddywidgets.R
 import eu.pkgsoftware.babybuddywidgets.databinding.TimelineItemBinding
 import eu.pkgsoftware.babybuddywidgets.networking.BabyBuddyClient
@@ -222,24 +223,26 @@ class TimelineEntry(private val fragment: BaseFragment, private var _entry: Time
                 Phrase.from(fragment.mainActivity, R.string.history_delete_question)
             ).format().toString().trim { it <= ' ' },
             fragment.resources.getString(R.string.history_delete_question_delete_button),
-            fragment.resources.getString(R.string.history_delete_question_cancel_button)
-        ) { b: Boolean ->
-            if (!b) {
-                return@showQuestion
+            fragment.resources.getString(R.string.history_delete_question_cancel_button),
+            object : DialogCallback {
+                override fun call(b: Boolean) {
+                    if (!b) {
+                        return
+                    }
+                    val client = fragment.mainActivity.client
+                    fragment.mainActivity.scope.launch {
+                        try {
+                            client.v2client.deleteEntry(thisEntry)
+                            this@TimelineEntry.entry = null
+                            modifiedCallback?.run()
+                        } catch (e: RequestCodeFailure) {
+                            e.printStackTrace()
+                        } catch (e: IOException) {
+                            e.printStackTrace()
+                        }
+                    }                }
             }
-            val client = fragment.mainActivity.client
-            fragment.mainActivity.scope.launch {
-                try {
-                    client.v2client.deleteEntry(thisEntry)
-                    this@TimelineEntry.entry = null
-                    modifiedCallback?.run()
-                } catch (e: RequestCodeFailure) {
-                    e.printStackTrace()
-                } catch (e: IOException) {
-                    e.printStackTrace()
-                }
-            }
-        }
+        )
     }
 
     fun setModifiedCallback(r: Runnable?) {
