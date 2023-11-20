@@ -7,12 +7,19 @@
     android:layout_height="match_parent"
     tools:context=".MainActivity">
 
-    <android.view.View
-        android:id="@+id/tutorial_arrow"
-        android:layout_width="64dp"
-        android:layout_height="64dp"
-        android:background="@drawable/ic_tutorial_arrow"
-        android:elevation="10dp" />
+    <LinearLayout
+        android:id="@+id/tutorial_arrow_frame"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:orientation="horizontal"
+        android:elevation="10dp">
+
+        <android.view.View
+            android:id="@+id/tutorial_arrow"
+            android:layout_width="64dp"
+            android:layout_height="64dp"
+            android:background="@drawable/ic_tutorial_arrow"/>
+    </LinearLayout>
 
     <androidx.appcompat.widget.AppCompatTextView
         android:id="@+id/tutorial_text"

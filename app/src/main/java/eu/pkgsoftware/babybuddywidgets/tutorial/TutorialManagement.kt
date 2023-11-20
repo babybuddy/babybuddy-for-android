@@ -13,8 +13,9 @@ import kotlinx.coroutines.isActive
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
 
-interface Trackable {
-    fun getPosition(): PointF
+abstract class Trackable {
+    open val orientation: Direction = Direction.UP
+    abstract val position: PointF?
 }
 
 open class TutorialEntry(
@@ -32,22 +33,21 @@ class TutorialManagement(val credStore: CredStore, val tutorialAccess: TutorialA
     private var selectedFragment: BaseFragment? = null
     private var currentlyShowing: TutorialEntry? = null
 
-    private val suggestedItem: TutorialEntry?
-        get() {
-            val frag = selectedFragment ?: return null
-            val fragClass = frag.javaClass
+    private fun suggestedItem(): TutorialEntry? {
+        val frag = selectedFragment ?: return null
+        val fragClass = frag.javaClass
 
-            for (e in tutorialEntries.values) {
-                if (e.fragmentClass != fragClass) {
-                    continue
-                }
-                if (credStore.getTutorialParameter(e.fullId) < e.maxPresentations) {
-                    return e
-                }
+        for (e in tutorialEntries.values) {
+            if (e.fragmentClass != fragClass) {
+                continue
             }
-
-            return null
+            if (credStore.getTutorialParameter(e.fullId) < e.maxPresentations) {
+                return e
+            }
         }
+
+        return null
+    }
 
     private var updateJob: Job? = null
     private val scope = CoroutineScope(Dispatchers.Main)
@@ -79,31 +79,41 @@ class TutorialManagement(val credStore: CredStore, val tutorialAccess: TutorialA
     }
 
     private fun showArrow() {
-        val suggestedItem = suggestedItem
+        val suggestedItem = suggestedItem()
         if (suggestedItem?.fullId != currentlyShowing?.fullId) {
             deactivateArrow()
             currentlyShowing = suggestedItem
             startArrow()
+        } else if (suggestedItem == null) {
+            deactivateArrow()
         }
     }
 
     private fun startArrow() {
-        currentlyShowing?.let {
+        currentlyShowing?.let { track ->
             tutorialAccess.manuallyDismissedCallback = DismissedCallback {
-                currentlyShowing?.let {
-                    val c = credStore.getTutorialParameter(it.fullId)
-                    credStore.setTutorialParameter(it.fullId, c + 1)
-                }
+                val c = credStore.getTutorialParameter(track.fullId)
+                credStore.setTutorialParameter(track.fullId, c + 1)
+                currentlyShowing = null
+                showArrow()
             }
 
             updateJob?.cancel("cancel running job")
             updateJob = scope.launch {
-                var p = it.trackable.getPosition()
-                tutorialAccess.tutorialMessage(p.x, p.y, it.text)
                 while (isActive) {
                     delay(100)
-                    p = it.trackable.getPosition()
-                    tutorialAccess.moveArrow(p.x, p.y)
+                    track.trackable.position?.let { p ->
+                        if (tutorialAccess.isHidden) {
+                            tutorialAccess.tutorialMessage(
+                                p.x,
+                                p.y,
+                                track.text,
+                                dir = track.trackable.orientation,
+                            )
+                        } else {
+                            tutorialAccess.moveArrow(p.x, p.y, dir = track.trackable.orientation)
+                        }
+                    } ?: tutorialAccess.hideTutorial(true)
                 }
             }
         }

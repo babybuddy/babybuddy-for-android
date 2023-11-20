@@ -111,8 +111,8 @@ class LoginFragment : BaseFragment() {
     }
 
     override fun setupTutorialMessages(m: TutorialManagement) {
-        val trackable = object : Trackable {
-            override fun getPosition(): PointF {
+        val trackable = object : Trackable() {
+            override val position: PointF? get() {
                 val mainAct = mainActivity
                 val toolbar = mainAct.findViewById<View>(R.id.app_toolbar)
                 val r = Rect()

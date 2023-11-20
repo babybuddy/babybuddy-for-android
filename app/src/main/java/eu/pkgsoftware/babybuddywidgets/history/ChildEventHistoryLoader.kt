@@ -21,6 +21,7 @@ import eu.pkgsoftware.babybuddywidgets.networking.babybuddy.models.FeedingEntry
 import eu.pkgsoftware.babybuddywidgets.networking.babybuddy.models.NoteEntry
 import eu.pkgsoftware.babybuddywidgets.networking.babybuddy.models.PumpingEntry
 import eu.pkgsoftware.babybuddywidgets.networking.babybuddy.models.classActivityName
+import eu.pkgsoftware.babybuddywidgets.tutorial.Direction
 import eu.pkgsoftware.babybuddywidgets.tutorial.Trackable
 import kotlinx.coroutines.*
 import kotlin.reflect.KClass
@@ -208,10 +209,12 @@ class ChildEventHistoryLoader(
         fragment.mainActivity.tutorialManagement.addItem(
             fragment.makeTutorialEntry(
                 R.string.tutorial_long_click_notification,
-                object : Trackable {
-                    override fun getPosition(): PointF {
+                object : Trackable() {
+                    override val orientation: Direction = Direction.DOWN
+                    override val position: PointF? get() {
                         val r = Rect()
                         container.getGlobalVisibleRect(r)
+                        if (r.isEmpty) return null
                         return PointF((r.left + r.right) / 2f, r.top.toFloat())
                     }
                 }

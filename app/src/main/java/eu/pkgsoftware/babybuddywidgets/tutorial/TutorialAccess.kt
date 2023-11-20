@@ -5,6 +5,7 @@ import android.animation.ObjectAnimator
 import android.graphics.Rect
 import android.view.KeyEvent
 import android.view.View
+import android.view.ViewGroup
 import android.widget.TextView
 import androidx.core.animation.doOnEnd
 import androidx.core.view.doOnNextLayout
@@ -18,19 +19,24 @@ fun interface DismissedCallback {
     fun manuallyDismissed()
 }
 
+enum class Direction { UP, DOWN }
+
 class TutorialAccess(private val activity: MainActivity) {
     var manuallyDismissedCallback: DismissedCallback? = null
 
-    private val tutorialArrow: View
-    private val tutorialText: TextView
+    private val tutorialArrowFrame: ViewGroup = activity.findViewById(R.id.tutorial_arrow_frame)
+    private val tutorialArrow: View = activity.findViewById(R.id.tutorial_arrow)
+    private val tutorialText: TextView = activity.findViewById(R.id.tutorial_text)
     private var postInitDone = false
     private var runningAnimators = arrayOf<Animator>()
 
+    private val ANIMATION_OFFSET = Tools.dpToPx(tutorialArrow.context, 5.0f).toFloat();
+
     var hideOnInput = true
 
+    val isHidden get() = tutorialArrow.visibility == View.INVISIBLE
+
     init {
-        tutorialArrow = activity.findViewById(R.id.tutorial_arrow)
-        tutorialText = activity.findViewById(R.id.tutorial_text)
 
         tutorialArrow.setOnClickListener {
             handleInput()
@@ -76,15 +82,13 @@ class TutorialAccess(private val activity: MainActivity) {
             it.cancel()
         }
 
-        val arrowY = tutorialArrow.y.toFloat()
-        val offset = Tools.dpToPx(tutorialArrow.context, 5.0f).toFloat();
         val a1 =
-            ObjectAnimator.ofFloat(tutorialArrow, "translationY", -offset + arrowY, offset + arrowY)
+            ObjectAnimator.ofFloat(tutorialArrow, "translationY", -ANIMATION_OFFSET, ANIMATION_OFFSET)
                 .apply {
                     duration = 200;
                 }
         val a2 =
-            ObjectAnimator.ofFloat(tutorialArrow, "translationY", offset + arrowY, -offset + arrowY)
+            ObjectAnimator.ofFloat(tutorialArrow, "translationY", ANIMATION_OFFSET, -ANIMATION_OFFSET)
                 .apply {
                     duration = 200;
                 }
@@ -117,18 +121,21 @@ class TutorialAccess(private val activity: MainActivity) {
         tutorialMessage(rect.centerX().toFloat(), rect.bottom.toFloat(), message)
     }
 
-    fun tutorialMessage(_arrowX: Float, _arrowY: Float, message: String) {
+    fun tutorialMessage(_arrowX: Float, _arrowY: Float, message: String, dir: Direction = Direction.UP) {
+        tutorialArrow.visibility = View.INVISIBLE
+        tutorialText.visibility = View.INVISIBLE
+
         postInit()
+        tutorialText.text = message
+        moveArrow(_arrowX, _arrowY)
+
+        startArrowAnimation()
 
         tutorialArrow.visibility = View.VISIBLE
         tutorialText.visibility = View.VISIBLE
-        tutorialText.text = message
-
-        moveArrow(_arrowX, _arrowY)
-        startArrowAnimation()
     }
 
-    fun moveArrow(_arrowX: Float, _arrowY: Float) {
+    fun moveArrow(_arrowX: Float, _arrowY: Float, dir: Direction = Direction.UP) {
         var arrowX: Float = _arrowX
         var arrowY: Float = _arrowY
 
@@ -139,11 +146,20 @@ class TutorialAccess(private val activity: MainActivity) {
         arrowX -= globalRect.left
         arrowY -= globalRect.top
 
-        tutorialArrow.x = arrowX - tutorialArrow.width / 2
-        tutorialArrow.y = arrowY
+        tutorialArrowFrame.x = arrowX - tutorialArrow.width / 2
+        if (dir == Direction.UP) {
+            tutorialArrowFrame.y = arrowY
+        } else {
+            tutorialArrowFrame.y = arrowY - tutorialArrow.height
+        }
+        tutorialArrow.rotation = if (dir == Direction.UP) 0f else 180f
 
-        tutorialText.y = arrowY + tutorialArrow.height.toFloat()
         tutorialText.x = arrowX - tutorialText.width / 2f
+        if (dir == Direction.UP) {
+            tutorialText.y = arrowY + tutorialArrow.height.toFloat()
+        } else {
+            tutorialText.y = arrowY - tutorialArrow.height.toFloat() - tutorialText.height
+        }
 
         tutorialText.doOnNextLayout {
             val width = it.width
