@@ -183,6 +183,7 @@ class ChildEventHistoryLoader(
             if (i % 50 == 0) {
                 delay(50)
             }
+            attemptAddingLongClickTutorialMessage()
         }
         progressBar.visibility = if (visibleCount == items.size) {
             View.GONE
@@ -196,9 +197,7 @@ class ChildEventHistoryLoader(
             }
             container.removeView(removed.view)
         }
-
         attemptAddingLongClickTutorialMessage()
-
         delay(500)
     }
 
@@ -207,24 +206,22 @@ class ChildEventHistoryLoader(
         if (container.childCount <= 0) return
         tutorialMessageAdded = true
 
-        RunOnceAfterLayoutUpdate(container) {
-            fragment.mainActivity.tutorialManagement.addItem(
-                fragment.makeTutorialEntry(
-                    R.string.tutorial_long_click_notification,
-                    object : Trackable() {
-                        override val orientation: Direction = Direction.DOWN
-                        override val position: PointF? get() {
-                            val r = Rect()
-                            container.getGlobalVisibleRect(r)
-                            println(r)
-                            if (r.isEmpty) return null
-                            return PointF((r.left + r.right) / 2f, r.top.toFloat())
-                        }
+        fragment.mainActivity.tutorialManagement.addItem(
+            fragment.makeTutorialEntry(
+                R.string.tutorial_long_click_notification,
+                object : Trackable() {
+                    override val orientation: Direction = Direction.DOWN
+                    override val position: PointF? get() {
+                        val r = Rect()
+                        container.getGlobalVisibleRect(r)
+                        println(r)
+                        if (r.isEmpty) return null
+                        return PointF((r.left + r.right) / 2f, r.top.toFloat())
                     }
-                )
+                }
             )
-            fragment.mainActivity.tutorialManagement.updateArrows()
-        }
+        )
+        fragment.mainActivity.tutorialManagement.updateArrows()
     }
 
     fun close() {
