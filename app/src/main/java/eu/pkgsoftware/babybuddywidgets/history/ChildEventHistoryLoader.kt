@@ -23,6 +23,7 @@ import eu.pkgsoftware.babybuddywidgets.networking.babybuddy.models.PumpingEntry
 import eu.pkgsoftware.babybuddywidgets.networking.babybuddy.models.classActivityName
 import eu.pkgsoftware.babybuddywidgets.tutorial.Direction
 import eu.pkgsoftware.babybuddywidgets.tutorial.Trackable
+import eu.pkgsoftware.babybuddywidgets.utils.RunOnceAfterLayoutUpdate
 import kotlinx.coroutines.*
 import kotlin.reflect.KClass
 
@@ -206,21 +207,24 @@ class ChildEventHistoryLoader(
         if (container.childCount <= 0) return
         tutorialMessageAdded = true
 
-        fragment.mainActivity.tutorialManagement.addItem(
-            fragment.makeTutorialEntry(
-                R.string.tutorial_long_click_notification,
-                object : Trackable() {
-                    override val orientation: Direction = Direction.DOWN
-                    override val position: PointF? get() {
-                        val r = Rect()
-                        container.getGlobalVisibleRect(r)
-                        if (r.isEmpty) return null
-                        return PointF((r.left + r.right) / 2f, r.top.toFloat())
+        RunOnceAfterLayoutUpdate(container) {
+            fragment.mainActivity.tutorialManagement.addItem(
+                fragment.makeTutorialEntry(
+                    R.string.tutorial_long_click_notification,
+                    object : Trackable() {
+                        override val orientation: Direction = Direction.DOWN
+                        override val position: PointF? get() {
+                            val r = Rect()
+                            container.getGlobalVisibleRect(r)
+                            println(r)
+                            if (r.isEmpty) return null
+                            return PointF((r.left + r.right) / 2f, r.top.toFloat())
+                        }
                     }
-                }
+                )
             )
-        )
-        fragment.mainActivity.tutorialManagement.updateArrows()
+            fragment.mainActivity.tutorialManagement.updateArrows()
+        }
     }
 
     fun close() {

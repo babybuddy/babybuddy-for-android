@@ -127,12 +127,26 @@ class TutorialAccess(private val activity: MainActivity) {
 
         postInit()
         tutorialText.text = message
-        moveArrow(_arrowX, _arrowY)
+        moveArrow(_arrowX, _arrowY, dir = dir)
 
         startArrowAnimation()
 
-        tutorialArrow.visibility = View.VISIBLE
-        tutorialText.visibility = View.VISIBLE
+        tutorialText.doOnNextLayout {
+            tutorialArrow.alpha = 0f
+            tutorialText.alpha = 0f
+            tutorialArrow.visibility = View.VISIBLE
+            tutorialText.visibility = View.VISIBLE
+
+            // Hide weird "jumpy" behavior of the arrow with a fade-in
+            arrayOf(tutorialArrow, tutorialText).forEach {
+                ObjectAnimator.ofFloat(it, "alpha", 0f, 0f, 1f).apply {
+                    duration = 300
+                    setAutoCancel(true)
+                    repeatCount = 0
+                    start()
+                }
+            }
+        }
     }
 
     fun moveArrow(_arrowX: Float, _arrowY: Float, dir: Direction = Direction.UP) {

@@ -137,7 +137,7 @@ public class CredStore extends CredStoreEncryptionEngine {
                 }
             }
 
-            /*if (props.containsKey("tutorial_parameters")) {
+            if (props.containsKey("tutorial_parameters")) {
                 Map<String, String> rawMap = stringToStringMap(props.getProperty("tutorial_parameters"));
                 for (Map.Entry<String, String> entry : rawMap.entrySet()) {
                     try {
@@ -145,7 +145,7 @@ public class CredStore extends CredStoreEncryptionEngine {
                     } catch (NumberFormatException ignored) {
                     }
                 }
-            }*/
+            }
         } catch (NoSuchElementException e) {
             e.printStackTrace();
         }

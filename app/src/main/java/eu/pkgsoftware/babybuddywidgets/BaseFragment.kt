@@ -136,8 +136,8 @@ abstract class BaseFragment : Fragment() {
 
     fun hideKeyboard() {
         // Modified from https://stackoverflow.com/questions/1109022/how-do-you-close-hide-the-android-soft-keyboard-programmatically
-        val activity: Activity? = activity
-        val imm = activity!!.getSystemService(Activity.INPUT_METHOD_SERVICE) as InputMethodManager
+        val activity: Activity = requireActivity()
+        val imm = activity.getSystemService(Activity.INPUT_METHOD_SERVICE) as InputMethodManager
         val view = activity.findViewById<View>(android.R.id.content)
         if (view != null) {
             imm.hideSoftInputFromWindow(view.windowToken, 0)
@@ -146,14 +146,14 @@ abstract class BaseFragment : Fragment() {
 
     override fun onResume() {
         super.onResume()
-        val tMan = mainActivity!!.tutorialManagement
+        val tMan = mainActivity.tutorialManagement
         setupTutorialMessages(tMan)
         tMan.selectActiveFragment(this)
     }
 
     override fun onPause() {
         super.onPause()
-        mainActivity!!.tutorialManagement.deselectActiveFragment(this)
+        mainActivity.tutorialManagement.deselectActiveFragment(this)
         hideError()
     }
 
@@ -191,27 +191,27 @@ abstract class BaseFragment : Fragment() {
     override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
         super.onViewCreated(view, savedInstanceState)
         progressDialog = ProgressDialog(context)
-        progressDialog!!.setProgressStyle(ProgressDialog.STYLE_SPINNER)
-        progressDialog!!.hide()
+        progressDialog.setProgressStyle(ProgressDialog.STYLE_SPINNER)
+        progressDialog.hide()
         disconnectDialog = CoordinatedDisconnectDialog(
-            this, mainActivity!!.credStore
+            this, mainActivity.credStore
         )
     }
 
     fun showProgress(message: String?) {
-        progressDialog!!.setCancelable(false)
-        progressDialog!!.setMessage(message)
-        progressDialog!!.show()
+        progressDialog.setCancelable(false)
+        progressDialog.setMessage(message)
+        progressDialog.show()
     }
 
     fun showProgress(message: String?, cancelButtonText: String?, cancelButton: DialogCallback) {
-        progressDialog!!.setMessage(message)
-        progressDialog!!.setCancelable(true)
-        progressDialog!!.setButton(
+        progressDialog.setMessage(message)
+        progressDialog.setCancelable(true)
+        progressDialog.setButton(
             ProgressDialog.BUTTON_NEGATIVE,
             cancelButtonText
         ) { dialogInterface: DialogInterface?, i: Int -> cancelButton.call(false) }
-        progressDialog!!.show()
+        progressDialog.show()
     }
 
     override fun onDestroy() {

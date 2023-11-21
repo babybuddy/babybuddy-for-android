@@ -32,7 +32,7 @@ class TutorialManagement(val credStore: CredStore, val tutorialAccess: TutorialA
     private var selectedFragment: BaseFragment? = null
     private val shownForSelectedFragmentIds = mutableSetOf<String>()
 
-    private val tutorialEntries = sortedMapOf<String, TutorialEntry>()
+    private var tutorialEntries = sortedMapOf<String, TutorialEntry>()
     private var currentlyShowing: TutorialEntry? = null
 
     private fun suggestedItem(): TutorialEntry? {
@@ -79,6 +79,7 @@ class TutorialManagement(val credStore: CredStore, val tutorialAccess: TutorialA
             if (fragment.javaClass == it.javaClass) {
                 deactivateArrow()
                 shownForSelectedFragmentIds.clear()
+                tutorialEntries.clear()
                 selectedFragment = null
             }
         }

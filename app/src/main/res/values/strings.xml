@@ -28,7 +28,7 @@
 
     <!-- Tutorial Messages -->
     <string name="tutorial_suggest_visit_help">To get started, check out the\nhelp in the main menu.</string>
-    <string name="tutorial_long_click_notification">Long-click on a timeline entry to navigate to the\ncorresponding babybuddy page directly.</string>
+    <string name="tutorial_long_click_notification">Long press a timeline entry to navigate directly to the\ncorresponding babybuddy page in your web browser.</string>
 
     <!-- Strings used for fragments for navigation -->
     <string name="action_settings">Settings</string>
