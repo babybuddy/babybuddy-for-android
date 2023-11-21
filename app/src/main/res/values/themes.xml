@@ -34,4 +34,8 @@
     <style name="LongClickBubble">
         <item name="color">@color/very_transparent_dark_background</item>
     </style>
+
+    <style name="TutorialArrow">
+        <item name="android:backgroundTint">@color/dark_tutorial_highlight</item>
+    </style>
 </resources>

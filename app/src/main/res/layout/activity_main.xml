@@ -9,16 +9,19 @@
 
     <LinearLayout
         android:id="@+id/tutorial_arrow_frame"
-        android:layout_width="wrap_content"
-        android:layout_height="wrap_content"
-        android:orientation="horizontal"
-        android:elevation="10dp">
+        android:layout_width="64dp"
+        android:layout_height="64dp"
+        android:elevation="10dp"
+        android:orientation="horizontal">
 
         <android.view.View
             android:id="@+id/tutorial_arrow"
+            style="@style/TutorialArrow"
             android:layout_width="64dp"
             android:layout_height="64dp"
-            android:background="@drawable/ic_tutorial_arrow"/>
+            android:background="@drawable/ic_tutorial_arrow"
+            android:backgroundTintMode="src_in"
+            android:visibility="visible" />
     </LinearLayout>
 
     <androidx.appcompat.widget.AppCompatTextView
