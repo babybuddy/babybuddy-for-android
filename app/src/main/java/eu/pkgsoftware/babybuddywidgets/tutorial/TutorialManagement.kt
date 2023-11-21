@@ -29,8 +29,10 @@ open class TutorialEntry(
 }
 
 class TutorialManagement(val credStore: CredStore, val tutorialAccess: TutorialAccess) {
-    private val tutorialEntries = sortedMapOf<String, TutorialEntry>()
     private var selectedFragment: BaseFragment? = null
+    private val shownForSelectedFragmentIds = mutableSetOf<String>()
+
+    private val tutorialEntries = sortedMapOf<String, TutorialEntry>()
     private var currentlyShowing: TutorialEntry? = null
 
     private fun suggestedItem(): TutorialEntry? {
@@ -39,6 +41,9 @@ class TutorialManagement(val credStore: CredStore, val tutorialAccess: TutorialA
 
         for (e in tutorialEntries.values) {
             if (e.fragmentClass != fragClass) {
+                continue
+            }
+            if (e.fullId in shownForSelectedFragmentIds) {
                 continue
             }
             if (credStore.getTutorialParameter(e.fullId) < e.maxPresentations) {
@@ -73,6 +78,7 @@ class TutorialManagement(val credStore: CredStore, val tutorialAccess: TutorialA
         selectedFragment?.let {
             if (fragment.javaClass == it.javaClass) {
                 deactivateArrow()
+                shownForSelectedFragmentIds.clear()
                 selectedFragment = null
             }
         }
@@ -94,6 +100,7 @@ class TutorialManagement(val credStore: CredStore, val tutorialAccess: TutorialA
             tutorialAccess.manuallyDismissedCallback = DismissedCallback {
                 val c = credStore.getTutorialParameter(track.fullId)
                 credStore.setTutorialParameter(track.fullId, c + 1)
+                shownForSelectedFragmentIds.add(track.fullId)
                 currentlyShowing = null
                 showArrow()
             }
