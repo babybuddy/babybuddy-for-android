@@ -1,6 +1,7 @@
 package eu.pkgsoftware.babybuddywidgets;
 
 import android.content.Context;
+import android.graphics.PointF;
 import android.os.Bundle;
 import android.view.LayoutInflater;
 import android.view.Menu;
@@ -20,6 +21,9 @@ import eu.pkgsoftware.babybuddywidgets.debugging.GlobalDebugObject;
 import eu.pkgsoftware.babybuddywidgets.networking.BabyBuddyClient;
 import eu.pkgsoftware.babybuddywidgets.networking.ChildrenStateTracker;
 import eu.pkgsoftware.babybuddywidgets.networking.babybuddy.ConnectingDialogInterface;
+import eu.pkgsoftware.babybuddywidgets.tutorial.Trackable;
+import eu.pkgsoftware.babybuddywidgets.tutorial.TutorialEntry;
+import eu.pkgsoftware.babybuddywidgets.tutorial.TutorialManagement;
 
 public class LoggedInFragment extends BaseFragment {
     public static int childIndexBySlug(BabyBuddyClient.Child[] children, String slug) {
@@ -119,6 +123,10 @@ public class LoggedInFragment extends BaseFragment {
             Navigation.findNavController(requireView()).navigate(R.id.action_global_debugLogDisplay);
         }
         return false;
+    }
+
+    @Override
+    protected void setupTutorialMessages(TutorialManagement m) {
     }
 
     @Override

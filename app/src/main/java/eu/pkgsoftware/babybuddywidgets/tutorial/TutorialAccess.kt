@@ -1,35 +1,42 @@
-package eu.pkgsoftware.babybuddywidgets
+package eu.pkgsoftware.babybuddywidgets.tutorial
 
 import android.animation.Animator
 import android.animation.ObjectAnimator
 import android.graphics.Rect
 import android.view.KeyEvent
 import android.view.View
+import android.view.ViewGroup
 import android.widget.TextView
-import androidx.core.animation.doOnCancel
 import androidx.core.animation.doOnEnd
-import androidx.core.animation.doOnRepeat
 import androidx.core.view.doOnNextLayout
 import androidx.fragment.app.FragmentContainerView
 import androidx.navigation.Navigation
+import eu.pkgsoftware.babybuddywidgets.MainActivity
+import eu.pkgsoftware.babybuddywidgets.R
+import eu.pkgsoftware.babybuddywidgets.Tools
 
 fun interface DismissedCallback {
     fun manuallyDismissed()
 }
 
+enum class Direction { UP, DOWN }
+
 class TutorialAccess(private val activity: MainActivity) {
     var manuallyDismissedCallback: DismissedCallback? = null
 
-    private val tutorialArrow: View
-    private val tutorialText: TextView
+    private val tutorialArrowFrame: ViewGroup = activity.findViewById(R.id.tutorial_arrow_frame)
+    private val tutorialArrow: View = activity.findViewById(R.id.tutorial_arrow)
+    private val tutorialText: TextView = activity.findViewById(R.id.tutorial_text)
     private var postInitDone = false
     private var runningAnimators = arrayOf<Animator>()
 
+    private val ANIMATION_OFFSET = Tools.dpToPx(tutorialArrow.context, 5.0f).toFloat();
+
     var hideOnInput = true
 
+    val isHidden get() = tutorialArrow.visibility == View.INVISIBLE
+
     init {
-        tutorialArrow = activity.findViewById(R.id.tutorial_arrow)
-        tutorialText = activity.findViewById(R.id.tutorial_text)
 
         tutorialArrow.setOnClickListener {
             handleInput()
@@ -75,15 +82,13 @@ class TutorialAccess(private val activity: MainActivity) {
             it.cancel()
         }
 
-        val arrowY = tutorialArrow.y.toFloat()
-        val offset = Tools.dpToPx(tutorialArrow.context, 5.0f).toFloat();
         val a1 =
-            ObjectAnimator.ofFloat(tutorialArrow, "translationY", -offset + arrowY, offset + arrowY)
+            ObjectAnimator.ofFloat(tutorialArrow, "translationY", -ANIMATION_OFFSET, ANIMATION_OFFSET)
                 .apply {
                     duration = 200;
                 }
         val a2 =
-            ObjectAnimator.ofFloat(tutorialArrow, "translationY", offset + arrowY, -offset + arrowY)
+            ObjectAnimator.ofFloat(tutorialArrow, "translationY", ANIMATION_OFFSET, -ANIMATION_OFFSET)
                 .apply {
                     duration = 200;
                 }
@@ -116,28 +121,59 @@ class TutorialAccess(private val activity: MainActivity) {
         tutorialMessage(rect.centerX().toFloat(), rect.bottom.toFloat(), message)
     }
 
-    fun tutorialMessage(_arrowX: Float, _arrowY: Float, message: String) {
-        postInit()
+    fun tutorialMessage(_arrowX: Float, _arrowY: Float, message: String, dir: Direction = Direction.UP) {
+        tutorialArrow.visibility = View.INVISIBLE
+        tutorialText.visibility = View.INVISIBLE
 
-        var arrowX: Float = _arrowX - tutorialArrow.width / 2
+        postInit()
+        tutorialText.text = message
+        moveArrow(_arrowX, _arrowY, dir = dir)
+
+        startArrowAnimation()
+
+        tutorialText.doOnNextLayout {
+            tutorialArrow.alpha = 0f
+            tutorialText.alpha = 0f
+            tutorialArrow.visibility = View.VISIBLE
+            tutorialText.visibility = View.VISIBLE
+
+            // Hide weird "jumpy" behavior of the arrow with a fade-in
+            arrayOf(tutorialArrow, tutorialText).forEach {
+                ObjectAnimator.ofFloat(it, "alpha", 0f, 0f, 1f).apply {
+                    duration = 300
+                    setAutoCancel(true)
+                    repeatCount = 0
+                    start()
+                }
+            }
+        }
+    }
+
+    fun moveArrow(_arrowX: Float, _arrowY: Float, dir: Direction = Direction.UP) {
+        var arrowX: Float = _arrowX
         var arrowY: Float = _arrowY
 
         val rootView = tutorialArrow.rootView
         val globalRect = Rect()
         rootView.getGlobalVisibleRect(globalRect)
 
-        arrowX = arrowX - globalRect.left
-        arrowY = arrowY - globalRect.top
+        arrowX -= globalRect.left
+        arrowY -= globalRect.top
 
-        tutorialArrow.x = arrowX.toFloat()
-        tutorialArrow.y = arrowY.toFloat()
+        tutorialArrowFrame.x = arrowX - tutorialArrow.width / 2
+        if (dir == Direction.UP) {
+            tutorialArrowFrame.y = arrowY
+        } else {
+            tutorialArrowFrame.y = arrowY - tutorialArrow.height
+        }
+        tutorialArrow.rotation = if (dir == Direction.UP) 0f else 180f
 
-        tutorialText.text = message
-        tutorialText.y = arrowY + tutorialArrow.height.toFloat()
         tutorialText.x = arrowX - tutorialText.width / 2f
-
-        tutorialText.visibility = View.VISIBLE
-        tutorialArrow.visibility = View.VISIBLE
+        if (dir == Direction.UP) {
+            tutorialText.y = arrowY + tutorialArrow.height.toFloat()
+        } else {
+            tutorialText.y = arrowY - tutorialArrow.height.toFloat() - tutorialText.height
+        }
 
         tutorialText.doOnNextLayout {
             val width = it.width
@@ -149,8 +185,6 @@ class TutorialAccess(private val activity: MainActivity) {
             }
         }
         tutorialText.requestLayout()
-
-        startArrowAnimation()
     }
 
     fun hideTutorial(immediate: Boolean = true) {

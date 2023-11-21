@@ -14,6 +14,8 @@
     <color name="fixed_color_button_text_color">#FF404040</color>
     <color name="help_background">#FF444444</color>
     <color name="help_text_background">#EEFFFFFF</color>
+    <color name="light_tutorial_highlight">#C8FFB8</color>
+    <color name="dark_tutorial_highlight">#273527</color>
     <color name="semi_transparent_dark_background">#CC000000</color>
     <color name="semi_transparent_darkred_background">#CC800000</color>
     <color name="semi_transparent_light_background">#CCFFFFFF</color>

@@ -21,5 +21,4 @@
         <attr name="color" format="color">"#000000"</attr>
         <attr name="time" format="float">1</attr>
     </declare-styleable>
-
 </resources>
