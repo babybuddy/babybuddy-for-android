@@ -35,7 +35,7 @@ platform :android do
   end
 
   desc "Update screenshots"
-  lane: :screenshots do
+  lane :screenshots do
     capture_android_screenshots
   end
 
