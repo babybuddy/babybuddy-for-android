@@ -31,6 +31,14 @@ Runs all the tests
 
 Update version
 
+### android screenshots
+
+```sh
+[bundle exec] fastlane android screenshots
+```
+
+Update screenshots
+
 ### android buildPlaystore
 
 ```sh
