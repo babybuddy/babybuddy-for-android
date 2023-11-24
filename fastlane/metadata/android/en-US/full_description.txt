@@ -15,6 +15,7 @@ The application contains the following media from www.flaticon.com, licensed und
 - <a href="https://www.flaticon.com/free-icons/crawl">Crawl icons created by Freepik - Flaticon</a>
 - <a href="https://www.flaticon.com/free-icons/baby-food">Baby food icons created by Freepik - Flaticon</a>
 - <a href="https://www.flaticon.com/free-icons/baby-bottle">Baby bottle icons created by juicy_fish - Flaticon</a>
+- <a href="https://www.flaticon.com/free-icons/breast-pump">Breast-pump icons created by srip - Flaticon</a>
 
 <h2><b>License and project page</b></h2>
 
