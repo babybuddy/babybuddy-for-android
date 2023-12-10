@@ -12,6 +12,8 @@ import eu.pkgsoftware.babybuddywidgets.debugging.GlobalDebugObject
 import eu.pkgsoftware.babybuddywidgets.logic.ContinuousListItem
 import eu.pkgsoftware.babybuddywidgets.logic.EndAwareContinuousListIntegrator
 import eu.pkgsoftware.babybuddywidgets.networking.RequestCodeFailure
+import eu.pkgsoftware.babybuddywidgets.networking.babybuddy.ConnectingDialogInterface
+import eu.pkgsoftware.babybuddywidgets.networking.babybuddy.InterruptedException
 import eu.pkgsoftware.babybuddywidgets.networking.babybuddy.exponentialBackoff
 import eu.pkgsoftware.babybuddywidgets.networking.babybuddy.models.ChangeEntry
 import eu.pkgsoftware.babybuddywidgets.networking.babybuddy.models.SleepEntry
@@ -23,7 +25,6 @@ import eu.pkgsoftware.babybuddywidgets.networking.babybuddy.models.PumpingEntry
 import eu.pkgsoftware.babybuddywidgets.networking.babybuddy.models.classActivityName
 import eu.pkgsoftware.babybuddywidgets.tutorial.Direction
 import eu.pkgsoftware.babybuddywidgets.tutorial.Trackable
-import eu.pkgsoftware.babybuddywidgets.utils.RunOnceAfterLayoutUpdate
 import kotlinx.coroutines.*
 import kotlin.reflect.KClass
 
@@ -64,6 +65,21 @@ class ChildEventHistoryLoader(
         forceRefresh()
     }
 
+    internal class BackoffConnectionInterface : ConnectingDialogInterface {
+        private var retriesLeft = 3
+
+        override fun interruptLoading(): Boolean {
+            return retriesLeft <= 0
+        }
+
+        override fun showConnecting(currentTimeout: Long) {
+            retriesLeft--
+        }
+
+        override fun hideConnecting() {
+        }
+    }
+
     private fun startFetch() {
         val fetchJob = this.fetchJob
         if ((fetchJob == null) || (!fetchJob.isActive)) {
@@ -71,7 +87,7 @@ class ChildEventHistoryLoader(
                 IMPLEMENTED_EVENT_CLASSES.map {
                     async {
                         try {
-                            val r = exponentialBackoff(fragment.disconnectDialog.getInterface()) {
+                            val r = exponentialBackoff(BackoffConnectionInterface()) {
                                 fragment.mainActivity.client.v2client.getEntries(
                                     it,
                                     offset = queryOffsets.getOrDefault(it, 0),
@@ -81,8 +97,13 @@ class ChildEventHistoryLoader(
                             }
                             addTimelineItems(r.offset, r.totalCount, it, r.entries)
                         }
+                        catch (e: InterruptedException) {
+                            GlobalDebugObject.log("ChildEventHistoryLoader retrieval of ${it.simpleName} failed after three retries")
+                            addTimelineItems(0, 0, it, listOf())
+                        }
                         catch (e: RequestCodeFailure) {
                             GlobalDebugObject.log("ChildEventHistoryLoader retrieval of ${it.simpleName} failed with code ${e.code}")
+                            addTimelineItems(0, 0, it, listOf())
                         }
                     }
                 }.awaitAll()
