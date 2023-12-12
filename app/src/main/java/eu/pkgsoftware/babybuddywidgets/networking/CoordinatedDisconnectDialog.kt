@@ -45,7 +45,7 @@ class CoordinatedDisconnectDialog(val fragment: Fragment, val credStore: CredSto
             return false
         }
 
-        override fun showConnecting(currentTimeout: Long) {
+        override fun showConnecting(currentTimeout: Long, error: Exception?) {
             progressTrackers[key] = currentTimeout
             updateDialog()
         }

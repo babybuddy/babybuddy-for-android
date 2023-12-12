@@ -37,12 +37,17 @@ val IMPLEMENTED_EVENT_CLASSES = listOf(
     PumpingEntry::class,
 )
 
+interface ShowErrorPill {
+    fun showErrorPill(entryType: String, exception: Exception?)
+}
+
 class ChildEventHistoryLoader(
     private val fragment: BaseFragment,
     private val container: LinearLayout,
     private val childId: Int,
     private val visibilityCheck: VisibilityCheck,
-    private val progressBar: ProgressBar
+    private val progressBar: ProgressBar,
+    private val errorPill: ShowErrorPill,
 ) {
     val HISTORY_ITEM_COUNT = 50
     val POLL_INTERVAL = 5000
@@ -65,15 +70,18 @@ class ChildEventHistoryLoader(
         forceRefresh()
     }
 
-    internal class BackoffConnectionInterface : ConnectingDialogInterface {
+    inner class BackoffConnectionInterface(val entryName: String) : ConnectingDialogInterface {
         private var retriesLeft = 3
 
         override fun interruptLoading(): Boolean {
             return retriesLeft <= 0
         }
 
-        override fun showConnecting(currentTimeout: Long) {
+        override fun showConnecting(currentTimeout: Long, error: Exception?) {
             retriesLeft--
+            if (interruptLoading()) {
+                errorPill.showErrorPill(entryName, error)
+            }
         }
 
         override fun hideConnecting() {
@@ -86,8 +94,10 @@ class ChildEventHistoryLoader(
             this.fetchJob = scope.launch {
                 IMPLEMENTED_EVENT_CLASSES.map {
                     async {
+                        val activityName = classActivityName(it)
                         try {
-                            val r = exponentialBackoff(BackoffConnectionInterface()) {
+                            val conInterface = BackoffConnectionInterface(activityName)
+                            val r = exponentialBackoff(conInterface) {
                                 fragment.mainActivity.client.v2client.getEntries(
                                     it,
                                     offset = queryOffsets.getOrDefault(it, 0),
@@ -98,11 +108,12 @@ class ChildEventHistoryLoader(
                             addTimelineItems(r.offset, r.totalCount, it, r.entries)
                         }
                         catch (e: InterruptedException) {
-                            GlobalDebugObject.log("ChildEventHistoryLoader retrieval of ${it.simpleName} failed after three retries")
+                            GlobalDebugObject.log("ChildEventHistoryLoader retrieval of ${it.simpleName} failed after retries")
                             addTimelineItems(0, 0, it, listOf())
                         }
                         catch (e: RequestCodeFailure) {
                             GlobalDebugObject.log("ChildEventHistoryLoader retrieval of ${it.simpleName} failed with code ${e.code}")
+                            errorPill.showErrorPill(activityName, e)
                             addTimelineItems(0, 0, it, listOf())
                         }
                     }

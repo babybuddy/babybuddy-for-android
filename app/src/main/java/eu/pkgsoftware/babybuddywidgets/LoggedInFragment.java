@@ -161,7 +161,7 @@ public class LoggedInFragment extends BaseFragment {
                 if (connected) {
                     disconnectInterface.hideConnecting();
                 } else {
-                    disconnectInterface.showConnecting(disconnectedFor);
+                    disconnectInterface.showConnecting(disconnectedFor, null);
                 }
             }
         );

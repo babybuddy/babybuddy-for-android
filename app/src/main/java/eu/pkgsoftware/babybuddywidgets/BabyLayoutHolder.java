@@ -2,15 +2,20 @@ package eu.pkgsoftware.babybuddywidgets;
 
 import android.view.View;
 
+import com.squareup.phrase.Phrase;
+
 import org.jetbrains.annotations.NotNull;
 
 import androidx.annotation.NonNull;
+import androidx.annotation.Nullable;
+import androidx.fragment.app.Fragment;
 import androidx.recyclerview.widget.GridLayoutManager;
 import androidx.recyclerview.widget.RecyclerView;
 import eu.pkgsoftware.babybuddywidgets.activitycomponents.TimerControl;
 import eu.pkgsoftware.babybuddywidgets.databinding.BabyManagerBinding;
 import eu.pkgsoftware.babybuddywidgets.databinding.NotesEditorBinding;
 import eu.pkgsoftware.babybuddywidgets.history.ChildEventHistoryLoader;
+import eu.pkgsoftware.babybuddywidgets.history.ShowErrorPill;
 import eu.pkgsoftware.babybuddywidgets.networking.BabyBuddyClient;
 import eu.pkgsoftware.babybuddywidgets.networking.ChildrenStateTracker;
 import eu.pkgsoftware.babybuddywidgets.timers.EmptyTimerListProvider;
@@ -177,7 +182,17 @@ public class BabyLayoutHolder extends RecyclerView.ViewHolder implements TimerCo
                 binding.innerTimeline,
                 child.id,
                 new VisibilityCheck(binding.mainScrollView),
-                binding.timelineProgressSpinner
+                binding.timelineProgressSpinner,
+                (entryType, exception) -> {
+                    String tActivity = baseFragment.translateActivityName(entryType);
+
+                    String msg = Phrase.from(baseFragment.getResources(), R.string.history_loading_timeline_entry_failed)
+                        .put("activity", tActivity)
+                        .format().toString();
+
+                    binding.errorBubble.flashMessage(msg, 2000);
+                }
+
             );
             timerListProvider = new TimerListProvider(baseFragment, this);
             binding.timersList.setAdapter(timerListProvider);

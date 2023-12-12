@@ -26,6 +26,19 @@
     <string name="about_external_media_resources_title">Third party media</string>
     <string name="about_external_libraries_title">Third party libraries</string>
 
+    <!-- Translations for all events and activities using their activity name as keys without capitalization -->
+    <string name="activity_singular_sleep">sleep</string>
+    <string name="activity_singular_tummy_times">tummy time</string>
+    <string name="activity_singular_feedings">feeding</string>
+    <string name="activity_singular_pumping">pumping</string>
+    <string name="activity_singular_changes">change</string>
+    <string name="activity_singular_notes">note</string>
+    <string name="activity_singular_bmi">bmi</string>
+    <string name="activity_singular_temperature">temperature</string>
+    <string name="activity_singular_weight">weight</string>
+    <string name="activity_singular_height">height</string>
+    <string name="activity_singular_head_circumference">head circumference</string>
+
     <!-- Tutorial Messages -->
     <string name="tutorial_suggest_visit_help">To get started, check out the\nhelp in the main menu.</string>
     <string name="tutorial_long_click_notification">Long press a timeline entry to navigate directly to the\ncorresponding babybuddy page in your web browser.</string>
@@ -103,6 +116,8 @@
     </string>
     <string name="history_delete_question_delete_button">Delete</string>
     <string name="history_delete_question_cancel_button">Cancel</string>
+    <string name="history_loading_timeline_entry_failed">Failed to load {activity} entries.</string>
+    <string name="history_loading_timeline_entry_failed_with_error">Failed to load {activity} entries: {error}</string>
 
     <!-- QR Code Login -->
     <string name="login_qrcode_camera_access_needed_dialog_title">Camera access needed</string>

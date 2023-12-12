@@ -1,7 +1,8 @@
 <?xml version="1.0" encoding="utf-8"?>
-<RelativeLayout xmlns:android="http://schemas.android.com/apk/res/android"
+<androidx.constraintlayout.widget.ConstraintLayout xmlns:android="http://schemas.android.com/apk/res/android"
     xmlns:app="http://schemas.android.com/apk/res-auto"
     xmlns:tools="http://schemas.android.com/tools"
+    android:id="@+id/relativeLayout"
     android:layout_width="match_parent"
     android:layout_height="match_parent"
     android:padding="16dp">
@@ -11,7 +12,10 @@
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
         android:gravity="center"
-        android:orientation="horizontal">
+        android:orientation="horizontal"
+        app:layout_constraintEnd_toEndOf="parent"
+        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintTop_toTopOf="parent">
 
         <TextView
             android:id="@+id/textView"
@@ -22,15 +26,21 @@
             android:text="Diaper"
             android:textAppearance="@style/TextAppearance.AppCompat.Large" />
 
+        <LinearLayout
+            android:layout_width="wrap_content"
+            android:layout_height="match_parent"
+            android:layout_weight="1"
+            android:orientation="horizontal"></LinearLayout>
+
         <ImageButton
             android:id="@+id/wetDisabledButton"
             android:layout_width="64dp"
             android:layout_height="64dp"
+            android:layout_weight="0"
             android:scaleType="fitCenter"
             android:src="@drawable/pkg_not_wet"
             android:tint="?android:attr/textColorSecondary"
-            android:tintMode="src_in"
-            android:layout_weight="0"/>
+            android:tintMode="src_in" />
 
         <ImageButton
             android:id="@+id/wetEnabledButton"
@@ -46,14 +56,13 @@
 
         <ImageButton
             android:id="@+id/solidDisabledButton"
-            android:layout_weight="0"
             android:layout_width="64dp"
             android:layout_height="64dp"
+            android:layout_weight="0"
             android:scaleType="fitCenter"
             android:src="@drawable/pkg_no_poop"
             android:tint="?android:attr/textColorSecondary"
-            android:tintMode="src_in"
-            />
+            android:tintMode="src_in" />
 
         <ImageButton
             android:id="@+id/solidEnabledButton"
@@ -66,12 +75,6 @@
             android:tint="@color/fixed_color_button_text_color"
             android:tintMode="src_in"
             android:visibility="gone" />
-
-        <LinearLayout
-            android:layout_width="wrap_content"
-            android:layout_height="match_parent"
-            android:layout_weight="1"
-            android:orientation="horizontal"></LinearLayout>
 
         <ImageButton
             android:id="@+id/removeNoteButton"
@@ -106,24 +109,26 @@
             app:layout_constraintBottom_toBottomOf="parent"
             app:layout_constraintEnd_toEndOf="parent"
             app:layout_constraintTop_toTopOf="parent"
-            app:srcCompat="@android:drawable/ic_menu_save"/>
+            app:srcCompat="@android:drawable/ic_menu_save" />
+
     </LinearLayout>
 
     <LinearLayout
+        android:id="@+id/diaperNotesSlot"
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
         android:orientation="horizontal"
-        android:id="@+id/diaperNotesSlot"
-        android:layout_below="@id/changeButtons"
-        />
+        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintTop_toBottomOf="@id/changeButtons" />
 
     <ScrollView
+        android:id="@+id/mainScrollView"
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
-        android:layout_below="@id/diaperNotesSlot"
-        android:layout_centerHorizontal="true"
         android:layout_marginTop="8dp"
-        android:id="@+id/mainScrollView">
+        app:layout_constraintLeft_toLeftOf="parent"
+        app:layout_constraintRight_toRightOf="parent"
+        app:layout_constraintTop_toBottomOf="@id/diaperNotesSlot">
 
         <LinearLayout
             android:layout_width="match_parent"
@@ -133,15 +138,14 @@
             <androidx.recyclerview.widget.RecyclerView
                 android:id="@+id/timersList"
                 android:layout_width="match_parent"
-                android:layout_height="wrap_content">
-            </androidx.recyclerview.widget.RecyclerView>
+                android:layout_height="wrap_content"></androidx.recyclerview.widget.RecyclerView>
 
             <LinearLayout
                 android:id="@+id/timeline"
-                android:orientation="vertical"
-                android:layout_marginTop="16dp"
                 android:layout_width="match_parent"
-                android:layout_height="wrap_content">
+                android:layout_height="wrap_content"
+                android:layout_marginTop="16dp"
+                android:orientation="vertical">
 
                 <LinearLayout
                     android:id="@+id/innerTimeline"
@@ -156,6 +160,20 @@
                     android:layout_height="wrap_content" />
 
             </LinearLayout>
+
         </LinearLayout>
     </ScrollView>
-</RelativeLayout>
+
+    <eu.pkgsoftware.babybuddywidgets.widgets.InfoBubble
+        android:id="@+id/errorBubble"
+        style="@style/WarningPill"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_marginBottom="32dp"
+        android:elevation="2dp"
+        android:text="Demo Text\nSecond Demo Text"
+        android:visibility="invisible"
+        app:layout_constraintBottom_toBottomOf="parent"
+        app:layout_constraintEnd_toEndOf="parent"
+        app:layout_constraintStart_toStartOf="parent" />
+</androidx.constraintlayout.widget.ConstraintLayout>
