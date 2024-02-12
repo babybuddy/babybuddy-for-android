@@ -101,6 +101,14 @@ interface ApiInterface {
         @QueryMap extraArgs: Map<String, String>,
     ): Call<PaginatedEntries<HeadCircumferenceEntry>>
 
+    @ChildKey("child")
+    @GET("bmi")
+    fun getBmiEntries(
+        @Query("offset") offset: Int,
+        @Query("limit") limit: Int,
+        @QueryMap extraArgs: Map<String, String>,
+    ): Call<PaginatedEntries<BmiEntry>>
+
     @DELETE("{type}/{id}/")
     fun genericDeleteEntry(
         @Path(value = "type", encoded = true) apiPath: String,

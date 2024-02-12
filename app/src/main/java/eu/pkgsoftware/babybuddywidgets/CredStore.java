@@ -23,8 +23,9 @@ import java.util.Properties;
 import java.util.regex.Pattern;
 
 import androidx.annotation.NonNull;
+import eu.pkgsoftware.babybuddywidgets.networking.ServerAccessProviderInterface;
 
-public class CredStore extends CredStoreEncryptionEngine {
+public class CredStore extends CredStoreEncryptionEngine implements ServerAccessProviderInterface {
     public static final Notes EMPTY_NOTES = new Notes("", false);
 
     public static class Notes {

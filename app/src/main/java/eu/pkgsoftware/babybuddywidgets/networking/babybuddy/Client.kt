@@ -3,6 +3,7 @@ package eu.pkgsoftware.babybuddywidgets.networking.babybuddy
 import eu.pkgsoftware.babybuddywidgets.CredStore
 import eu.pkgsoftware.babybuddywidgets.debugging.GlobalDebugObject
 import eu.pkgsoftware.babybuddywidgets.networking.RequestCodeFailure
+import eu.pkgsoftware.babybuddywidgets.networking.ServerAccessProviderInterface
 import eu.pkgsoftware.babybuddywidgets.networking.babybuddy.models.ApiInterface
 import eu.pkgsoftware.babybuddywidgets.networking.babybuddy.models.ChildKey
 import eu.pkgsoftware.babybuddywidgets.networking.babybuddy.models.IncorrectApiConfiguration
@@ -53,7 +54,7 @@ data class PaginatedResult<T> (
     val totalCount: Int,
 )
 
-class Client(val credStore: CredStore) {
+class Client(val credStore: ServerAccessProviderInterface) {
     val httpClient = OkHttpClient.Builder()
         .addInterceptor(AuthInterceptor("Token " + credStore.appToken))
         .build()
