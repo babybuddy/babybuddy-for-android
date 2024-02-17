@@ -1,6 +1,5 @@
 package eu.pkgsoftware.babybuddywidgets.networking.babybuddy
 
-import eu.pkgsoftware.babybuddywidgets.CredStore
 import eu.pkgsoftware.babybuddywidgets.debugging.GlobalDebugObject
 import eu.pkgsoftware.babybuddywidgets.networking.RequestCodeFailure
 import eu.pkgsoftware.babybuddywidgets.networking.ServerAccessProviderInterface

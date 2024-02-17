@@ -102,7 +102,7 @@ public class BabyBuddyClient extends StreamReader {
         if (o.isNull(field)) {
             return null;
         }
-        final SimpleDateFormat sdf = new SimpleDateFormat(DATE_FORMAT_STRING);
+        final SimpleDateFormat sdf = new SimpleDateFormat(DATE_FORMAT_STRING, Locale.ENGLISH);
 
         // Remove milliseconds
         String strDate = o.getString(field);
@@ -115,7 +115,7 @@ public class BabyBuddyClient extends StreamReader {
         if (date == null) {
             return null;
         }
-        final SimpleDateFormat sdf = new SimpleDateFormat(DATE_FORMAT_STRING);
+        final SimpleDateFormat sdf = new SimpleDateFormat(DATE_FORMAT_STRING, Locale.ENGLISH);
         return sdf.format(date);
     }
 
@@ -123,7 +123,7 @@ public class BabyBuddyClient extends StreamReader {
         if (date == null) {
             return null;
         }
-        final SimpleDateFormat sdf = new SimpleDateFormat(DATE_QUERY_FORMAT_STRING);
+        final SimpleDateFormat sdf = new SimpleDateFormat(DATE_QUERY_FORMAT_STRING, Locale.ENGLISH);
         sdf.setTimeZone(TimeZone.getTimeZone("UTC"));
         return sdf.format(date);
     }
@@ -502,7 +502,9 @@ public class BabyBuddyClient extends StreamReader {
         void response(R response);
     }
 
-    private final SimpleDateFormat SERVER_DATE_FORMAT = new SimpleDateFormat("EEE, d MMM yyyy HH:mm:ss z");
+    private final SimpleDateFormat SERVER_DATE_FORMAT = new SimpleDateFormat(
+        "EEE, d MMM yyyy HH:mm:ss z", Locale.ENGLISH
+    );
 
     private Handler syncMessage;
     private CredStore credStore;
@@ -553,7 +555,9 @@ public class BabyBuddyClient extends StreamReader {
 
     @NonNull
     private String now() {
-        SimpleDateFormat sdf = new SimpleDateFormat("yyyy-MM-dd'T'HH:mm:ss.SSSXXX");
+        SimpleDateFormat sdf = new SimpleDateFormat(
+            "yyyy-MM-dd'T'HH:mm:ss.SSSXXX", Locale.ENGLISH
+        );
         sdf.setTimeZone(TimeZone.getTimeZone("UTC"));
         final Date now = new Date(System.currentTimeMillis() + serverDateOffset);
         return sdf.format(now);

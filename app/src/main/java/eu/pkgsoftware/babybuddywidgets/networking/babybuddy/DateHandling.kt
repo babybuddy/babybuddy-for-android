@@ -8,6 +8,7 @@ import java.io.IOException
 import java.text.ParseException
 import java.text.SimpleDateFormat
 import java.util.Date
+import java.util.Locale
 
 var SystemServerTimeOffset = -1000L
 
@@ -15,7 +16,7 @@ val DATE_TIME_FORMAT_STRING = "yyyy-MM-dd'T'HH:mm:ssX"
 val DATE_ONLY_FORMAT_STRING = "yyyy-MM-dd"
 
 fun parseNullOrDate(s: String, format: String): Date? {
-    val sdf = SimpleDateFormat(format)
+    val sdf = SimpleDateFormat(format, Locale.ENGLISH)
 
     try {
         var strDate = s
