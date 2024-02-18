@@ -104,7 +104,7 @@ public class LoggedInFragment extends BaseFragment {
     }
 
     private void logout() {
-        credStore.clearLoginData();
+        getMainActivity().logout();
         Navigation.findNavController(requireView()).navigate(R.id.logoutOperation);
     }
 

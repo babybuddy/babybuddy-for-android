@@ -356,4 +356,9 @@ class MainActivity : AppCompatActivity() {
         }
         return timerControls[childId]!!
     }
+
+    fun logout() {
+        credStore.clearLoginData()
+        internalClient = null
+    }
 }
