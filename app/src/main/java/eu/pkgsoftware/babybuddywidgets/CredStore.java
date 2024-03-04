@@ -245,8 +245,12 @@ public class CredStore extends CredStoreEncryptionEngine implements ServerAccess
         }
     }
 
-    public String getAppToken() {
-        return decryptMessage(encryptedToken);
+    public @NotNull String getAppToken() {
+        String result = decryptMessage(encryptedToken);
+        if (result == null) {
+            result = "";
+        }
+        return result;
     }
 
     public void storeAppToken(String token) {
@@ -259,7 +263,10 @@ public class CredStore extends CredStoreEncryptionEngine implements ServerAccess
         storePrefs();
     }
 
-    public String getServerUrl() {
+    public @NotNull String getServerUrl() {
+        if (serverUrl == null) {
+            return "";
+        }
         return serverUrl;
     }
 

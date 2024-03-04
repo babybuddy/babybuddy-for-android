@@ -70,8 +70,7 @@ class LoginFragment : BaseFragment() {
         }
         val credStore = mainActivity.credStore
         var serverUrl = credStore.serverUrl
-        if (serverUrl == null) {
-            serverUrl = ""
+        if (serverUrl == "") {
             if (isTestlab) {
                 serverUrl = "https://babybuddy-test.pkgsoftware.eu/"
             }
@@ -173,8 +172,8 @@ class LoginFragment : BaseFragment() {
                 )
             }
         }
-        if (mainActivity.credStore.appToken != null) {
-            progressDialog?.hide()
+        if (mainActivity.credStore.appToken != "") {
+            progressDialog.hide()
             moveToLoggedIn()
         } else {
             val qrCode = QRCode(this, null, true)
