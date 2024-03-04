@@ -168,4 +168,17 @@
     <string name="export_debug_logs_title">Export Debug Logs</string>
     <string name="export_debug_logs_menu_item">Export Debug Logs</string>
     <string name="export_debug_logs_menu_item_copy_to_clipboard">Copy to clipboard</string>
+
+    <!-- Send message screen -->
+    <string name="send_message_info">Send
+        a message to me, the main developer, in case you experience errors or problems with
+        the app. Please note that I want to keep your data confidential, so there is no way for me
+        to respond to your messages directly. For direct communication, please refer to
+        <a href="https://github.com/babybuddy/babybuddy-for-android">GitHub</a> instead.
+    </string>
+    <string name="send_message_send_title">Contact developer</string>
+    <string name="send_message_send_button">Send</string>
+    <string name="send_message_back_button">Back</string>
+    <string name="send_message_failed_message">Failed to send message to developer</string>
+    <string name="send_message_sent_message">Message sent to developer</string>
 </resources>

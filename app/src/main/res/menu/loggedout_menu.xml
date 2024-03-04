@@ -8,6 +8,9 @@
         android:layout_height="wrap_content"
         android:title="@string/showHelpMenuButtonTitle" />
     <item
+        android:id="@+id/contactDeveloperMenuItem"
+        android:title="@string/send_message_send_title" />
+    <item
         android:id="@+id/aboutPageMenuItem"
         android:title="@string/about_page_title" />
 </menu>

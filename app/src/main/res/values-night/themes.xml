@@ -29,6 +29,11 @@
         <item name="android:textColor">@color/black</item>
     </style>
 
+    <style name="SuccessPill">
+        <item name="pillColor">@color/semi_transparent_lightgreen_background</item>
+        <item name="android:textColor">@color/black</item>
+    </style>
+
     <style name="LongClickBubble">
         <item name="color">@color/very_transparent_light_background</item>
     </style>

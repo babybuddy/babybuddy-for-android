@@ -74,5 +74,12 @@
         android:id="@+id/debugLogDisplay"
         android:name="eu.pkgsoftware.babybuddywidgets.debugging.DebugLogDisplay"
         android:label="fragment_debug_log_display"
-        tools:layout="@layout/fragment_debug_log_display" /><action android:id="@+id/action_global_debugLogDisplay" app:destination="@id/debugLogDisplay"/>
+        tools:layout="@layout/fragment_debug_log_display" />
+    <action android:id="@+id/action_global_debugLogDisplay" app:destination="@id/debugLogDisplay"/>
+    <fragment
+        android:id="@+id/contactDeveloperFragment"
+        android:name="eu.pkgsoftware.babybuddywidgets.ContactDeveloperFragment"
+        android:label="fragment_contact_developer"
+        tools:layout="@layout/fragment_contact_developer" />
+    <action android:id="@+id/action_global_contactDeveloperFragment" app:destination="@id/contactDeveloperFragment"/>
 </navigation>

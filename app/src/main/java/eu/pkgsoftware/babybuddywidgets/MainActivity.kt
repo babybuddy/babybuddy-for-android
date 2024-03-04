@@ -45,7 +45,7 @@ fun interface InputEventListener {
 class MainActivity : AppCompatActivity() {
     private val timerControls = mutableMapOf<Int, BabyBuddyV2TimerAdapter>()
 
-    var binding: ActivityMainBinding? = null
+    lateinit var binding: ActivityMainBinding
 
     val scope = MainScope()
     val inputEventListeners = mutableListOf<InputEventListener>()
