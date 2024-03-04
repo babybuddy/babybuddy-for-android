@@ -167,9 +167,8 @@ class LoginFragment : BaseFragment() {
         val b = arguments
         if (b != null) {
             if (b.getBoolean("noCameraAccess", false)) {
-                binding.errorBubble.flashMessage(
-                    R.string.login_qrcode_camera_access_was_disabled_message,
-                    5000
+                mainActivity.binding.globalErrorBubble.flashMessage(
+                    R.string.login_qrcode_camera_access_was_disabled_message
                 )
             }
         }

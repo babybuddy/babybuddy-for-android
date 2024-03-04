@@ -9,6 +9,7 @@ import android.graphics.PorterDuff
 import android.graphics.PorterDuffColorFilter
 import android.util.AttributeSet
 import android.view.View
+import androidx.annotation.StringRes
 import androidx.appcompat.widget.AppCompatTextView
 import androidx.core.content.res.ResourcesCompat
 import eu.pkgsoftware.babybuddywidgets.R
@@ -18,6 +19,7 @@ class InfoBubble(context: Context, attrs: AttributeSet? = null, defStyleAttr: In
     AppCompatTextView(context, attrs, defStyleAttr) {
 
     var animation: Animator? = null
+    var defaultTimeoutMs = 5000
 
     constructor(context: Context) : this(context, null, 0) {}
     constructor(context: Context, attrs: AttributeSet?) : this(context, attrs, 0) {}
@@ -26,15 +28,19 @@ class InfoBubble(context: Context, attrs: AttributeSet? = null, defStyleAttr: In
         val drawable = ResourcesCompat.getDrawable(
             context.resources, R.drawable.pill_outline, context.theme
         )
-        drawable?.let {
-            var color = Color.WHITE
-            attrs?.let {
-                val sAttrs = context.theme.obtainStyledAttributes(
-                    attrs, R.styleable.InfoBubble, defStyleAttr, 0
-                )
+        attrs?.let {
+            val sAttrs = context.theme.obtainStyledAttributes(
+                attrs, R.styleable.InfoBubble, defStyleAttr, 0
+            )
+            drawable?.let {
+                var color = Color.WHITE
                 color = sAttrs.getColor(R.styleable.InfoBubble_pillColor, color)
+                it.colorFilter = PorterDuffColorFilter(color, PorterDuff.Mode.SRC_OVER)
             }
-            it.colorFilter = PorterDuffColorFilter(color, PorterDuff.Mode.SRC_OVER)
+
+            defaultTimeoutMs = sAttrs.getInteger(
+                R.styleable.InfoBubble_defaultDuration, defaultTimeoutMs
+            )
         }
 
         background = drawable
@@ -54,7 +60,15 @@ class InfoBubble(context: Context, attrs: AttributeSet? = null, defStyleAttr: In
         }
     }
 
-    fun flashMessage(id: Int, timeoutMs: Long) {
+    fun flashMessage(@StringRes id: Int) {
+        flashMessage(resources.getString(id), defaultTimeoutMs.toLong())
+    }
+
+    fun flashMessage(msg: String) {
+        flashMessage(msg, defaultTimeoutMs.toLong())
+    }
+
+    fun flashMessage(@StringRes id: Int, timeoutMs: Long) {
         flashMessage(resources.getString(id), timeoutMs)
     }
 
