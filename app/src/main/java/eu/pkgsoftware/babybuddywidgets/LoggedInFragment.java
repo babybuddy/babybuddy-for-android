@@ -10,7 +10,12 @@ import android.view.MenuItem;
 import android.view.View;
 import android.view.ViewGroup;
 
+import java.io.IOException;
+import java.io.InputStream;
+import java.util.Arrays;
+import java.util.Collection;
 import java.util.Objects;
+import java.util.Properties;
 
 import androidx.annotation.NonNull;
 import androidx.annotation.Nullable;
@@ -121,6 +126,9 @@ public class LoggedInFragment extends BaseFragment {
         }
         if (item.getItemId() == R.id.exportDebugLogsMenuItem) {
             Navigation.findNavController(requireView()).navigate(R.id.action_global_debugLogDisplay);
+        }
+        if (item.getItemId() == R.id.contactDeveloperMenuItem) {
+            Navigation.findNavController(requireView()).navigate(R.id.action_global_contactDeveloperFragment);
         }
         return false;
     }

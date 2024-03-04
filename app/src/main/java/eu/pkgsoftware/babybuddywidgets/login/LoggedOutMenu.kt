@@ -6,6 +6,7 @@ import android.view.MenuItem
 import androidx.core.view.MenuProvider
 import androidx.fragment.app.Fragment
 import androidx.navigation.Navigation
+import androidx.navigation.Navigation.findNavController
 import eu.pkgsoftware.babybuddywidgets.R
 
 class LoggedOutMenu(val fragment: Fragment) : MenuProvider {
@@ -19,6 +20,9 @@ class LoggedOutMenu(val fragment: Fragment) : MenuProvider {
         }
         if (menuItem.getItemId() == R.id.showHelpMenuButton) {
             Navigation.findNavController(fragment.requireView()).navigate(R.id.global_showHelp)
+        }
+        if (menuItem.getItemId() == R.id.contactDeveloperMenuItem) {
+            Navigation.findNavController(fragment.requireView()).navigate(R.id.action_global_contactDeveloperFragment)
         }
         return false
     }

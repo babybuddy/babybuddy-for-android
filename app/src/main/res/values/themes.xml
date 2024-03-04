@@ -30,7 +30,12 @@
         <item name="pillColor">@color/semi_transparent_darkred_background</item>
         <item name="android:textColor">@color/white</item>
     </style>
-    
+
+    <style name="SuccessPill">
+        <item name="pillColor">@color/semi_transparent_darkgreen_background</item>
+        <item name="android:textColor">@color/white</item>
+    </style>
+
     <style name="LongClickBubble">
         <item name="color">@color/very_transparent_dark_background</item>
     </style>

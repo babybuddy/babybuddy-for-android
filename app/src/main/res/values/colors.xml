@@ -20,6 +20,8 @@
     <color name="semi_transparent_darkred_background">#CC800000</color>
     <color name="semi_transparent_light_background">#CCFFFFFF</color>
     <color name="semi_transparent_lightred_background">#CCFFAAAA</color>
+    <color name="semi_transparent_darkgreen_background">#CC008000</color>
+    <color name="semi_transparent_lightgreen_background">#CCAAFFAA</color>
     <color name="very_transparent_dark_background">#44000000</color>
     <color name="very_transparent_light_background">#44FFFFFF</color>
 </resources>

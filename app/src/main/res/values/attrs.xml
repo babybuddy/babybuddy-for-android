@@ -15,6 +15,7 @@
 
     <declare-styleable name="InfoBubble">
         <attr name="pillColor" format="color">"#FFFFFFFF"</attr>
+        <attr name="defaultDuration" format="integer">5000</attr>
     </declare-styleable>
 
     <declare-styleable name="LongClickBackgroundBubble">
