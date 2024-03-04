@@ -9,16 +9,20 @@ const val EXPONENTIAL_BACKOFF_FACTOR_1000 = 1500L
 const val EXPONENTIAL_BACKOFF_LIMIT = 10000
 
 interface ConnectingDialogInterface {
-    fun showConnecting(currentTimeout: Long)
+    fun interruptLoading(): Boolean
+    fun showConnecting(currentTimeout: Long, error: Exception?)
     fun hideConnecting()
 }
 
-suspend fun <T : Any> exponentialBackoff(dialog: ConnectingDialogInterface, block: suspend () -> T): T {
+class InterruptedException : Exception("Exponential backoff interrupted")
+
+suspend fun <T : Any> exponentialBackoff(conInterface: ConnectingDialogInterface, block: suspend () -> T): T {
     val totalWaitTimeStart = System.currentTimeMillis()
     var currentRetryDelay = INITIAL_RETRY_INTERVAL
     var showingConnecting = false
     try {
         while (true) {
+            var error: Exception? = null
             try {
                 return block.invoke()
             }
@@ -26,11 +30,20 @@ suspend fun <T : Any> exponentialBackoff(dialog: ConnectingDialogInterface, bloc
                 if ((e.code >= 400) and (e.code < 500)) {
                     throw e
                 }
+                error = e
             }
-            catch (_: IOException) {}
+            catch (e: IOException) {
+                error = e
+            }
 
             showingConnecting = true
-            dialog.showConnecting(System.currentTimeMillis() - totalWaitTimeStart)
+            conInterface.showConnecting(
+                System.currentTimeMillis() - totalWaitTimeStart,
+                error,
+            )
+            if (conInterface.interruptLoading()) {
+                throw InterruptedException()
+            }
 
             delay(currentRetryDelay)
             currentRetryDelay = currentRetryDelay * EXPONENTIAL_BACKOFF_FACTOR_1000 / 1000L
@@ -41,7 +54,7 @@ suspend fun <T : Any> exponentialBackoff(dialog: ConnectingDialogInterface, bloc
     }
     finally {
         if (showingConnecting) {
-            dialog.hideConnecting()
+            conInterface.hideConnecting()
         }
     }
 }

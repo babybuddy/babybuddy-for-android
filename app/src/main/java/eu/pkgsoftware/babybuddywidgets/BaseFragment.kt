@@ -1,5 +1,6 @@
 package eu.pkgsoftware.babybuddywidgets
 
+import android.annotation.SuppressLint
 import android.app.Activity
 import android.app.AlertDialog
 import android.app.ProgressDialog
@@ -230,6 +231,15 @@ abstract class BaseFragment : Fragment() {
     }
 
     fun dpToPx(dp: Float): Int {
-        return dpToPx(context!!, dp)
+        return dpToPx(requireContext(), dp)
+    }
+
+    @SuppressLint("DiscouragedApi")
+    fun translateActivityName(name: String): String {
+        val cleanedName = name.replace(Regex("[^a-zA-Z]"), "_")
+        val id = resources.getIdentifier(
+            "activity_singular_${cleanedName}", "string", mainActivity.packageName
+        )
+        return resources.getString(id)
     }
 }

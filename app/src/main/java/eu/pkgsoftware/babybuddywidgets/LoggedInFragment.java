@@ -104,7 +104,7 @@ public class LoggedInFragment extends BaseFragment {
     }
 
     private void logout() {
-        credStore.clearLoginData();
+        getMainActivity().logout();
         Navigation.findNavController(requireView()).navigate(R.id.logoutOperation);
     }
 
@@ -161,7 +161,7 @@ public class LoggedInFragment extends BaseFragment {
                 if (connected) {
                     disconnectInterface.hideConnecting();
                 } else {
-                    disconnectInterface.showConnecting(disconnectedFor);
+                    disconnectInterface.showConnecting(disconnectedFor, null);
                 }
             }
         );
