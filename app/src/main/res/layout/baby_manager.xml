@@ -155,17 +155,4 @@
 
         </LinearLayout>
     </ScrollView>
-
-    <eu.pkgsoftware.babybuddywidgets.widgets.InfoBubble
-        android:id="@+id/errorBubble"
-        style="@style/WarningPill"
-        android:layout_width="wrap_content"
-        android:layout_height="wrap_content"
-        android:layout_marginBottom="32dp"
-        android:elevation="2dp"
-        android:text="Demo Text\nSecond Demo Text"
-        android:visibility="invisible"
-        app:layout_constraintBottom_toBottomOf="parent"
-        app:layout_constraintEnd_toEndOf="parent"
-        app:layout_constraintStart_toStartOf="parent" />
 </androidx.constraintlayout.widget.ConstraintLayout>

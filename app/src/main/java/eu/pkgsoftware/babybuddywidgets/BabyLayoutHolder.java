@@ -190,7 +190,7 @@ public class BabyLayoutHolder extends RecyclerView.ViewHolder implements TimerCo
                         .put("activity", tActivity)
                         .format().toString();
 
-                    binding.errorBubble.flashMessage(msg, 2000);
+                    baseFragment.getMainActivity().binding.globalErrorBubble.flashMessage(msg);
                 }
 
             );
