@@ -24,7 +24,15 @@ platform :android do
 
   desc "Update version"
   lane :updateVersion do
-    new_version = prompt(text: "What to version? ")
+    File.open("../app/build.gradle", "r") do |f|
+      f.each_line do |line|
+        if line.include? "versionName"
+          print "Current version: ", line.split(" ")[1], "\n"
+        end
+      end
+    end
+
+    new_version = prompt(text: "New version number: ")
     android_set_version_code(
       gradle_file: "app/build.gradle",
       version_code: android_get_version_code(gradle_file: "app/build.gradle").to_i + 1,
