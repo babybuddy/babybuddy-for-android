@@ -246,8 +246,8 @@ class QRCodeLoginFragment : BaseFragment() {
                     }
                 } catch (e: AsyncPromiseFailure) {
                     progressDialog.hide()
-                    credStore.clearLoginData()
                     binding.qrcodeCancelButton.performClick()
+                    mainActivity.logout()
                     showError(true, "Login failed", e.value.toString())
                     return@cancelParallel
                 }
