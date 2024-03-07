@@ -230,14 +230,14 @@ class LoginFragment : BaseFragment() {
                         Utils(mainActivity).testLoginToken(it)
                     }
                 } catch (e: AsyncPromiseFailure) {
-                    credStore.storeAppToken(null)
+                    mainActivity.logout()
                     showError(true, "Login failed", e.value.toString())
                     return@cancelParallel
                 }
                 moveToLoggedIn()
             }
         }.invokeOnCompletion {
-            progressDialog?.hide()
+            progressDialog.hide()
         }
     }
 
