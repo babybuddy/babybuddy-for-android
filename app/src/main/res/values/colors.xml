@@ -24,4 +24,12 @@
     <color name="semi_transparent_lightgreen_background">#CCAAFFAA</color>
     <color name="very_transparent_dark_background">#44000000</color>
     <color name="very_transparent_light_background">#44FFFFFF</color>
+
+    <color name="timer_button_disabled">#FFDDDDDD</color>
+    <color name="diaper_enabled">#FFFFFFBB</color>
+    <color name="sleep_enabled">#FFBBBBFF</color>
+    <color name="feeding_enabled">#FFFFBBBB</color>
+    <color name="notes_enabled">#55FFEE</color>
+    <color name="pumping_enabled">#FFFF33CC</color>
+    <color name="tummy_time_enabled">#FFBBFFBB</color>
 </resources>

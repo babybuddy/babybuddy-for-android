@@ -2,7 +2,6 @@
 <androidx.constraintlayout.widget.ConstraintLayout xmlns:android="http://schemas.android.com/apk/res/android"
     xmlns:app="http://schemas.android.com/apk/res-auto"
     xmlns:tools="http://schemas.android.com/tools"
-    android:id="@+id/relativeLayout"
     android:layout_width="match_parent"
     android:layout_height="match_parent"
     android:padding="16dp">
@@ -39,7 +38,7 @@
             android:layout_weight="0"
             android:scaleType="fitCenter"
             android:src="@drawable/pkg_not_wet"
-            android:tint="?android:attr/textColorSecondary"
+            app:tint="?android:attr/textColorSecondary"
             android:tintMode="src_in" />
 
         <ImageButton
@@ -50,7 +49,7 @@
             android:backgroundTint="#80FF80"
             android:scaleType="fitCenter"
             android:src="@drawable/pkg_wet"
-            android:tint="@color/fixed_color_button_text_color"
+            app:tint="@color/fixed_color_button_text_color"
             android:tintMode="src_in"
             android:visibility="gone" />
 
@@ -61,7 +60,7 @@
             android:layout_weight="0"
             android:scaleType="fitCenter"
             android:src="@drawable/pkg_no_poop"
-            android:tint="?android:attr/textColorSecondary"
+            app:tint="?android:attr/textColorSecondary"
             android:tintMode="src_in" />
 
         <ImageButton
@@ -72,7 +71,7 @@
             android:backgroundTint="#80FF80"
             android:scaleType="fitCenter"
             android:src="@drawable/pkg_poop"
-            android:tint="@color/fixed_color_button_text_color"
+            app:tint="@color/fixed_color_button_text_color"
             android:tintMode="src_in"
             android:visibility="gone" />
 
@@ -84,7 +83,7 @@
             android:layout_weight="0"
             android:backgroundTint="#80FF80"
             android:src="@drawable/pkg_notes"
-            android:tint="@color/fixed_color_button_text_color"
+            app:tint="@color/fixed_color_button_text_color"
             android:tintMode="src_in"
             android:visibility="gone" />
 
@@ -95,7 +94,7 @@
             android:layout_margin="4dp"
             android:layout_weight="0"
             android:src="@drawable/pkg_no_notes"
-            android:tint="?android:attr/textColorSecondary"
+            app:tint="?android:attr/textColorSecondary"
             android:tintMode="src_in"
             android:visibility="visible" />
 
@@ -135,6 +134,161 @@
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
             android:orientation="vertical">
+
+            <LinearLayout
+                android:id="@+id/newTimerButtons"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:gravity="center"
+                android:orientation="horizontal"
+                app:layout_constraintEnd_toEndOf="parent"
+                app:layout_constraintStart_toStartOf="parent"
+                app:layout_constraintTop_toTopOf="parent">
+
+                <ImageButton
+                    android:id="@+id/diaperDisabledButton"
+                    android:layout_width="64dp"
+                    android:layout_height="64dp"
+                    android:layout_weight="0"
+                    android:backgroundTint="@color/timer_button_disabled"
+                    android:scaleType="fitCenter"
+                    android:src="@drawable/pkg_diaper"
+                    app:tint="@color/fixed_color_button_text_color"
+                    android:tintMode="src_in"
+                    android:visibility="gone" />
+
+                <ImageButton
+                    android:id="@+id/diaperEnabledButton"
+                    android:layout_width="64dp"
+                    android:layout_height="64dp"
+                    android:layout_weight="0"
+                    android:backgroundTint="@color/diaper_enabled"
+                    android:scaleType="fitCenter"
+                    android:src="@drawable/pkg_diaper"
+                    app:tint="@color/fixed_color_button_text_color"
+                    android:tintMode="src_in"
+                    android:visibility="visible" />
+
+                <ImageButton
+                    android:id="@+id/sleepDisabledButton"
+                    android:layout_width="64dp"
+                    android:layout_height="64dp"
+                    android:layout_weight="0"
+                    android:backgroundTint="@color/timer_button_disabled"
+                    android:scaleType="fitCenter"
+                    android:src="@drawable/pkg_sleep"
+                    app:tint="@color/fixed_color_button_text_color"
+                    android:tintMode="src_in"
+                    android:visibility="gone" />
+
+                <ImageButton
+                    android:id="@+id/sleepEnabledButton"
+                    android:layout_width="64dp"
+                    android:layout_height="64dp"
+                    android:layout_weight="0"
+                    android:backgroundTint="@color/sleep_enabled"
+                    android:scaleType="fitCenter"
+                    android:src="@drawable/pkg_sleep"
+                    app:tint="@color/fixed_color_button_text_color"
+                    android:tintMode="src_in"
+                    android:visibility="visible" />
+
+                <ImageButton
+                    android:id="@+id/feedingDisabledButton"
+                    android:layout_width="64dp"
+                    android:layout_height="64dp"
+                    android:layout_weight="0"
+                    android:backgroundTint="@color/timer_button_disabled"
+                    android:scaleType="fitCenter"
+                    android:src="@drawable/pkg_bottle"
+                    app:tint="@color/fixed_color_button_text_color"
+                    android:tintMode="src_in"
+                    android:visibility="gone" />
+
+                <ImageButton
+                    android:id="@+id/feedingEnabledButton"
+                    android:layout_width="64dp"
+                    android:layout_height="64dp"
+                    android:layout_weight="0"
+                    android:backgroundTint="@color/feeding_enabled"
+                    android:scaleType="fitCenter"
+                    android:src="@drawable/pkg_bottle"
+                    app:tint="@color/fixed_color_button_text_color"
+                    android:tintMode="src_in"
+                    android:visibility="visible" />
+
+                <ImageButton
+                    android:id="@+id/notesDisabledButton"
+                    android:layout_width="64dp"
+                    android:layout_height="64dp"
+                    android:layout_weight="0"
+                    android:backgroundTint="@color/timer_button_disabled"
+                    android:scaleType="fitCenter"
+                    android:src="@drawable/pkg_notes"
+                    app:tint="@color/fixed_color_button_text_color"
+                    android:tintMode="src_in"
+                    android:visibility="gone" />
+
+                <ImageButton
+                    android:id="@+id/notesEnabledButton"
+                    android:layout_width="64dp"
+                    android:layout_height="64dp"
+                    android:layout_weight="0"
+                    android:backgroundTint="@color/notes_enabled"
+                    android:scaleType="fitCenter"
+                    android:src="@drawable/pkg_notes"
+                    app:tint="@color/fixed_color_button_text_color"
+                    android:tintMode="src_in"
+                    android:visibility="visible" />
+
+                <ImageButton
+                    android:id="@+id/pumpingDisabledButton"
+                    android:layout_width="64dp"
+                    android:layout_height="64dp"
+                    android:layout_weight="0"
+                    android:backgroundTint="@color/timer_button_disabled"
+                    android:scaleType="fitCenter"
+                    android:src="@drawable/pkg_pumping"
+                    app:tint="@color/fixed_color_button_text_color"
+                    android:tintMode="src_in"
+                    android:visibility="gone" />
+
+                <ImageButton
+                    android:id="@+id/pumpingEnabledButton"
+                    android:layout_width="64dp"
+                    android:layout_height="64dp"
+                    android:layout_weight="0"
+                    android:backgroundTint="@color/pumping_enabled"
+                    android:scaleType="fitCenter"
+                    android:src="@drawable/pkg_pumping"
+                    app:tint="@color/fixed_color_button_text_color"
+                    android:tintMode="src_in"
+                    android:visibility="visible" />
+
+                <ImageButton
+                    android:id="@+id/tummyTimeDisabledButton"
+                    android:layout_width="64dp"
+                    android:layout_height="64dp"
+                    android:layout_weight="0"
+                    android:backgroundTint="@color/timer_button_disabled"
+                    android:scaleType="fitCenter"
+                    android:src="@drawable/pkg_crawl"
+                    app:tint="@color/fixed_color_button_text_color"
+                    android:tintMode="src_in"
+                    android:visibility="gone" />
+
+                <ImageButton
+                    android:id="@+id/tummyTimeEnabledButton"
+                    android:layout_width="64dp"
+                    android:layout_height="64dp"
+                    android:layout_weight="0"
+                    android:backgroundTint="@color/tummy_time_enabled"
+                    android:scaleType="fitCenter"
+                    android:src="@drawable/pkg_crawl"
+                    app:tint="@color/fixed_color_button_text_color"
+                    android:tintMode="src_in"
+                    android:visibility="visible" />
+            </LinearLayout>
 
             <androidx.recyclerview.widget.RecyclerView
                 android:id="@+id/timersList"
