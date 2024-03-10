@@ -16,7 +16,8 @@
         android:roundIcon="@mipmap/pkg_app_icon"
         android:supportsRtl="true"
         android:usesCleartextTraffic="true"
-        android:theme="@style/Theme.BabyBuddyWidgets">
+        android:theme="@style/Theme.BabyBuddyWidgets"
+        android:networkSecurityConfig="@xml/network_security_configuration">
 
         <!--
         Disabled for now - does not work right now
