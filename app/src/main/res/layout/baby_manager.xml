@@ -155,7 +155,7 @@
                     android:src="@drawable/pkg_diaper"
                     app:tint="@color/fixed_color_button_text_color"
                     android:tintMode="src_in"
-                    android:visibility="gone" />
+                    android:visibility="gone"/>
 
                 <ImageButton
                     android:id="@+id/diaperEnabledButton"
@@ -294,6 +294,12 @@
                 android:id="@+id/timersList"
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"></androidx.recyclerview.widget.RecyclerView>
+
+            <LinearLayout
+                android:id="@+id/loggingEditors"
+                android:layout_width="match_parent"
+                android:layout_height="match_parent"
+                android:orientation="vertical"></LinearLayout>
 
             <LinearLayout
                 android:id="@+id/innerTimeline"

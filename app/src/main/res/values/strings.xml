@@ -91,6 +91,8 @@
     <string name="error_storing_activity_unsupported">Unsupported activity</string>
     <string name="popup_message_storing">Storing {activity} …</string>
 
+    <string name="activity_notes_hint">Notes</string>
+
     <!-- Generic store error -->
     <string name="activity_store_failure_message">Could not store activity</string>
     <string name="activity_store_failure_server_error">{message}\n\nServer reported: {server_message}</string>

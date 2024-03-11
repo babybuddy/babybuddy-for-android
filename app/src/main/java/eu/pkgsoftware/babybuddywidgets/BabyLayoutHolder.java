@@ -6,16 +6,17 @@ import com.squareup.phrase.Phrase;
 
 import org.jetbrains.annotations.NotNull;
 
+import java.util.Map;
+
 import androidx.annotation.NonNull;
-import androidx.annotation.Nullable;
-import androidx.fragment.app.Fragment;
 import androidx.recyclerview.widget.GridLayoutManager;
 import androidx.recyclerview.widget.RecyclerView;
 import eu.pkgsoftware.babybuddywidgets.activitycomponents.TimerControl;
+import eu.pkgsoftware.babybuddywidgets.babymanager.InsertRemoveControlsFunction;
+import eu.pkgsoftware.babybuddywidgets.babymanager.LoggingButtonController;
 import eu.pkgsoftware.babybuddywidgets.databinding.BabyManagerBinding;
 import eu.pkgsoftware.babybuddywidgets.databinding.NotesEditorBinding;
 import eu.pkgsoftware.babybuddywidgets.history.ChildEventHistoryLoader;
-import eu.pkgsoftware.babybuddywidgets.history.ShowErrorPill;
 import eu.pkgsoftware.babybuddywidgets.networking.BabyBuddyClient;
 import eu.pkgsoftware.babybuddywidgets.networking.ChildrenStateTracker;
 import eu.pkgsoftware.babybuddywidgets.timers.EmptyTimerListProvider;
@@ -49,6 +50,8 @@ public class BabyLayoutHolder extends RecyclerView.ViewHolder implements TimerCo
     private TimersUpdatedCallback updateTimersCallback = null;
 
     private int pendingTimerModificationCalls = 0;
+
+    private LoggingButtonController loggingButtonController;
 
     public BabyLayoutHolder(BaseFragment fragment, BabyManagerBinding bmb) {
         super(bmb.getRoot());
@@ -96,6 +99,22 @@ public class BabyLayoutHolder extends RecyclerView.ViewHolder implements TimerCo
                 childHistoryLoader.updateTop();
             }
         });
+
+        loggingButtonController = new LoggingButtonController(
+            baseFragment,
+            binding,
+            new InsertRemoveControlsFunction() {
+                @Override
+                public void insertControls(@NonNull View view) {
+                    binding.loggingEditors.addView(view);
+                }
+
+                @Override
+                public void removeControls(@NonNull View view) {
+                    binding.loggingEditors.removeView(view);
+                }
+            }
+        );
     }
 
     public BabyBuddyClient.Child getChild() {
