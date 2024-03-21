@@ -6,8 +6,6 @@ import com.squareup.phrase.Phrase;
 
 import org.jetbrains.annotations.NotNull;
 
-import java.util.Map;
-
 import androidx.annotation.NonNull;
 import androidx.recyclerview.widget.GridLayoutManager;
 import androidx.recyclerview.widget.RecyclerView;
@@ -51,7 +49,7 @@ public class BabyLayoutHolder extends RecyclerView.ViewHolder implements TimerCo
 
     private int pendingTimerModificationCalls = 0;
 
-    private LoggingButtonController loggingButtonController;
+    private LoggingButtonController loggingButtonController = null;
 
     public BabyLayoutHolder(BaseFragment fragment, BabyManagerBinding bmb) {
         super(bmb.getRoot());
@@ -99,22 +97,6 @@ public class BabyLayoutHolder extends RecyclerView.ViewHolder implements TimerCo
                 childHistoryLoader.updateTop();
             }
         });
-
-        loggingButtonController = new LoggingButtonController(
-            baseFragment,
-            binding,
-            new InsertRemoveControlsFunction() {
-                @Override
-                public void insertControls(@NonNull View view) {
-                    binding.loggingEditors.addView(view);
-                }
-
-                @Override
-                public void removeControls(@NonNull View view) {
-                    binding.loggingEditors.removeView(view);
-                }
-            }
-        );
     }
 
     public BabyBuddyClient.Child getChild() {
@@ -215,6 +197,23 @@ public class BabyLayoutHolder extends RecyclerView.ViewHolder implements TimerCo
             );
             timerListProvider = new TimerListProvider(baseFragment, this);
             binding.timersList.setAdapter(timerListProvider);
+
+            loggingButtonController = new LoggingButtonController(
+                baseFragment,
+                binding,
+                new InsertRemoveControlsFunction() {
+                    @Override
+                    public void insertControls(@NonNull View view) {
+                        binding.loggingEditors.addView(view);
+                    }
+
+                    @Override
+                    public void removeControls(@NonNull View view) {
+                        binding.loggingEditors.removeView(view);
+                    }
+                },
+                child
+            );
         }
     }
 
@@ -242,6 +241,7 @@ public class BabyLayoutHolder extends RecyclerView.ViewHolder implements TimerCo
     }
 
     public void onViewDeselected() {
+        loggingButtonController.storeStateForSuspend();
         resetChildObserver();
         resetChildHistoryLoader();
         resetDiaperUi();
@@ -255,6 +255,11 @@ public class BabyLayoutHolder extends RecyclerView.ViewHolder implements TimerCo
     }
 
     public void clear() {
+        if (loggingButtonController != null) {
+            loggingButtonController.storeStateForSuspend();
+            loggingButtonController.destroy();
+            loggingButtonController = null;
+        }
         resetChildObserver();
         resetChildHistoryLoader();
         resetDiaperUi();

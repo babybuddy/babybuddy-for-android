@@ -33,7 +33,6 @@ interface StoreFunction<X> : BabyBuddyClient.RequestCallback<X> {
     fun cancel()
 }
 
-
 enum class ConflictResolutionOptions {
     CANCEL, RESOLVE, STOP_TIMER
 }
@@ -49,6 +48,20 @@ class MainActivity : AppCompatActivity() {
 
     val scope = MainScope()
     val inputEventListeners = mutableListOf<InputEventListener>()
+
+    internal var internalStorage: ActivityStore? = null
+    val storage: ActivityStore
+        get() {
+            internalStorage.let {
+                if (it == null) {
+                    val newStorage = ActivityStore(this)
+                    internalStorage = newStorage
+                    return newStorage
+                } else {
+                    return it
+                }
+            }
+        }
 
     internal var internalCredStore: CredStore? = null
     val credStore: CredStore

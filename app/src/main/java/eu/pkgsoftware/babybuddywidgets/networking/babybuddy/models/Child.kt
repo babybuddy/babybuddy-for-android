@@ -3,7 +3,7 @@ package eu.pkgsoftware.babybuddywidgets.networking.babybuddy.models
 import com.fasterxml.jackson.annotation.JsonIgnoreProperties
 import com.fasterxml.jackson.annotation.JsonProperty
 import com.fasterxml.jackson.databind.annotation.JsonDeserialize
-import eu.pkgsoftware.babybuddywidgets.networking.babybuddy.AnyDateTimeDeserializer
+import eu.pkgsoftware.babybuddywidgets.AnyDateTimeDeserializer
 import java.util.Date
 
 @JsonIgnoreProperties(ignoreUnknown = true)

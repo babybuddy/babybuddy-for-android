@@ -25,6 +25,11 @@ public class SwitchButtonLogic {
         updateVisibilityState();
     }
 
+    public void destroy() {
+        onButton.setOnClickListener(null);
+        offButton.setOnClickListener(null);
+    }
+
     private void updateVisibilityState() {
         onButton.setVisibility(state ? View.GONE : View.VISIBLE);
         offButton.setVisibility(state ? View.VISIBLE : View.GONE);

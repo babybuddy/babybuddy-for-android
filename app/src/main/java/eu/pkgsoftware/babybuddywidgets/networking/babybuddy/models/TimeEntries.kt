@@ -5,8 +5,8 @@ import com.fasterxml.jackson.annotation.JsonProperty
 import com.fasterxml.jackson.databind.annotation.JsonDeserialize
 import eu.pkgsoftware.babybuddywidgets.networking.BabyBuddyClient.ACTIVITIES
 import eu.pkgsoftware.babybuddywidgets.networking.BabyBuddyClient.EVENTS
-import eu.pkgsoftware.babybuddywidgets.networking.babybuddy.DateTimeDeserializer
-import eu.pkgsoftware.babybuddywidgets.networking.babybuddy.DateOnlyDeserializer
+import eu.pkgsoftware.babybuddywidgets.DateTimeDeserializer
+import eu.pkgsoftware.babybuddywidgets.DateOnlyDeserializer
 import java.util.Date
 import kotlin.reflect.KClass
 import kotlin.reflect.full.findAnnotations

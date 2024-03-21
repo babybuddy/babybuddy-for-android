@@ -2,6 +2,8 @@ package eu.pkgsoftware.babybuddywidgets.babymanager
 
 import android.view.View
 import android.widget.ImageButton
+import com.fasterxml.jackson.annotation.JsonIgnoreProperties
+import com.fasterxml.jackson.annotation.JsonProperty
 import eu.pkgsoftware.babybuddywidgets.BaseFragment
 import eu.pkgsoftware.babybuddywidgets.databinding.BabyManagerBinding
 import eu.pkgsoftware.babybuddywidgets.databinding.DiaperLoggingEntryBinding
@@ -14,10 +16,11 @@ interface InsertRemoveControlsFunction {
     fun removeControls(view: View)
 }
 
-abstract class LoggingControls {
+abstract class LoggingControls(val childId: Int) {
     abstract val saveButton: ImageButton
     abstract val controlsView: View
 
+    abstract fun storeStateForSuspend()
     abstract fun reset()
     suspend abstract fun save()
 }
@@ -31,7 +34,14 @@ val ACTIVITIES = listOf(
     BabyBuddyClient.ACTIVITIES.PUMPING,
 )
 
-class DiaperLoggingController(val fragment: BaseFragment) : LoggingControls() {
+@JsonIgnoreProperties(ignoreUnknown = true)
+data class DiaperDataRecord(
+    @JsonProperty("wet") val wet: Boolean,
+    @JsonProperty("solid") val solid: Boolean,
+    @JsonProperty("note") val note: String
+)
+
+class DiaperLoggingController(val fragment: BaseFragment, childId: Int) : LoggingControls(childId) {
     val bindings = DiaperLoggingEntryBinding.inflate(fragment.layoutInflater)
     override val controlsView = bindings.root
     override val saveButton = bindings.sendButton
@@ -51,12 +61,24 @@ class DiaperLoggingController(val fragment: BaseFragment) : LoggingControls() {
         solidLogic.addStateListener { _, _ ->
             updateSaveEnabledState()
         }
+
+        fragment.mainActivity.storage.child<DiaperDataRecord>(childId, "diaper")?.let {
+            wetLogic.state = it.wet
+            solidLogic.state = it.solid
+            noteEditor.setText(it.note)
+        }
     }
 
     fun updateSaveEnabledState() {
         saveButton.isEnabled = wetLogic.state || solidLogic.state
     }
 
+    override fun storeStateForSuspend() {
+        val ddr = DiaperDataRecord(
+            wetLogic.state, solidLogic.state, noteEditor.text.toString()
+        )
+        fragment.mainActivity.storage.child(childId, "diaper", ddr)
+    }
 
     override fun reset() {
         noteEditor.setText("")
@@ -69,10 +91,16 @@ class DiaperLoggingController(val fragment: BaseFragment) : LoggingControls() {
     }
 }
 
+@JsonIgnoreProperties(ignoreUnknown = true)
+data class LoggingButtonControllerStoreState(
+    @JsonProperty("open_state") val openState: Array<String>,
+)
+
 class LoggingButtonController(
     val fragment: BaseFragment,
     val bindings: BabyManagerBinding,
-    val controlsInterface: InsertRemoveControlsFunction
+    val controlsInterface: InsertRemoveControlsFunction,
+    val child: BabyBuddyClient.Child,
 ) {
     val logicMap = mapOf(
         BabyBuddyClient.EVENTS.CHANGE to SwitchButtonLogic(
@@ -95,7 +123,7 @@ class LoggingButtonController(
         ),
     )
 
-    val diaperLogging = DiaperLoggingController(fragment)
+    val diaperLogging = DiaperLoggingController(fragment, child.id)
     val loggingControllers = mapOf(
         BabyBuddyClient.EVENTS.CHANGE to diaperLogging
     )
@@ -115,10 +143,48 @@ class LoggingButtonController(
                 }
             }
         }
+
+        fragment.mainActivity.storage.child<LoggingButtonControllerStoreState>(
+            child.id, "loggingstate"
+        )?.let {
+            for ((k, logic) in logicMap.entries) {
+                if (k !in BabyBuddyClient.EVENTS.ALL) continue
+                if (k in it.openState) {
+                    logic.state = true
+                }
+            }
+        }
     }
 
     suspend fun runSave(controller: LoggingControls) {
         controller.save()
         controller.reset()
+    }
+
+    fun storeStateForSuspend() {
+        val openState = mutableListOf<String>()
+        for ((name, controller) in loggingControllers) {
+            controller.storeStateForSuspend()
+            if (name in BabyBuddyClient.EVENTS.ALL) {
+                if (logicMap[name]?.state == true) {
+                    openState.add(name)
+                }
+            }
+        }
+        fragment.mainActivity.storage.child(
+            child.id,
+            "loggingstate",
+            LoggingButtonControllerStoreState(openState.toTypedArray())
+        )
+    }
+
+    fun destroy() {
+        storeStateForSuspend()
+        for ((name, controller) in loggingControllers) {
+            controlsInterface.removeControls(controller.controlsView)
+        }
+        for ((name, logic) in logicMap) {
+            logic.destroy()
+        }
     }
 }

@@ -1,10 +1,5 @@
 package eu.pkgsoftware.babybuddywidgets.networking.babybuddy
 
-import com.fasterxml.jackson.core.JsonParser
-import com.fasterxml.jackson.core.JsonToken
-import com.fasterxml.jackson.databind.DeserializationContext
-import com.fasterxml.jackson.databind.deser.std.StdDeserializer
-import java.io.IOException
 import java.text.ParseException
 import java.text.SimpleDateFormat
 import java.util.Date
@@ -39,39 +34,3 @@ fun serverTimeToClientTime(d: Date): Date {
     return Date(d.time - SystemServerTimeOffset)
 }
 
-
-class DateTimeDeserializer : StdDeserializer<Date>(Date::class.java) {
-    override fun deserialize(p: JsonParser, ctxt: DeserializationContext?): Date {
-        p.text?.let {
-            parseNullOrDate(it, DATE_TIME_FORMAT_STRING)?.let {
-                return serverTimeToClientTime(it)
-            }
-        }
-        throw IOException("Invalid date string ${p.text}")
-    }
-}
-
-class DateOnlyDeserializer : StdDeserializer<Date>(Date::class.java) {
-    override fun deserialize(p: JsonParser, ctxt: DeserializationContext?): Date {
-        p.text?.let {
-            parseNullOrDate(it, DATE_ONLY_FORMAT_STRING)?.let {
-                return it
-            }
-        }
-        throw IOException("Invalid date string ${p.text}")
-    }
-}
-
-class AnyDateTimeDeserializer : StdDeserializer<Date>(Date::class.java) {
-    override fun deserialize(p: JsonParser, ctxt: DeserializationContext?): Date {
-        p.text?.let {
-            parseNullOrDate(it, DATE_TIME_FORMAT_STRING)?.let {
-                return serverTimeToClientTime(it)
-            }
-            parseNullOrDate(it, DATE_ONLY_FORMAT_STRING)?.let {
-                return it
-            }
-        }
-        throw IOException("Invalid date string ${p.text}")
-    }
-}

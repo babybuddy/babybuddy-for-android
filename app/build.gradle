@@ -110,8 +110,14 @@ ext.camerax_version = "1.3.2"
 dependencies {
     implementation 'com.squareup.phrase:phrase:1.2.0'
 
+    // Retrofit and jackson need to be compatible. Maybe(?) the matching the major versions
+    // is enough, but I'm not sure. This version works.
     implementation 'com.squareup.retrofit2:retrofit:2.9.0'
     implementation 'com.squareup.retrofit2:converter-jackson:2.9.0'
+
+    implementation 'com.fasterxml.jackson.core:jackson-core:2.9.10'
+    implementation 'com.fasterxml.jackson.core:jackson-annotations:2.9.10'
+    implementation 'com.fasterxml.jackson.module:jackson-module-kotlin:2.9.10'
 
     implementation 'androidx.appcompat:appcompat:1.6.1'
     implementation 'com.google.android.material:material:1.11.0'
