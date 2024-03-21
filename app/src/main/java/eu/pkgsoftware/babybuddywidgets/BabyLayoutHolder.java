@@ -241,7 +241,9 @@ public class BabyLayoutHolder extends RecyclerView.ViewHolder implements TimerCo
     }
 
     public void onViewDeselected() {
-        loggingButtonController.storeStateForSuspend();
+        if (loggingButtonController != null) {
+            loggingButtonController.storeStateForSuspend();
+        }
         resetChildObserver();
         resetChildHistoryLoader();
         resetDiaperUi();
