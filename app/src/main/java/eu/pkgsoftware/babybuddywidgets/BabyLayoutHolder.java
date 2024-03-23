@@ -7,16 +7,18 @@ import com.squareup.phrase.Phrase;
 import org.jetbrains.annotations.NotNull;
 
 import androidx.annotation.NonNull;
+import androidx.annotation.Nullable;
 import androidx.recyclerview.widget.GridLayoutManager;
 import androidx.recyclerview.widget.RecyclerView;
 import eu.pkgsoftware.babybuddywidgets.activitycomponents.TimerControl;
-import eu.pkgsoftware.babybuddywidgets.babymanager.InsertRemoveControlsFunction;
+import eu.pkgsoftware.babybuddywidgets.babymanager.FragmentCallbacks;
 import eu.pkgsoftware.babybuddywidgets.babymanager.LoggingButtonController;
 import eu.pkgsoftware.babybuddywidgets.databinding.BabyManagerBinding;
 import eu.pkgsoftware.babybuddywidgets.databinding.NotesEditorBinding;
 import eu.pkgsoftware.babybuddywidgets.history.ChildEventHistoryLoader;
 import eu.pkgsoftware.babybuddywidgets.networking.BabyBuddyClient;
 import eu.pkgsoftware.babybuddywidgets.networking.ChildrenStateTracker;
+import eu.pkgsoftware.babybuddywidgets.networking.babybuddy.models.TimeEntry;
 import eu.pkgsoftware.babybuddywidgets.timers.EmptyTimerListProvider;
 import eu.pkgsoftware.babybuddywidgets.timers.StoreActivityRouter;
 import eu.pkgsoftware.babybuddywidgets.timers.TimerControlInterface;
@@ -201,7 +203,7 @@ public class BabyLayoutHolder extends RecyclerView.ViewHolder implements TimerCo
             loggingButtonController = new LoggingButtonController(
                 baseFragment,
                 binding,
-                new InsertRemoveControlsFunction() {
+                new FragmentCallbacks() {
                     @Override
                     public void insertControls(@NonNull View view) {
                         binding.loggingEditors.addView(view);
@@ -210,6 +212,16 @@ public class BabyLayoutHolder extends RecyclerView.ViewHolder implements TimerCo
                     @Override
                     public void removeControls(@NonNull View view) {
                         binding.loggingEditors.removeView(view);
+                    }
+
+                    @Override
+                    public void updateTimeline(@Nullable TimeEntry newEntry) {
+                        if (childHistoryLoader != null) {
+                            if (newEntry != null) {
+                                childHistoryLoader.addEntryToTop(newEntry);
+                            }
+                            childHistoryLoader.forceRefresh();
+                        }
                     }
                 },
                 child

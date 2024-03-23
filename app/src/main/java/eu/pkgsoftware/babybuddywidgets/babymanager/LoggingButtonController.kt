@@ -9,13 +9,15 @@ import eu.pkgsoftware.babybuddywidgets.databinding.BabyManagerBinding
 import eu.pkgsoftware.babybuddywidgets.databinding.DiaperLoggingEntryBinding
 import eu.pkgsoftware.babybuddywidgets.networking.BabyBuddyClient
 import eu.pkgsoftware.babybuddywidgets.networking.babybuddy.models.ChangeEntry
+import eu.pkgsoftware.babybuddywidgets.networking.babybuddy.models.TimeEntry
 import eu.pkgsoftware.babybuddywidgets.networking.babybuddy.nowServer
 import eu.pkgsoftware.babybuddywidgets.widgets.SwitchButtonLogic
 import kotlinx.coroutines.launch
 
-interface InsertRemoveControlsFunction {
+interface FragmentCallbacks {
     fun insertControls(view: View)
     fun removeControls(view: View)
+    fun updateTimeline(newEntry: TimeEntry?)
 }
 
 abstract class LoggingControls(val childId: Int) {
@@ -24,7 +26,7 @@ abstract class LoggingControls(val childId: Int) {
 
     abstract fun storeStateForSuspend()
     abstract fun reset()
-    suspend abstract fun save()
+    suspend abstract fun save(): TimeEntry
 }
 
 val ACTIVITIES = listOf(
@@ -88,8 +90,8 @@ class DiaperLoggingController(val fragment: BaseFragment, childId: Int) : Loggin
         solidLogic.state = false
     }
 
-    suspend override fun save() {
-        fragment.mainActivity.client.v2client.createEntry(
+    suspend override fun save(): TimeEntry {
+        return fragment.mainActivity.client.v2client.createEntry(
             ChangeEntry::class,
             ChangeEntry(
                 id = 0,
@@ -113,7 +115,7 @@ data class LoggingButtonControllerStoreState(
 class LoggingButtonController(
     val fragment: BaseFragment,
     val bindings: BabyManagerBinding,
-    val controlsInterface: InsertRemoveControlsFunction,
+    val controlsInterface: FragmentCallbacks,
     val child: BabyBuddyClient.Child,
 ) {
     val logicMap = mapOf(
@@ -153,7 +155,7 @@ class LoggingButtonController(
             }
             controller.saveButton.setOnClickListener {
                 fragment.mainActivity.scope.launch {
-                    runSave(controller)
+                    runSave(activity, controller)
                 }
             }
         }
@@ -170,9 +172,12 @@ class LoggingButtonController(
         }
     }
 
-    suspend fun runSave(controller: LoggingControls) {
-        controller.save()
+    suspend fun runSave(activity: String, controller: LoggingControls) {
+        logicMap[activity]?.state = false
+        val te = controller.save()
         controller.reset()
+        storeStateForSuspend()
+        controlsInterface.updateTimeline(te)
     }
 
     fun storeStateForSuspend() {
