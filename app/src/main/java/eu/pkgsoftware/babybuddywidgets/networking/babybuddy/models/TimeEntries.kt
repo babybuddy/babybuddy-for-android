@@ -1,12 +1,16 @@
 package eu.pkgsoftware.babybuddywidgets.networking.babybuddy.models
 
+import com.fasterxml.jackson.annotation.JsonGetter
 import com.fasterxml.jackson.annotation.JsonIgnoreProperties
 import com.fasterxml.jackson.annotation.JsonProperty
+import com.fasterxml.jackson.annotation.JsonSetter
 import com.fasterxml.jackson.databind.annotation.JsonDeserialize
+import com.fasterxml.jackson.databind.annotation.JsonSerialize
 import eu.pkgsoftware.babybuddywidgets.networking.BabyBuddyClient.ACTIVITIES
 import eu.pkgsoftware.babybuddywidgets.networking.BabyBuddyClient.EVENTS
 import eu.pkgsoftware.babybuddywidgets.DateTimeDeserializer
 import eu.pkgsoftware.babybuddywidgets.DateOnlyDeserializer
+import eu.pkgsoftware.babybuddywidgets.DateTimeSerializer
 import java.util.Date
 import kotlin.reflect.KClass
 import kotlin.reflect.full.findAnnotations
@@ -104,8 +108,11 @@ data class PumpingEntry(
 data class ChangeEntry(
     @JsonProperty("id", required = true) override val id: Int,
     @JsonProperty("child", required = true) override val childId: Int,
-    @JsonProperty("time", required = true) @JsonDeserialize(using = DateTimeDeserializer::class) override val start: Date,
-    @JsonProperty("notes", required = false) val _notes: String?,
+    @JsonProperty("time", required = true)
+    @JsonDeserialize(using = DateTimeDeserializer::class)
+    @JsonSerialize(using = DateTimeSerializer::class)
+    override val start: Date,
+    @JsonSetter("notes") val _notes: String?,
     @JsonProperty("wet", required = true) val wet: Boolean,
     @JsonProperty("solid", required = true) val solid: Boolean,
     @JsonProperty("color", required = true) val color: String,
@@ -114,7 +121,7 @@ data class ChangeEntry(
     override val type: String = EVENTS.CHANGE
     override val typeId: Int = EVENTS.index(type)
     override val end: Date = start
-    override val notes: String = _notes ?: ""
+    override @get:JsonGetter("notes") val notes: String = _notes ?: ""
 }
 
 @UIPath("notes")

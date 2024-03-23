@@ -8,6 +8,8 @@ import eu.pkgsoftware.babybuddywidgets.BaseFragment
 import eu.pkgsoftware.babybuddywidgets.databinding.BabyManagerBinding
 import eu.pkgsoftware.babybuddywidgets.databinding.DiaperLoggingEntryBinding
 import eu.pkgsoftware.babybuddywidgets.networking.BabyBuddyClient
+import eu.pkgsoftware.babybuddywidgets.networking.babybuddy.models.ChangeEntry
+import eu.pkgsoftware.babybuddywidgets.networking.babybuddy.nowServer
 import eu.pkgsoftware.babybuddywidgets.widgets.SwitchButtonLogic
 import kotlinx.coroutines.launch
 
@@ -87,7 +89,19 @@ class DiaperLoggingController(val fragment: BaseFragment, childId: Int) : Loggin
     }
 
     suspend override fun save() {
-        TODO("Not yet implemented")
+        fragment.mainActivity.client.v2client.createEntry(
+            ChangeEntry::class,
+            ChangeEntry(
+                id = 0,
+                childId = childId,
+                start = nowServer(),
+                _notes = noteEditor.text.toString(),
+                wet = wetLogic.state,
+                solid = solidLogic.state,
+                color = "",
+                amount = null
+            )
+        )
     }
 }
 

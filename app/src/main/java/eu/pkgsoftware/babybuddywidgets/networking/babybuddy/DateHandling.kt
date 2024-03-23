@@ -26,6 +26,11 @@ fun parseNullOrDate(s: String, format: String): Date? {
     }
 }
 
+fun formatDate(d: Date, format: String): String {
+    val sdf = SimpleDateFormat(format, Locale.ENGLISH)
+    return sdf.format(d)
+}
+
 fun clientToServerTime(d: Date): Date {
     return Date(d.time + SystemServerTimeOffset)
 }
@@ -34,3 +39,6 @@ fun serverTimeToClientTime(d: Date): Date {
     return Date(d.time - SystemServerTimeOffset)
 }
 
+fun nowServer(): Date {
+    return clientToServerTime(Date())
+}

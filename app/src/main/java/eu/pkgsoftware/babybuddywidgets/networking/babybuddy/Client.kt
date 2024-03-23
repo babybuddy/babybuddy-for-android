@@ -1,5 +1,8 @@
 package eu.pkgsoftware.babybuddywidgets.networking.babybuddy
 
+import com.fasterxml.jackson.databind.JsonNode
+import com.fasterxml.jackson.databind.node.ObjectNode
+import com.fasterxml.jackson.module.kotlin.jacksonObjectMapper
 import eu.pkgsoftware.babybuddywidgets.debugging.GlobalDebugObject
 import eu.pkgsoftware.babybuddywidgets.networking.RequestCodeFailure
 import eu.pkgsoftware.babybuddywidgets.networking.ServerAccessProviderInterface
@@ -28,7 +31,9 @@ import kotlin.reflect.KTypeProjection
 import kotlin.reflect.KVariance
 import kotlin.reflect.full.createType
 import kotlin.reflect.full.findAnnotation
+import kotlin.reflect.full.findParameterByName
 import kotlin.reflect.full.functions
+import kotlin.reflect.full.valueParameters
 import kotlin.reflect.jvm.javaMethod
 
 fun genRequestId(): String {
@@ -196,5 +201,52 @@ class Client(val credStore: ServerAccessProviderInterface) {
             }
         }
         return selected
+    }
+
+    suspend fun <T : TimeEntry> createEntry(itemClass: KClass<T>, item: T): T {
+        val REQID = genRequestId()
+        val klass = item.javaClass.kotlin
+
+        val desiredArgumentType = JsonNode::class.createType()
+        val desiredReturnType = Call::class.createType(
+            arguments = listOf(
+                KTypeProjection(
+                    KVariance.INVARIANT,
+                    itemClass.createType()
+                )
+            )
+        )
+        var selected: KFunction<*>? = null
+        for (func in ApiInterface::class.functions) {
+            if (desiredArgumentType == func.findParameterByName("data")?.type) {
+                if (desiredReturnType == func.returnType) {
+                    selected = func
+                }
+            }
+        }
+
+        if (selected == null) {
+            throw IncorrectApiConfiguration(
+                "${REQID} V2Client::createEntry setter for ${klass.qualifiedName} is missing"
+            )
+        }
+
+        val mapper = jacksonObjectMapper()
+        val node = mapper.valueToTree<ObjectNode>(item)
+        node.remove("id")
+        node.remove("type")
+        node.remove("typeId")
+
+        GlobalDebugObject.log("${REQID} V2Client::createEntry ${klass.simpleName}")
+        return withContext(Dispatchers.IO) {
+            try {
+                val call: Call<T> = selected.javaMethod!!.invoke(api, node) as Call<T>
+                return@withContext executeCall(call)
+            }
+            catch (e: Exception) {
+                GlobalDebugObject.log("${REQID} V2Client::createEntry ${klass.simpleName} !exception! ${e.message}")
+                throw e
+            }
+        }
     }
 }
