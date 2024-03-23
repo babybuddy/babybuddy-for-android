@@ -6,129 +6,14 @@
     android:layout_height="match_parent"
     android:padding="16dp">
 
-    <LinearLayout
-        android:id="@+id/changeButtons"
-        android:layout_width="match_parent"
-        android:layout_height="wrap_content"
-        android:gravity="center"
-        android:orientation="horizontal"
-        app:layout_constraintEnd_toEndOf="parent"
-        app:layout_constraintStart_toStartOf="parent"
-        app:layout_constraintTop_toTopOf="parent">
-
-        <TextView
-            android:id="@+id/textView"
-            android:layout_width="wrap_content"
-            android:layout_height="wrap_content"
-            android:layout_marginRight="24dp"
-            android:layout_weight="0"
-            android:text="Diaper"
-            android:textAppearance="@style/TextAppearance.AppCompat.Large" />
-
-        <LinearLayout
-            android:layout_width="wrap_content"
-            android:layout_height="match_parent"
-            android:layout_weight="1"
-            android:orientation="horizontal"></LinearLayout>
-
-        <ImageButton
-            android:id="@+id/wetDisabledButton"
-            android:layout_width="64dp"
-            android:layout_height="64dp"
-            android:layout_weight="0"
-            android:scaleType="fitCenter"
-            android:src="@drawable/pkg_not_wet"
-            app:tint="?android:attr/textColorSecondary"
-            android:tintMode="src_in" />
-
-        <ImageButton
-            android:id="@+id/wetEnabledButton"
-            android:layout_width="64dp"
-            android:layout_height="64dp"
-            android:layout_weight="0"
-            android:backgroundTint="#80FF80"
-            android:scaleType="fitCenter"
-            android:src="@drawable/pkg_wet"
-            app:tint="@color/fixed_color_button_text_color"
-            android:tintMode="src_in"
-            android:visibility="gone" />
-
-        <ImageButton
-            android:id="@+id/solidDisabledButton"
-            android:layout_width="64dp"
-            android:layout_height="64dp"
-            android:layout_weight="0"
-            android:scaleType="fitCenter"
-            android:src="@drawable/pkg_no_poop"
-            app:tint="?android:attr/textColorSecondary"
-            android:tintMode="src_in" />
-
-        <ImageButton
-            android:id="@+id/solidEnabledButton"
-            android:layout_width="64dp"
-            android:layout_height="64dp"
-            android:layout_weight="0"
-            android:backgroundTint="#80FF80"
-            android:scaleType="fitCenter"
-            android:src="@drawable/pkg_poop"
-            app:tint="@color/fixed_color_button_text_color"
-            android:tintMode="src_in"
-            android:visibility="gone" />
-
-        <ImageButton
-            android:id="@+id/removeNoteButton"
-            android:layout_width="48dp"
-            android:layout_height="48dp"
-            android:layout_margin="4dp"
-            android:layout_weight="0"
-            android:backgroundTint="#80FF80"
-            android:src="@drawable/pkg_notes"
-            app:tint="@color/fixed_color_button_text_color"
-            android:tintMode="src_in"
-            android:visibility="gone" />
-
-        <ImageButton
-            android:id="@+id/addNoteButton"
-            android:layout_width="48dp"
-            android:layout_height="48dp"
-            android:layout_margin="4dp"
-            android:layout_weight="0"
-            android:src="@drawable/pkg_no_notes"
-            app:tint="?android:attr/textColorSecondary"
-            android:tintMode="src_in"
-            android:visibility="visible" />
-
-        <ImageButton
-            android:id="@+id/sendChangeButton"
-            android:layout_width="wrap_content"
-            android:layout_height="wrap_content"
-            android:layout_margin="4dp"
-            android:layout_weight="0"
-            android:visibility="visible"
-            app:layout_constraintBottom_toBottomOf="parent"
-            app:layout_constraintEnd_toEndOf="parent"
-            app:layout_constraintTop_toTopOf="parent"
-            app:srcCompat="@android:drawable/ic_menu_save" />
-
-    </LinearLayout>
-
-    <LinearLayout
-        android:id="@+id/diaperNotesSlot"
-        android:layout_width="match_parent"
-        android:layout_height="wrap_content"
-        android:orientation="horizontal"
-        app:layout_constraintStart_toStartOf="parent"
-        app:layout_constraintTop_toBottomOf="@id/changeButtons" />
-
     <ScrollView
         android:id="@+id/mainScrollView"
         android:layout_width="match_parent"
         android:layout_height="0dp"
-        android:layout_marginTop="8dp"
         app:layout_constraintBottom_toBottomOf="parent"
         app:layout_constraintLeft_toLeftOf="parent"
         app:layout_constraintRight_toRightOf="parent"
-        app:layout_constraintTop_toBottomOf="@id/diaperNotesSlot">
+        app:layout_constraintTop_toTopOf="parent">
 
         <LinearLayout
             android:layout_width="match_parent"
@@ -153,9 +38,9 @@
                     android:backgroundTint="@color/timer_button_disabled"
                     android:scaleType="fitCenter"
                     android:src="@drawable/pkg_diaper"
-                    app:tint="@color/fixed_color_button_text_color"
                     android:tintMode="src_in"
-                    android:visibility="gone"/>
+                    android:visibility="gone"
+                    app:tint="@color/fixed_color_button_text_color" />
 
                 <ImageButton
                     android:id="@+id/diaperEnabledButton"
@@ -165,9 +50,9 @@
                     android:backgroundTint="@color/diaper_enabled"
                     android:scaleType="fitCenter"
                     android:src="@drawable/pkg_diaper"
-                    app:tint="@color/fixed_color_button_text_color"
                     android:tintMode="src_in"
-                    android:visibility="visible" />
+                    android:visibility="visible"
+                    app:tint="@color/fixed_color_button_text_color" />
 
                 <ImageButton
                     android:id="@+id/sleepDisabledButton"
@@ -177,9 +62,9 @@
                     android:backgroundTint="@color/timer_button_disabled"
                     android:scaleType="fitCenter"
                     android:src="@drawable/pkg_sleep"
-                    app:tint="@color/fixed_color_button_text_color"
                     android:tintMode="src_in"
-                    android:visibility="gone" />
+                    android:visibility="gone"
+                    app:tint="@color/fixed_color_button_text_color" />
 
                 <ImageButton
                     android:id="@+id/sleepEnabledButton"
@@ -189,9 +74,9 @@
                     android:backgroundTint="@color/sleep_enabled"
                     android:scaleType="fitCenter"
                     android:src="@drawable/pkg_sleep"
-                    app:tint="@color/fixed_color_button_text_color"
                     android:tintMode="src_in"
-                    android:visibility="visible" />
+                    android:visibility="visible"
+                    app:tint="@color/fixed_color_button_text_color" />
 
                 <ImageButton
                     android:id="@+id/feedingDisabledButton"
@@ -201,9 +86,9 @@
                     android:backgroundTint="@color/timer_button_disabled"
                     android:scaleType="fitCenter"
                     android:src="@drawable/pkg_bottle"
-                    app:tint="@color/fixed_color_button_text_color"
                     android:tintMode="src_in"
-                    android:visibility="gone" />
+                    android:visibility="gone"
+                    app:tint="@color/fixed_color_button_text_color" />
 
                 <ImageButton
                     android:id="@+id/feedingEnabledButton"
@@ -213,9 +98,9 @@
                     android:backgroundTint="@color/feeding_enabled"
                     android:scaleType="fitCenter"
                     android:src="@drawable/pkg_bottle"
-                    app:tint="@color/fixed_color_button_text_color"
                     android:tintMode="src_in"
-                    android:visibility="visible" />
+                    android:visibility="visible"
+                    app:tint="@color/fixed_color_button_text_color" />
 
                 <ImageButton
                     android:id="@+id/notesDisabledButton"
@@ -225,9 +110,9 @@
                     android:backgroundTint="@color/timer_button_disabled"
                     android:scaleType="fitCenter"
                     android:src="@drawable/pkg_notes"
-                    app:tint="@color/fixed_color_button_text_color"
                     android:tintMode="src_in"
-                    android:visibility="gone" />
+                    android:visibility="gone"
+                    app:tint="@color/fixed_color_button_text_color" />
 
                 <ImageButton
                     android:id="@+id/notesEnabledButton"
@@ -237,9 +122,9 @@
                     android:backgroundTint="@color/notes_enabled"
                     android:scaleType="fitCenter"
                     android:src="@drawable/pkg_notes"
-                    app:tint="@color/fixed_color_button_text_color"
                     android:tintMode="src_in"
-                    android:visibility="visible" />
+                    android:visibility="visible"
+                    app:tint="@color/fixed_color_button_text_color" />
 
                 <ImageButton
                     android:id="@+id/pumpingDisabledButton"
@@ -249,9 +134,9 @@
                     android:backgroundTint="@color/timer_button_disabled"
                     android:scaleType="fitCenter"
                     android:src="@drawable/pkg_pumping"
-                    app:tint="@color/fixed_color_button_text_color"
                     android:tintMode="src_in"
-                    android:visibility="gone" />
+                    android:visibility="gone"
+                    app:tint="@color/fixed_color_button_text_color" />
 
                 <ImageButton
                     android:id="@+id/pumpingEnabledButton"
@@ -261,9 +146,9 @@
                     android:backgroundTint="@color/pumping_enabled"
                     android:scaleType="fitCenter"
                     android:src="@drawable/pkg_pumping"
-                    app:tint="@color/fixed_color_button_text_color"
                     android:tintMode="src_in"
-                    android:visibility="visible" />
+                    android:visibility="visible"
+                    app:tint="@color/fixed_color_button_text_color" />
 
                 <ImageButton
                     android:id="@+id/tummyTimeDisabledButton"
@@ -273,9 +158,9 @@
                     android:backgroundTint="@color/timer_button_disabled"
                     android:scaleType="fitCenter"
                     android:src="@drawable/pkg_crawl"
-                    app:tint="@color/fixed_color_button_text_color"
                     android:tintMode="src_in"
-                    android:visibility="gone" />
+                    android:visibility="gone"
+                    app:tint="@color/fixed_color_button_text_color" />
 
                 <ImageButton
                     android:id="@+id/tummyTimeEnabledButton"
@@ -285,9 +170,9 @@
                     android:backgroundTint="@color/tummy_time_enabled"
                     android:scaleType="fitCenter"
                     android:src="@drawable/pkg_crawl"
-                    app:tint="@color/fixed_color_button_text_color"
                     android:tintMode="src_in"
-                    android:visibility="visible" />
+                    android:visibility="visible"
+                    app:tint="@color/fixed_color_button_text_color" />
             </LinearLayout>
 
             <androidx.recyclerview.widget.RecyclerView

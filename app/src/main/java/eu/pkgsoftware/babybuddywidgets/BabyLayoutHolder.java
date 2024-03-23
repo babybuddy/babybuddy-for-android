@@ -36,11 +36,6 @@ public class BabyLayoutHolder extends RecyclerView.ViewHolder implements TimerCo
 
     private BabyBuddyClient.Child child = null;
 
-    private boolean changeWet = false;
-    private boolean changeSolid = false;
-
-    private NotesEditorLogic notesEditor;
-    private SwitchButtonLogic notesSwitch;
     private ChildEventHistoryLoader childHistoryLoader = null;
 
     private ChildrenStateTracker.ChildObserver childObserver = null;
@@ -65,35 +60,6 @@ public class BabyLayoutHolder extends RecyclerView.ViewHolder implements TimerCo
         GridLayoutManager l = new GridLayoutManager(binding.timersList.getContext(), 1);
         binding.timersList.setLayoutManager(l);
 
-        View.OnClickListener invertSolid = view -> {
-            changeSolid = !changeSolid;
-            updateDiaperBar();
-        };
-        binding.solidEnabledButton.setOnClickListener(invertSolid);
-        binding.solidDisabledButton.setOnClickListener(invertSolid);
-
-        View.OnClickListener invertWet = view -> {
-            changeWet = !changeWet;
-            updateDiaperBar();
-        };
-        binding.wetEnabledButton.setOnClickListener(invertWet);
-        binding.wetDisabledButton.setOnClickListener(invertWet);
-        binding.sendChangeButton.setOnClickListener(view -> storeDiaperChange());
-
-        notesSwitch = new SwitchButtonLogic(
-            binding.addNoteButton,
-            binding.removeNoteButton,
-            false
-        );
-
-        NotesEditorBinding notesEditorBinding = NotesEditorBinding.inflate(
-            fragment.getMainActivity().getLayoutInflater()
-        );
-        binding.diaperNotesSlot.addView(notesEditorBinding.getRoot());
-
-        notesEditor = new NotesEditorLogic(notesEditorBinding, false);
-        notesSwitch.addStateListener((b, userInduced) -> notesEditor.setVisible(b));
-
         binding.mainScrollView.setOnScrollChangeListener((v, scrollX, scrollY, oldScrollX, oldScrollY) -> {
             if (childHistoryLoader != null) {
                 childHistoryLoader.updateTop();
@@ -103,46 +69,6 @@ public class BabyLayoutHolder extends RecyclerView.ViewHolder implements TimerCo
 
     public BabyBuddyClient.Child getChild() {
         return child;
-    }
-
-    private void resetDiaperUi() {
-        changeSolid = false;
-        changeWet = false;
-        updateDiaperBar();
-    }
-
-    private void updateDiaperBar() {
-        binding.sendChangeButton.setVisibility((changeSolid || changeWet) ? View.VISIBLE : View.INVISIBLE);
-        binding.solidEnabledButton.setVisibility(changeSolid ? View.VISIBLE : View.GONE);
-        binding.solidDisabledButton.setVisibility(!changeSolid ? View.VISIBLE : View.GONE);
-        binding.wetEnabledButton.setVisibility(changeWet ? View.VISIBLE : View.GONE);
-        binding.wetDisabledButton.setVisibility(!changeWet ? View.VISIBLE : View.GONE);
-    }
-
-    private void storeDiaperChange() {
-        client.createChangeRecord(child, changeWet, changeSolid, notesEditor.getText(),
-            new BabyBuddyClient.RequestCallback<Boolean>() {
-                @Override
-                public void error(@NonNull Exception error) {
-                    baseFragment.showError(
-                        true,
-                        "Failed to save",
-                        "Diaper change not saved"
-                    );
-                }
-
-                @Override
-                public void response(Boolean response) {
-                    notesEditor.clearText();
-                    notesSwitch.setState(false);
-                    if (childHistoryLoader != null) {
-                        childHistoryLoader.forceRefresh();
-                    }
-                }
-            }
-        );
-
-        resetDiaperUi();
     }
 
     private void requeueImmediateTimerListRefresh() {
@@ -169,10 +95,6 @@ public class BabyLayoutHolder extends RecyclerView.ViewHolder implements TimerCo
     public void updateChild(BabyBuddyClient.Child c, ChildrenStateTracker stateTracker) {
         clear();
         this.child = c;
-        notesEditor.setNotes(new CredStoreNotes(
-            "diaper_" + c.slug, baseFragment.getMainActivity().getCredStore()
-        ));
-        notesSwitch.setState(notesEditor.isVisible());
 
         if (child != null) {
             if (stateTracker == null) {
@@ -258,7 +180,6 @@ public class BabyLayoutHolder extends RecyclerView.ViewHolder implements TimerCo
         }
         resetChildObserver();
         resetChildHistoryLoader();
-        resetDiaperUi();
     }
 
     private void resetChildObserver() {
@@ -276,7 +197,6 @@ public class BabyLayoutHolder extends RecyclerView.ViewHolder implements TimerCo
         }
         resetChildObserver();
         resetChildHistoryLoader();
-        resetDiaperUi();
         child = null;
         cachedTimers = null;
     }

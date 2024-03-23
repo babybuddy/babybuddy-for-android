@@ -74,7 +74,11 @@ class DiaperLoggingController(val fragment: BaseFragment, childId: Int) : Loggin
     }
 
     fun updateSaveEnabledState() {
-        saveButton.isEnabled = wetLogic.state || solidLogic.state
+        saveButton.visibility = if (wetLogic.state || solidLogic.state) {
+            View.VISIBLE
+        } else {
+            View.INVISIBLE
+        }
     }
 
     override fun storeStateForSuspend() {
