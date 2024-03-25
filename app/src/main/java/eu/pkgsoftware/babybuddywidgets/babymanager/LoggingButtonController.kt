@@ -6,20 +6,30 @@ import android.widget.ImageButton
 import com.fasterxml.jackson.annotation.JsonIgnoreProperties
 import com.fasterxml.jackson.annotation.JsonProperty
 import eu.pkgsoftware.babybuddywidgets.BaseFragment
+import eu.pkgsoftware.babybuddywidgets.StoreFunction
 import eu.pkgsoftware.babybuddywidgets.databinding.BabyManagerBinding
 import eu.pkgsoftware.babybuddywidgets.databinding.DiaperLoggingEntryBinding
 import eu.pkgsoftware.babybuddywidgets.databinding.GenericTimerLoggingEntryBinding
 import eu.pkgsoftware.babybuddywidgets.login.Utils
 import eu.pkgsoftware.babybuddywidgets.networking.BabyBuddyClient
+import eu.pkgsoftware.babybuddywidgets.networking.BabyBuddyClient.Timer
 import eu.pkgsoftware.babybuddywidgets.networking.babybuddy.models.ChangeEntry
+import eu.pkgsoftware.babybuddywidgets.networking.babybuddy.models.SleepEntry
 import eu.pkgsoftware.babybuddywidgets.networking.babybuddy.models.TimeEntry
+import eu.pkgsoftware.babybuddywidgets.networking.babybuddy.models.classActivityName
 import eu.pkgsoftware.babybuddywidgets.networking.babybuddy.nowServer
 import eu.pkgsoftware.babybuddywidgets.timers.TimerControlInterface
 import eu.pkgsoftware.babybuddywidgets.timers.TimersUpdatedCallback
+import eu.pkgsoftware.babybuddywidgets.timers.TranslatedException
+import eu.pkgsoftware.babybuddywidgets.utils.AsyncPromise
+import eu.pkgsoftware.babybuddywidgets.utils.Promise
 import eu.pkgsoftware.babybuddywidgets.widgets.SwitchButtonLogic
 import kotlinx.coroutines.Runnable
 import kotlinx.coroutines.launch
+import java.io.IOException
+import java.sql.Time
 import java.util.Date
+import kotlin.reflect.KClass
 
 interface FragmentCallbacks {
     fun insertControls(view: View)
@@ -129,15 +139,20 @@ data class GenericTimerRecord(
     @JsonProperty("note") val note: String
 )
 
-class SleepLoggingController(val fragment: BaseFragment, childId: Int) : LoggingControls(childId), TimerBase {
+class SleepLoggingController(
+    val fragment: BaseFragment,
+    childId: Int,
+    val timerControl: TimerControlInterface
+) : LoggingControls(childId), TimerBase {
     val bindings = GenericTimerLoggingEntryBinding.inflate(fragment.layoutInflater)
 
-    val typeName: String = BabyBuddyClient.ACTIVITIES.SLEEP
+    val entryKlass: KClass<*> = SleepEntry::class
+    val typeName: String = classActivityName(entryKlass)
 
     override val saveButton: ImageButton = bindings.sendButton
     override val controlsView: View = bindings.root
 
-    var startTime: Date? = null
+    var timer: Timer? = null
 
     init {
         fragment.mainActivity.storage.child<GenericTimerRecord>(childId, typeName)?.let {
@@ -157,16 +172,94 @@ class SleepLoggingController(val fragment: BaseFragment, childId: Int) : Logging
     }
 
     override suspend fun save(): TimeEntry {
-        TODO("Not yet implemented")
+        timer?.let { timer ->
+            val result = AsyncPromise.call<TimeEntry?, Exception?> { promise ->
+                fragment.mainActivity.storeActivity(
+                    timer,
+                    object : StoreFunction<TimeEntry> {
+                        override fun store(
+                            timer: Timer,
+                            callback: BabyBuddyClient.RequestCallback<TimeEntry>
+                        ) {
+                            fragment.mainActivity.scope.launch {
+                                try {
+                                    val result = fragment.mainActivity.client.v2client.createEntry(
+                                        SleepEntry::class,
+                                        SleepEntry(
+                                            id = 0,
+                                            childId = childId,
+                                            start = timer.start,
+                                            end = nowServer(),
+                                            _notes = bindings.noteEditor.text.toString()
+                                        )
+                                    )
+                                    timerControl.stopTimer(
+                                        timer,
+                                        object : Promise<Any, TranslatedException> {
+                                            override fun succeeded(s: Any?) {
+                                                callback.response(result)
+                                            }
+
+                                            override fun failed(f: TranslatedException?) {
+                                                callback.error(
+                                                    f?.originalError
+                                                        ?: IOException("Failed to stop timer")
+                                                )
+                                            }
+                                        })
+                                } catch (e: Exception) {
+                                    callback.error(e)
+                                }
+                            }
+                        }
+
+                        override fun name(): String {
+                            return this@SleepLoggingController.typeName
+                        }
+
+                        override fun timerStopped() {
+                            timerControl.stopTimer(
+                                timer,
+                                object : Promise<Any, TranslatedException> {
+                                    override fun succeeded(s: Any?) {
+                                        promise.succeeded(null)
+                                    }
+
+                                    override fun failed(f: TranslatedException?) {
+                                        promise.failed(f)
+                                    }
+                                })
+                        }
+
+                        override fun cancel() {
+                            promise.failed(null)
+                        }
+
+                        override fun error(error: java.lang.Exception) {
+                            promise.failed(error)
+                        }
+
+                        override fun response(response: TimeEntry?) {
+                            promise.succeeded(response!!)
+                        }
+
+                    }
+                )
+            }
+            result?.let {
+                return it
+            }
+        }
+        throw IOException("Could not store activity of type ${typeName}")
     }
 
-    override fun updateTimer(timer: BabyBuddyClient.Timer) {
-        startTime = timer.start
+    override fun updateTimer(timer: Timer) {
+        this.timer = timer
     }
 
     override fun updateVisuals() {
-        startTime?.let {
-            val diff= Date().time - it.time
+        timer?.let {
+            val diff = Date().time - it.start.time
 
             val seconds = diff.toInt() / 1000
             val minutes = seconds / 60
@@ -192,7 +285,7 @@ class LoggingButtonController(
     val controlsInterface: FragmentCallbacks,
     val child: BabyBuddyClient.Child,
     val timerControl: TimerControlInterface,
-) : TimersUpdatedCallback  {
+) : TimersUpdatedCallback {
     val logicMap = mapOf(
         BabyBuddyClient.EVENTS.CHANGE to SwitchButtonLogic(
             bindings.diaperDisabledButton, bindings.diaperEnabledButton, false
@@ -216,7 +309,11 @@ class LoggingButtonController(
 
     val loggingControllers: Map<String, LoggingControls> = mapOf(
         BabyBuddyClient.EVENTS.CHANGE to DiaperLoggingController(fragment, child.id),
-        BabyBuddyClient.ACTIVITIES.SLEEP to SleepLoggingController(fragment, child.id),
+        BabyBuddyClient.ACTIVITIES.SLEEP to SleepLoggingController(
+            fragment,
+            child.id,
+            timerControl
+        ),
     )
 
     private var timerHandler: Handler? = Handler(fragment.mainActivity.mainLooper)
@@ -289,7 +386,7 @@ class LoggingButtonController(
 
     fun destroy() {
         storeStateForSuspend()
-        for ((name, controller) in loggingControllers) {
+        for (controller in loggingControllers.values) {
             controlsInterface.removeControls(controller.controlsView)
         }
         for (logic in logicMap.values) {
@@ -300,7 +397,8 @@ class LoggingButtonController(
     }
 
     override fun newTimerListLoaded(timers: Array<BabyBuddyClient.Timer>) {
-        val toDisable = loggingControllers.filter { it.value is TimerBase }.map { it.key }.toMutableList()
+        val toDisable =
+            loggingControllers.filter { it.value is TimerBase }.map { it.key }.toMutableList()
         for (timer in timers) {
             if (!timer.active) continue
             loggingControllers[timer.name]?.let { controller ->

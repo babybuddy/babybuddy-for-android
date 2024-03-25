@@ -5,6 +5,7 @@ import androidx.navigation.Navigation.findNavController
 import eu.pkgsoftware.babybuddywidgets.MainActivity
 import eu.pkgsoftware.babybuddywidgets.R
 import eu.pkgsoftware.babybuddywidgets.StoreFunction
+import eu.pkgsoftware.babybuddywidgets.networking.BabyBuddyClient
 import eu.pkgsoftware.babybuddywidgets.networking.BabyBuddyClient.ACTIVITIES
 import eu.pkgsoftware.babybuddywidgets.networking.BabyBuddyClient.RequestCallback
 import eu.pkgsoftware.babybuddywidgets.networking.BabyBuddyClient.Timer

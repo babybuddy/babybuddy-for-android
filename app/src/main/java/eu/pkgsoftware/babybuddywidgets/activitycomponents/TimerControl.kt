@@ -4,6 +4,7 @@ import eu.pkgsoftware.babybuddywidgets.CredStore
 import eu.pkgsoftware.babybuddywidgets.MainActivity
 import eu.pkgsoftware.babybuddywidgets.R
 import eu.pkgsoftware.babybuddywidgets.networking.BabyBuddyClient.RequestCallback
+import eu.pkgsoftware.babybuddywidgets.networking.BabyBuddyClient.TimeEntry
 import eu.pkgsoftware.babybuddywidgets.networking.BabyBuddyClient.Timer
 import eu.pkgsoftware.babybuddywidgets.timers.StoreActivityRouter
 import eu.pkgsoftware.babybuddywidgets.timers.TimerControlInterface
@@ -79,8 +80,8 @@ class TimerControl(val mainActivity: MainActivity, val childId: Int) : TimerCont
         cb: Promise<Boolean, Exception>
     ) {
         storeActivityRouter.store(activity, notes, timer, object : Promise<Boolean, Exception> {
-            override fun succeeded(aBoolean: Boolean) {
-                cb.succeeded(aBoolean)
+            override fun succeeded(b: Boolean) {
+                cb.succeeded(b)
             }
 
             override fun failed(e: Exception) {

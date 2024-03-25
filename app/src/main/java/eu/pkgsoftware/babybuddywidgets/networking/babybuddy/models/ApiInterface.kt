@@ -124,4 +124,8 @@ interface ApiInterface {
     @POST("changes/")
     @Headers("Content-Type: application/json")
     fun sendChangeEntry(@Body data: JsonNode): Call<ChangeEntry>
+
+    @POST("sleep/")
+    @Headers("Content-Type: application/json")
+    fun sendSleepEntry(@Body data: JsonNode): Call<SleepEntry>
 }
