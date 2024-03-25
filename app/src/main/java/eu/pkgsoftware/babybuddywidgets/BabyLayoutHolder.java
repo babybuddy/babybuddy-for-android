@@ -6,6 +6,9 @@ import com.squareup.phrase.Phrase;
 
 import org.jetbrains.annotations.NotNull;
 
+import java.util.ArrayList;
+import java.util.List;
+
 import androidx.annotation.NonNull;
 import androidx.annotation.Nullable;
 import androidx.recyclerview.widget.GridLayoutManager;
@@ -14,7 +17,6 @@ import eu.pkgsoftware.babybuddywidgets.activitycomponents.TimerControl;
 import eu.pkgsoftware.babybuddywidgets.babymanager.FragmentCallbacks;
 import eu.pkgsoftware.babybuddywidgets.babymanager.LoggingButtonController;
 import eu.pkgsoftware.babybuddywidgets.databinding.BabyManagerBinding;
-import eu.pkgsoftware.babybuddywidgets.databinding.NotesEditorBinding;
 import eu.pkgsoftware.babybuddywidgets.history.ChildEventHistoryLoader;
 import eu.pkgsoftware.babybuddywidgets.networking.BabyBuddyClient;
 import eu.pkgsoftware.babybuddywidgets.networking.ChildrenStateTracker;
@@ -26,13 +28,13 @@ import eu.pkgsoftware.babybuddywidgets.timers.TimerListProvider;
 import eu.pkgsoftware.babybuddywidgets.timers.TimersUpdatedCallback;
 import eu.pkgsoftware.babybuddywidgets.timers.TranslatedException;
 import eu.pkgsoftware.babybuddywidgets.utils.Promise;
-import eu.pkgsoftware.babybuddywidgets.widgets.SwitchButtonLogic;
 
 public class BabyLayoutHolder extends RecyclerView.ViewHolder implements TimerControlInterface {
     private final BabyManagerBinding binding;
     private final BaseFragment baseFragment;
     private final BabyBuddyClient client;
     private TimerListProvider timerListProvider = null;
+
 
     private BabyBuddyClient.Child child = null;
 
@@ -42,7 +44,7 @@ public class BabyLayoutHolder extends RecyclerView.ViewHolder implements TimerCo
     private StoreActivityRouter storeActivityRouter;
 
     private BabyBuddyClient.Timer[] cachedTimers = null;
-    private TimersUpdatedCallback updateTimersCallback = null;
+    private List<TimersUpdatedCallback> updateTimersCallbacks = new ArrayList<>(10);
 
     private int pendingTimerModificationCalls = 0;
 
@@ -146,7 +148,8 @@ public class BabyLayoutHolder extends RecyclerView.ViewHolder implements TimerCo
                         }
                     }
                 },
-                child
+                child,
+                this
             );
         }
     }
@@ -273,8 +276,27 @@ public class BabyLayoutHolder extends RecyclerView.ViewHolder implements TimerCo
 
     @Override
     public void registerTimersUpdatedCallback(@NonNull TimersUpdatedCallback callback) {
-        baseFragment.getMainActivity().getChildTimerControl(child).registerTimersUpdatedCallback(callback);
+        if (updateTimersCallbacks.contains(callback)) {
+            return;
+        }
+        updateTimersCallbacks.add(callback);
+
+        baseFragment.getMainActivity().getChildTimerControl(child).registerTimersUpdatedCallback(
+            timers -> {
+                for (TimersUpdatedCallback c : updateTimersCallbacks) {
+                    c.newTimerListLoaded(timers);
+                }
+            }
+        );
         callTimerUpdateCallback();
+    }
+
+    @Override
+    public void unregisterTimersUpdatedCallback(@NonNull TimersUpdatedCallback callback) {
+        if (!updateTimersCallbacks.contains(callback)) {
+            return;
+        }
+        updateTimersCallbacks.remove(callback);
     }
 
     private void callTimerUpdateCallback() {

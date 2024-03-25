@@ -31,7 +31,7 @@
         app:layout_constraintTop_toTopOf="parent">
 
         <FrameLayout
-            android:id="@+id/frameLayout"
+            android:id="@+id/sleepIcon"
             android:layout_width="48dp"
             android:layout_height="48dp"
             android:background="@color/diaper_enabled"
@@ -107,7 +107,7 @@
             android:layout_marginStart="24dp"
             android:orientation="vertical"
             app:layout_constraintBottom_toBottomOf="parent"
-            app:layout_constraintStart_toEndOf="@+id/frameLayout"
+            app:layout_constraintStart_toEndOf="@+id/sleepIcon"
             app:layout_constraintTop_toTopOf="parent">
 
             <ImageButton

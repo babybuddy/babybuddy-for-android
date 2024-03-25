@@ -36,6 +36,9 @@ public class SwitchButtonLogic {
     }
 
     private void setState(boolean b, boolean userInduced) {
+        if (b == state) {
+            return;
+        }
         state = b;
         updateVisibilityState();
 

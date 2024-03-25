@@ -93,6 +93,12 @@ class TimerControl(val mainActivity: MainActivity, val childId: Int) : TimerCont
         updateTimersCallback = callback
     }
 
+    override fun unregisterTimersUpdatedCallback(callback: TimersUpdatedCallback) {
+        if (updateTimersCallback == callback) {
+            updateTimersCallback = null
+        }
+    }
+
     override fun getNotes(timer: Timer): CredStore.Notes {
         val credStore: CredStore = mainActivity.credStore
         return credStore.getObjectNotes("timer_" + timer.id)

@@ -1,5 +1,6 @@
 package eu.pkgsoftware.babybuddywidgets.babymanager
 
+import android.os.Handler
 import android.view.View
 import android.widget.ImageButton
 import com.fasterxml.jackson.annotation.JsonIgnoreProperties
@@ -7,12 +8,18 @@ import com.fasterxml.jackson.annotation.JsonProperty
 import eu.pkgsoftware.babybuddywidgets.BaseFragment
 import eu.pkgsoftware.babybuddywidgets.databinding.BabyManagerBinding
 import eu.pkgsoftware.babybuddywidgets.databinding.DiaperLoggingEntryBinding
+import eu.pkgsoftware.babybuddywidgets.databinding.GenericTimerLoggingEntryBinding
+import eu.pkgsoftware.babybuddywidgets.login.Utils
 import eu.pkgsoftware.babybuddywidgets.networking.BabyBuddyClient
 import eu.pkgsoftware.babybuddywidgets.networking.babybuddy.models.ChangeEntry
 import eu.pkgsoftware.babybuddywidgets.networking.babybuddy.models.TimeEntry
 import eu.pkgsoftware.babybuddywidgets.networking.babybuddy.nowServer
+import eu.pkgsoftware.babybuddywidgets.timers.TimerControlInterface
+import eu.pkgsoftware.babybuddywidgets.timers.TimersUpdatedCallback
 import eu.pkgsoftware.babybuddywidgets.widgets.SwitchButtonLogic
+import kotlinx.coroutines.Runnable
 import kotlinx.coroutines.launch
+import java.util.Date
 
 interface FragmentCallbacks {
     fun insertControls(view: View)
@@ -27,6 +34,8 @@ abstract class LoggingControls(val childId: Int) {
     abstract fun storeStateForSuspend()
     abstract fun reset()
     suspend abstract fun save(): TimeEntry
+
+    open fun updateVisuals() {}
 }
 
 val ACTIVITIES = listOf(
@@ -111,6 +120,67 @@ class DiaperLoggingController(val fragment: BaseFragment, childId: Int) : Loggin
     }
 }
 
+interface TimerBase {
+    fun updateTimer(timer: BabyBuddyClient.Timer)
+}
+
+@JsonIgnoreProperties(ignoreUnknown = true)
+data class GenericTimerRecord(
+    @JsonProperty("note") val note: String
+)
+
+class SleepLoggingController(val fragment: BaseFragment, childId: Int) : LoggingControls(childId), TimerBase {
+    val bindings = GenericTimerLoggingEntryBinding.inflate(fragment.layoutInflater)
+
+    val typeName: String = BabyBuddyClient.ACTIVITIES.SLEEP
+
+    override val saveButton: ImageButton = bindings.sendButton
+    override val controlsView: View = bindings.root
+
+    var startTime: Date? = null
+
+    init {
+        fragment.mainActivity.storage.child<GenericTimerRecord>(childId, typeName)?.let {
+            bindings.noteEditor.setText(it.note)
+        }
+    }
+
+    override fun storeStateForSuspend() {
+        fragment.mainActivity.storage.child(
+            childId, typeName, GenericTimerRecord(bindings.noteEditor.text.toString())
+        )
+    }
+
+    override fun reset() {
+        bindings.noteEditor.setText("")
+        storeStateForSuspend()
+    }
+
+    override suspend fun save(): TimeEntry {
+        TODO("Not yet implemented")
+    }
+
+    override fun updateTimer(timer: BabyBuddyClient.Timer) {
+        startTime = timer.start
+    }
+
+    override fun updateVisuals() {
+        startTime?.let {
+            val diff= Date().time - it.time
+
+            val seconds = diff.toInt() / 1000
+            val minutes = seconds / 60
+            val hours = minutes / 60
+
+            bindings.currentTimerTime.text = "HH:MM:ss"
+                .replace("HH".toRegex(), "" + hours)
+                .replace("MM".toRegex(), Utils.padToLen("" + minutes % 60, '0', 2))
+                .replace("ss".toRegex(), Utils.padToLen("" + seconds % 60, '0', 2))
+        }
+    }
+}
+
+
 @JsonIgnoreProperties(ignoreUnknown = true)
 data class LoggingButtonControllerStoreState(
     @JsonProperty("open_state") val openState: Array<String>,
@@ -121,7 +191,8 @@ class LoggingButtonController(
     val bindings: BabyManagerBinding,
     val controlsInterface: FragmentCallbacks,
     val child: BabyBuddyClient.Child,
-) {
+    val timerControl: TimerControlInterface,
+) : TimersUpdatedCallback  {
     val logicMap = mapOf(
         BabyBuddyClient.EVENTS.CHANGE to SwitchButtonLogic(
             bindings.diaperDisabledButton, bindings.diaperEnabledButton, false
@@ -143,10 +214,12 @@ class LoggingButtonController(
         ),
     )
 
-    val diaperLogging = DiaperLoggingController(fragment, child.id)
-    val loggingControllers = mapOf(
-        BabyBuddyClient.EVENTS.CHANGE to diaperLogging
+    val loggingControllers: Map<String, LoggingControls> = mapOf(
+        BabyBuddyClient.EVENTS.CHANGE to DiaperLoggingController(fragment, child.id),
+        BabyBuddyClient.ACTIVITIES.SLEEP to SleepLoggingController(fragment, child.id),
     )
+
+    private var timerHandler: Handler? = Handler(fragment.mainActivity.mainLooper)
 
     init {
         loggingControllers.forEach { (activity, controller) ->
@@ -162,6 +235,8 @@ class LoggingButtonController(
                     runSave(activity, controller)
                 }
             }
+
+            timerControl.registerTimersUpdatedCallback(this)
         }
 
         fragment.mainActivity.storage.child<LoggingButtonControllerStoreState>(
@@ -172,6 +247,17 @@ class LoggingButtonController(
                 if (k in it.openState) {
                     logic.state = true
                 }
+            }
+        }
+
+        timerHandler()
+    }
+
+    private fun timerHandler() {
+        timerHandler?.let {
+            it.postDelayed(Runnable { timerHandler() }, 500)
+            for (c in loggingControllers.values) {
+                c.updateVisuals()
             }
         }
     }
@@ -206,8 +292,31 @@ class LoggingButtonController(
         for ((name, controller) in loggingControllers) {
             controlsInterface.removeControls(controller.controlsView)
         }
-        for ((name, logic) in logicMap) {
+        for (logic in logicMap.values) {
             logic.destroy()
+        }
+        timerControl.unregisterTimersUpdatedCallback(this)
+        timerHandler = null
+    }
+
+    override fun newTimerListLoaded(timers: Array<BabyBuddyClient.Timer>) {
+        val toDisable = loggingControllers.filter { it.value is TimerBase }.map { it.key }.toMutableList()
+        for (timer in timers) {
+            if (!timer.active) continue
+            loggingControllers[timer.name]?.let { controller ->
+                if (controller is TimerBase) {
+                    toDisable.remove(timer.name)
+
+                    controller.updateTimer(timer)
+                    controller.updateVisuals()
+                }
+            }
+            logicMap[timer.name]?.let { logic ->
+                logic.state = true
+            }
+        }
+        for (name in toDisable) {
+            logicMap[name]?.state = false
         }
     }
 }
