@@ -16,6 +16,7 @@ import eu.pkgsoftware.babybuddywidgets.networking.BabyBuddyClient.Timer
 import eu.pkgsoftware.babybuddywidgets.networking.babybuddy.models.ChangeEntry
 import eu.pkgsoftware.babybuddywidgets.networking.babybuddy.models.SleepEntry
 import eu.pkgsoftware.babybuddywidgets.networking.babybuddy.models.TimeEntry
+import eu.pkgsoftware.babybuddywidgets.networking.babybuddy.models.TummyTimeEntry
 import eu.pkgsoftware.babybuddywidgets.networking.babybuddy.models.classActivityName
 import eu.pkgsoftware.babybuddywidgets.networking.babybuddy.nowServer
 import eu.pkgsoftware.babybuddywidgets.timers.TimerControlInterface
@@ -139,20 +140,21 @@ data class GenericTimerRecord(
     @JsonProperty("note") val note: String
 )
 
-class SleepLoggingController(
+abstract class GenericLoggingController(
     val fragment: BaseFragment,
     childId: Int,
-    val timerControl: TimerControlInterface
+    val timerControl: TimerControlInterface,
+    val entryKlass: KClass<*>
 ) : LoggingControls(childId), TimerBase {
-    val bindings = GenericTimerLoggingEntryBinding.inflate(fragment.layoutInflater)
+    protected abstract suspend fun createEntry(timer: Timer): TimeEntry
 
-    val entryKlass: KClass<*> = SleepEntry::class
+    val bindings = GenericTimerLoggingEntryBinding.inflate(fragment.layoutInflater)
     val typeName: String = classActivityName(entryKlass)
 
     override val saveButton: ImageButton = bindings.sendButton
     override val controlsView: View = bindings.root
 
-    var timer: Timer? = null
+    private var timer: Timer? = null
 
     init {
         fragment.mainActivity.storage.child<GenericTimerRecord>(childId, typeName)?.let {
@@ -183,16 +185,7 @@ class SleepLoggingController(
                         ) {
                             fragment.mainActivity.scope.launch {
                                 try {
-                                    val result = fragment.mainActivity.client.v2client.createEntry(
-                                        SleepEntry::class,
-                                        SleepEntry(
-                                            id = 0,
-                                            childId = childId,
-                                            start = timer.start,
-                                            end = nowServer(),
-                                            _notes = bindings.noteEditor.text.toString()
-                                        )
-                                    )
+                                    val result = createEntry(timer)
                                     timerControl.stopTimer(
                                         timer,
                                         object : Promise<Any, TranslatedException> {
@@ -214,7 +207,7 @@ class SleepLoggingController(
                         }
 
                         override fun name(): String {
-                            return this@SleepLoggingController.typeName
+                            return this@GenericLoggingController.typeName
                         }
 
                         override fun timerStopped() {
@@ -273,6 +266,43 @@ class SleepLoggingController(
     }
 }
 
+class SleepLoggingController(
+    fragment: BaseFragment,
+    childId: Int,
+    timerControl: TimerControlInterface
+) : GenericLoggingController(fragment, childId, timerControl, SleepEntry::class) {
+    override suspend fun createEntry(timer: Timer): TimeEntry {
+        return fragment.mainActivity.client.v2client.createEntry(
+            SleepEntry::class,
+            SleepEntry(
+                id = 0,
+                childId = childId,
+                start = timer.start,
+                end = nowServer(),
+                _notes = bindings.noteEditor.text.toString()
+            )
+        )
+    }
+}
+
+class TummyTimeLoggingController(
+    fragment: BaseFragment,
+    childId: Int,
+    timerControl: TimerControlInterface
+) : GenericLoggingController(fragment, childId, timerControl, TummyTimeEntry::class) {
+    override suspend fun createEntry(timer: Timer): TimeEntry {
+        return fragment.mainActivity.client.v2client.createEntry(
+            SleepEntry::class,
+            SleepEntry(
+                id = 0,
+                childId = childId,
+                start = timer.start,
+                end = nowServer(),
+                _notes = bindings.noteEditor.text.toString()
+            )
+        )
+    }
+}
 
 @JsonIgnoreProperties(ignoreUnknown = true)
 data class LoggingButtonControllerStoreState(
@@ -310,9 +340,10 @@ class LoggingButtonController(
     val loggingControllers: Map<String, LoggingControls> = mapOf(
         BabyBuddyClient.EVENTS.CHANGE to DiaperLoggingController(fragment, child.id),
         BabyBuddyClient.ACTIVITIES.SLEEP to SleepLoggingController(
-            fragment,
-            child.id,
-            timerControl
+            fragment, child.id, timerControl
+        ),
+        BabyBuddyClient.ACTIVITIES.TUMMY_TIME to TummyTimeLoggingController(
+            fragment, child.id, timerControl
         ),
     )
 

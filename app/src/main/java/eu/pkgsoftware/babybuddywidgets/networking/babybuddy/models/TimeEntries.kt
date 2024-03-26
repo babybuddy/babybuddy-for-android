@@ -59,13 +59,19 @@ data class SleepEntry(
 data class TummyTimeEntry(
     @JsonProperty("id", required = true) override val id: Int,
     @JsonProperty("child", required = true) override val childId: Int,
-    @JsonProperty("start", required = true) @JsonDeserialize(using = DateTimeDeserializer::class) override val start: Date,
-    @JsonProperty("end", required = true) @JsonDeserialize(using = DateTimeDeserializer::class) override val end: Date,
-    @JsonProperty("milestone", required = false) val _notes: String?,
+    @JsonDeserialize(using = DateTimeDeserializer::class)
+    @JsonSerialize(using = DateTimeSerializer::class)
+    @JsonProperty("start", required = true)
+    override val start: Date,
+    @JsonDeserialize(using = DateTimeDeserializer::class)
+    @JsonSerialize(using = DateTimeSerializer::class)
+    @JsonProperty("end", required = true)
+    override val end: Date,
+    @JsonSetter("milestone") val _notes: String?,
 ) : TimeEntry {
     override val type: String = ACTIVITIES.TUMMY_TIME
     override val typeId: Int = ACTIVITIES.index(type)
-    override val notes: String = _notes ?: ""
+    override @get:JsonGetter("milestone") val notes: String = _notes ?: ""
 }
 
 @UIPath("feedings")
