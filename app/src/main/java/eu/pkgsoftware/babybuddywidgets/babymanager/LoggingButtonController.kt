@@ -30,6 +30,7 @@ import kotlinx.coroutines.launch
 import java.io.IOException
 import java.sql.Time
 import java.util.Date
+import kotlin.concurrent.timer
 import kotlin.reflect.KClass
 
 interface FragmentCallbacks {
@@ -292,8 +293,8 @@ class TummyTimeLoggingController(
 ) : GenericLoggingController(fragment, childId, timerControl, TummyTimeEntry::class) {
     override suspend fun createEntry(timer: Timer): TimeEntry {
         return fragment.mainActivity.client.v2client.createEntry(
-            SleepEntry::class,
-            SleepEntry(
+            TummyTimeEntry::class,
+            TummyTimeEntry(
                 id = 0,
                 childId = childId,
                 start = timer.start,
@@ -348,12 +349,29 @@ class LoggingButtonController(
     )
 
     private var timerHandler: Handler? = Handler(fragment.mainActivity.mainLooper)
+    private var cachedTimers = emptyArray<Timer>()
+    private var runningTimerCreations = 0
 
     init {
         loggingControllers.forEach { (activity, controller) ->
-            logicMap[activity]?.addStateListener { _, _ ->
-                if (logicMap[activity]?.state == true) {
+            logicMap[activity]?.addStateListener { state, userInduced ->
+                if (state) {
                     controlsInterface.insertControls(controller.controlsView)
+                    if (userInduced && (controller is TimerBase)) {
+                        cachedTimers.firstOrNull { it.name == activity }?.let {
+                            runningTimerCreations += 1
+                            timerControl.startTimer(it, object : Promise<Timer, TranslatedException> {
+                                override fun succeeded(t: Timer) {
+                                    runningTimerCreations -= 1
+                                }
+
+                                override fun failed(f: TranslatedException?) {
+                                    runningTimerCreations -= 1
+                                    newTimerListLoaded(cachedTimers)
+                                }
+                            })
+                        }
+                    }
                 } else {
                     controlsInterface.removeControls(controller.controlsView)
                 }
@@ -427,7 +445,10 @@ class LoggingButtonController(
         timerHandler = null
     }
 
-    override fun newTimerListLoaded(timers: Array<BabyBuddyClient.Timer>) {
+    override fun newTimerListLoaded(timers: Array<Timer>) {
+        cachedTimers = timers;
+        if (runningTimerCreations > 0) return
+
         val toDisable =
             loggingControllers.filter { it.value is TimerBase }.map { it.key }.toMutableList()
         for (timer in timers) {
