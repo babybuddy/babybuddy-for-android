@@ -17,6 +17,7 @@ import eu.pkgsoftware.babybuddywidgets.NotesEditorLogic;
 import eu.pkgsoftware.babybuddywidgets.R;
 import eu.pkgsoftware.babybuddywidgets.databinding.NotesEditorBinding;
 import eu.pkgsoftware.babybuddywidgets.databinding.QuickTimerEntryBinding;
+import eu.pkgsoftware.babybuddywidgets.login.Utils;
 import eu.pkgsoftware.babybuddywidgets.networking.BabyBuddyClient;
 import eu.pkgsoftware.babybuddywidgets.networking.RequestCodeFailure;
 import eu.pkgsoftware.babybuddywidgets.utils.Promise;
@@ -40,14 +41,6 @@ public class TimerListViewHolder extends RecyclerView.ViewHolder {
 
     private boolean isClosed = false;
 
-    private String padToLen(String s, char c, int length) {
-        StringBuilder sBuilder = new StringBuilder(s);
-        while (sBuilder.length() < length) {
-            sBuilder.insert(0, c);
-        }
-        return sBuilder.toString();
-    }
-
     private boolean newUpdatedPosted = false;
 
     private void updateTimerTime() {
@@ -63,8 +56,8 @@ public class TimerListViewHolder extends RecyclerView.ViewHolder {
             binding.currentTimerTime.setText(
                 "HH:MM:ss"
                     .replaceAll("HH", "" + hours)
-                    .replaceAll("MM", padToLen("" + (minutes % 60), '0', 2))
-                    .replaceAll("ss", padToLen("" + (seconds % 60), '0', 2))
+                    .replaceAll("MM", Utils.Companion.padToLen("" + (minutes % 60), '0', 2))
+                    .replaceAll("ss", Utils.Companion.padToLen("" + (seconds % 60), '0', 2))
             );
 
             if (!newUpdatedPosted) {

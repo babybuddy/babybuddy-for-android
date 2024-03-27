@@ -254,6 +254,12 @@ class BabyBuddyV2TimerAdapter(
         triggerTimerCallback()
     }
 
+    override fun unregisterTimersUpdatedCallback(callback: TimersUpdatedCallback) {
+        if (timersCallback == callback) {
+            timersCallback = null
+        }
+    }
+
     override fun getNotes(timer: Timer): CredStore.Notes {
         virtualToActualTimer(timer)?.let {
             return wrap.getNotes(it)
