@@ -178,7 +178,8 @@
             <androidx.recyclerview.widget.RecyclerView
                 android:id="@+id/timersList"
                 android:layout_width="match_parent"
-                android:layout_height="wrap_content"></androidx.recyclerview.widget.RecyclerView>
+                android:layout_height="wrap_content"
+                android:visibility="gone"></androidx.recyclerview.widget.RecyclerView>
 
             <LinearLayout
                 android:id="@+id/loggingEditors"

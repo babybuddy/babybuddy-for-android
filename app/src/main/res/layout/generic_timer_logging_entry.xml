@@ -38,22 +38,72 @@
         app:layout_constraintStart_toStartOf="parent"
         app:layout_constraintTop_toTopOf="parent">
 
-        <FrameLayout
-            android:id="@+id/sleepIcon"
-            android:layout_width="48dp"
-            android:layout_height="48dp"
-            android:background="@color/sleep_enabled"
-            android:padding="8dp"
+        <LinearLayout
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_marginBottom="8dp"
+            android:layout_marginTop="8dp"
+            android:orientation="vertical"
             app:layout_constraintBottom_toBottomOf="parent"
+            app:layout_constraintStart_toStartOf="parent"
             app:layout_constraintTop_toTopOf="parent">
 
-            <ImageView
-                android:id="@+id/imageView2"
-                android:layout_width="32dp"
-                android:layout_height="32dp"
-                app:srcCompat="@drawable/pkg_sleep" />
+            <FrameLayout
+                android:id="@+id/tummyTimeIcon"
+                android:layout_width="48dp"
+                android:layout_height="48dp"
+                android:background="@color/tummy_time_enabled"
+                android:padding="8dp">
 
-        </FrameLayout>
+                <ImageView
+                    android:layout_width="32dp"
+                    android:layout_height="32dp"
+                    app:srcCompat="@drawable/pkg_crawl" />
+
+            </FrameLayout>
+
+            <FrameLayout
+                android:id="@+id/sleepIcon"
+                android:layout_width="48dp"
+                android:layout_height="48dp"
+                android:background="@color/sleep_enabled"
+                android:padding="8dp">
+
+                <ImageView
+                    android:layout_width="32dp"
+                    android:layout_height="32dp"
+                    app:srcCompat="@drawable/pkg_sleep" />
+
+            </FrameLayout>
+
+            <FrameLayout
+                android:id="@+id/feedingIcon"
+                android:layout_width="48dp"
+                android:layout_height="48dp"
+                android:background="@color/feeding_enabled"
+                android:padding="8dp">
+
+                <ImageView
+                    android:layout_width="32dp"
+                    android:layout_height="32dp"
+                    app:srcCompat="@drawable/pkg_bottle" />
+
+            </FrameLayout>
+
+            <FrameLayout
+                android:id="@+id/pumpingIcon"
+                android:layout_width="48dp"
+                android:layout_height="48dp"
+                android:background="@color/pumping_enabled"
+                android:padding="8dp">
+
+                <ImageView
+                    android:layout_width="32dp"
+                    android:layout_height="32dp"
+                    app:srcCompat="@drawable/pkg_pumping" />
+
+            </FrameLayout>
+        </LinearLayout>
 
         <ImageButton
             android:id="@+id/sendButton"

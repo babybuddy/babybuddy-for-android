@@ -1,0 +1,10 @@
+<resources>
+    <declare-styleable name="AutoHGrid">
+        <attr name="rowAlign" format="enum">
+            <enum name="top" value="0"/>
+            <enum name="center" value="1"/>
+            <enum name="bottom" value="2"/>
+        </attr>
+        <attr name="rowSpacing" format="dimension"/>
+    </declare-styleable>
+</resources>
