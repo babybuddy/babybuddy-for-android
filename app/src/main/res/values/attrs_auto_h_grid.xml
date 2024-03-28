@@ -6,5 +6,6 @@
             <enum name="bottom" value="2"/>
         </attr>
         <attr name="rowSpacing" format="dimension"/>
+        <attr name="equalizeRowWidths" format="boolean"/>
     </declare-styleable>
 </resources>

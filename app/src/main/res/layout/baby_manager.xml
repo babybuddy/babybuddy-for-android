@@ -20,12 +20,11 @@
             android:layout_height="wrap_content"
             android:orientation="vertical">
 
-            <LinearLayout
+            <eu.pkgsoftware.babybuddywidgets.widgets.AutoHGrid
                 android:id="@+id/newTimerButtons"
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
-                android:gravity="center"
-                android:orientation="horizontal"
+                app:equalizeRowWidths="true"
                 app:layout_constraintEnd_toEndOf="parent"
                 app:layout_constraintStart_toStartOf="parent"
                 app:layout_constraintTop_toTopOf="parent">
@@ -173,7 +172,7 @@
                     android:tintMode="src_in"
                     android:visibility="visible"
                     app:tint="@color/fixed_color_button_text_color" />
-            </LinearLayout>
+            </eu.pkgsoftware.babybuddywidgets.widgets.AutoHGrid>
 
             <androidx.recyclerview.widget.RecyclerView
                 android:id="@+id/timersList"

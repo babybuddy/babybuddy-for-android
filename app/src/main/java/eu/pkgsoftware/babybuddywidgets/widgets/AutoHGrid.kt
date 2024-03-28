@@ -7,7 +7,6 @@ import android.view.ViewGroup
 import androidx.core.view.children
 import eu.pkgsoftware.babybuddywidgets.R
 import eu.pkgsoftware.babybuddywidgets.Tools
-import eu.pkgsoftware.babybuddywidgets.login.Utils
 
 enum class RowAlign(val value: Int) {
     TOP(0),
@@ -24,6 +23,7 @@ class AutoHGrid : ViewGroup {
 
     var rowAlign: RowAlign = RowAlign.CENTER
     var rowSpacing: Float = 0f
+    var equalizeRowWidths: Boolean = false
 
     constructor(context: Context) : super(context) {
         init(null, 0)
@@ -47,15 +47,63 @@ class AutoHGrid : ViewGroup {
 
         rowAlign = RowAlign.entries.firstOrNull { it.value == rowAlignRaw } ?: RowAlign.CENTER
         rowSpacing = typedArray.getDimension(R.styleable.AutoHGrid_rowSpacing, 0f)
+        equalizeRowWidths = typedArray.getBoolean(R.styleable.AutoHGrid_equalizeRowWidths, false)
 
         typedArray.recycle()
+    }
+
+    private tailrec fun equalizeRowWidths(initialRows: List<RowData>): List<RowData> {
+        val maxWidth = initialRows.maxOf { it.width }
+        val spacing = Tools.dpToPx(context, rowSpacing)
+
+        val resultRows = initialRows.map { row -> row.children.toMutableList() }.toMutableList()
+        var rowWidths = resultRows.map {
+            row -> row.sumOf { it.measuredWidth } + spacing * (row.size - 1)
+        }
+
+        fun generateRowData(): List<RowData> {
+            return resultRows.map {
+                row -> RowData(
+                row,
+                row.sumOf { it.measuredWidth } + spacing * (row.size - 1),
+                row.maxOf { it.measuredHeight })
+            }
+        }
+
+        while (true) {
+            var modified = false
+            for (i in (1 until resultRows.size).reversed()) {
+                val prevI = i - 1
+                if (rowWidths[i] >= rowWidths[prevI]) {
+                    continue
+                }
+                var newRowWidth = rowWidths[i] + resultRows[prevI].last().measuredWidth
+                if (rowWidths[i] > 0) newRowWidth += spacing
+                if (newRowWidth > maxWidth) {
+                    continue
+                }
+                resultRows[i].add(0, resultRows[prevI].removeLast())
+                modified = true
+                break
+            }
+            rowWidths = resultRows.map {
+                row -> row.sumOf { it.measuredWidth } + spacing * (row.size - 1)
+            }
+            val newMaxWidth = rowWidths.maxOrNull() ?: 0
+            if (newMaxWidth < maxWidth) {
+                return equalizeRowWidths(generateRowData())
+            }
+            if (!modified || (newMaxWidth > maxWidth)) {
+                return generateRowData()
+            }
+        }
     }
 
     private fun computeRows(width: Int): List<RowData> {
         val placeableChildren = children.filter { it.visibility != View.GONE }.toList()
 
-        val rows = mutableListOf(mutableListOf<View>())
-        val rowWidths = mutableListOf<Int>()
+        var rows = mutableListOf(mutableListOf<View>())
+        var rowWidths = mutableListOf<Int>()
 
         val spacing = Tools.dpToPx(context, rowSpacing)
 
@@ -80,7 +128,12 @@ class AutoHGrid : ViewGroup {
             }
             result.add(RowData(row, rowWidths[i], row.maxOf { it.measuredHeight }))
         }
-        return result
+
+        if (equalizeRowWidths) {
+            return equalizeRowWidths(result)
+        } else {
+            return result
+        }
     }
 
     override fun onMeasure(widthMeasureSpec: Int, heightMeasureSpec: Int) {
