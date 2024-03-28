@@ -3,6 +3,7 @@ package eu.pkgsoftware.babybuddywidgets.babymanager
 import android.os.Handler
 import android.view.View
 import android.widget.ImageButton
+import androidx.core.view.children
 import com.fasterxml.jackson.annotation.JsonIgnoreProperties
 import com.fasterxml.jackson.annotation.JsonProperty
 import eu.pkgsoftware.babybuddywidgets.BaseFragment
@@ -28,9 +29,7 @@ import eu.pkgsoftware.babybuddywidgets.widgets.SwitchButtonLogic
 import kotlinx.coroutines.Runnable
 import kotlinx.coroutines.launch
 import java.io.IOException
-import java.sql.Time
 import java.util.Date
-import kotlin.concurrent.timer
 import kotlin.reflect.KClass
 
 interface FragmentCallbacks {
@@ -92,6 +91,8 @@ class DiaperLoggingController(val fragment: BaseFragment, childId: Int) : Loggin
             solidLogic.state = it.solid
             noteEditor.setText(it.note)
         }
+
+        updateSaveEnabledState()
     }
 
     fun updateSaveEnabledState() {
@@ -133,7 +134,7 @@ class DiaperLoggingController(val fragment: BaseFragment, childId: Int) : Loggin
 }
 
 interface TimerBase {
-    fun updateTimer(timer: BabyBuddyClient.Timer)
+    fun updateTimer(timer: Timer?)
 }
 
 @JsonIgnoreProperties(ignoreUnknown = true)
@@ -160,6 +161,15 @@ abstract class GenericLoggingController(
     init {
         fragment.mainActivity.storage.child<GenericTimerRecord>(childId, typeName)?.let {
             bindings.noteEditor.setText(it.note)
+        }
+
+        val children = bindings.icons.children.toList()
+        for (i in BabyBuddyClient.ACTIVITIES.ALL.indices) {
+            if (BabyBuddyClient.ACTIVITIES.ALL[i] == typeName) {
+                children[i].visibility = View.VISIBLE
+            } else {
+                children[i].visibility = View.GONE
+            }
         }
     }
 
@@ -247,13 +257,15 @@ abstract class GenericLoggingController(
         throw IOException("Could not store activity of type ${typeName}")
     }
 
-    override fun updateTimer(timer: Timer) {
+    override fun updateTimer(timer: Timer?) {
         this.timer = timer
+        updateVisuals()
     }
 
     override fun updateVisuals() {
-        timer?.let {
-            val diff = Date().time - it.start.time
+        val now = Date()
+        (timer?.start ?: now).let {
+            val diff = now.time - it.time
 
             val seconds = diff.toInt() / 1000
             val minutes = seconds / 60
@@ -350,7 +362,7 @@ class LoggingButtonController(
 
     private var timerHandler: Handler? = Handler(fragment.mainActivity.mainLooper)
     private var cachedTimers = emptyArray<Timer>()
-    private var runningTimerCreations = 0
+    private var runningTimerMods = 0
 
     init {
         loggingControllers.forEach { (activity, controller) ->
@@ -359,21 +371,41 @@ class LoggingButtonController(
                     controlsInterface.insertControls(controller.controlsView)
                     if (userInduced && (controller is TimerBase)) {
                         cachedTimers.firstOrNull { it.name == activity }?.let {
-                            runningTimerCreations += 1
-                            timerControl.startTimer(it, object : Promise<Timer, TranslatedException> {
-                                override fun succeeded(t: Timer) {
-                                    runningTimerCreations -= 1
-                                }
+                            runningTimerMods += 1
+                            timerControl.startTimer(
+                                it,
+                                object : Promise<Timer, TranslatedException> {
+                                    override fun succeeded(t: Timer) {
+                                        runningTimerMods -= 1
+                                    }
 
-                                override fun failed(f: TranslatedException?) {
-                                    runningTimerCreations -= 1
-                                    newTimerListLoaded(cachedTimers)
-                                }
-                            })
+                                    override fun failed(f: TranslatedException?) {
+                                        runningTimerMods -= 1
+                                        newTimerListLoaded(cachedTimers)
+                                    }
+                                })
                         }
                     }
                 } else {
                     controlsInterface.removeControls(controller.controlsView)
+                    if (userInduced && (controller is TimerBase)) {
+                        controller.updateTimer(null)
+                        cachedTimers.firstOrNull { it.name == activity }?.let {
+                            runningTimerMods += 1
+                            timerControl.stopTimer(
+                                it,
+                                object : Promise<Any, TranslatedException> {
+                                    override fun succeeded(s: Any?) {
+                                        runningTimerMods -= 1
+                                    }
+
+                                    override fun failed(f: TranslatedException?) {
+                                        runningTimerMods -= 1
+                                        newTimerListLoaded(cachedTimers)
+                                    }
+                                })
+                        }
+                    }
                 }
             }
             controller.saveButton.setOnClickListener {
@@ -447,7 +479,7 @@ class LoggingButtonController(
 
     override fun newTimerListLoaded(timers: Array<Timer>) {
         cachedTimers = timers;
-        if (runningTimerCreations > 0) return
+        if (runningTimerMods > 0) return
 
         val toDisable =
             loggingControllers.filter { it.value is TimerBase }.map { it.key }.toMutableList()

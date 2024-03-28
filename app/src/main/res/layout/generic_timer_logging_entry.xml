@@ -39,6 +39,7 @@
         app:layout_constraintTop_toTopOf="parent">
 
         <LinearLayout
+            android:id="@+id/icons"
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
             android:layout_marginBottom="8dp"
@@ -49,16 +50,16 @@
             app:layout_constraintTop_toTopOf="parent">
 
             <FrameLayout
-                android:id="@+id/tummyTimeIcon"
+                android:id="@+id/feedingIcon"
                 android:layout_width="48dp"
                 android:layout_height="48dp"
-                android:background="@color/tummy_time_enabled"
+                android:background="@color/feeding_enabled"
                 android:padding="8dp">
 
                 <ImageView
                     android:layout_width="32dp"
                     android:layout_height="32dp"
-                    app:srcCompat="@drawable/pkg_crawl" />
+                    app:srcCompat="@drawable/pkg_bottle" />
 
             </FrameLayout>
 
@@ -77,16 +78,16 @@
             </FrameLayout>
 
             <FrameLayout
-                android:id="@+id/feedingIcon"
+                android:id="@+id/tummyTimeIcon"
                 android:layout_width="48dp"
                 android:layout_height="48dp"
-                android:background="@color/feeding_enabled"
+                android:background="@color/tummy_time_enabled"
                 android:padding="8dp">
 
                 <ImageView
                     android:layout_width="32dp"
                     android:layout_height="32dp"
-                    app:srcCompat="@drawable/pkg_bottle" />
+                    app:srcCompat="@drawable/pkg_crawl" />
 
             </FrameLayout>
 

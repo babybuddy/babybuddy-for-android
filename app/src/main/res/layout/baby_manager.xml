@@ -30,6 +30,30 @@
                 app:layout_constraintTop_toTopOf="parent">
 
                 <ImageButton
+                    android:id="@+id/feedingDisabledButton"
+                    android:layout_width="64dp"
+                    android:layout_height="64dp"
+                    android:layout_weight="0"
+                    android:backgroundTint="@color/timer_button_disabled"
+                    android:scaleType="fitCenter"
+                    android:src="@drawable/pkg_bottle"
+                    android:tintMode="src_in"
+                    android:visibility="gone"
+                    app:tint="@color/fixed_color_button_text_color" />
+
+                <ImageButton
+                    android:id="@+id/feedingEnabledButton"
+                    android:layout_width="64dp"
+                    android:layout_height="64dp"
+                    android:layout_weight="0"
+                    android:backgroundTint="@color/feeding_enabled"
+                    android:scaleType="fitCenter"
+                    android:src="@drawable/pkg_bottle"
+                    android:tintMode="src_in"
+                    android:visibility="visible"
+                    app:tint="@color/fixed_color_button_text_color" />
+
+                <ImageButton
                     android:id="@+id/diaperDisabledButton"
                     android:layout_width="64dp"
                     android:layout_height="64dp"
@@ -73,30 +97,6 @@
                     android:backgroundTint="@color/sleep_enabled"
                     android:scaleType="fitCenter"
                     android:src="@drawable/pkg_sleep"
-                    android:tintMode="src_in"
-                    android:visibility="visible"
-                    app:tint="@color/fixed_color_button_text_color" />
-
-                <ImageButton
-                    android:id="@+id/feedingDisabledButton"
-                    android:layout_width="64dp"
-                    android:layout_height="64dp"
-                    android:layout_weight="0"
-                    android:backgroundTint="@color/timer_button_disabled"
-                    android:scaleType="fitCenter"
-                    android:src="@drawable/pkg_bottle"
-                    android:tintMode="src_in"
-                    android:visibility="gone"
-                    app:tint="@color/fixed_color_button_text_color" />
-
-                <ImageButton
-                    android:id="@+id/feedingEnabledButton"
-                    android:layout_width="64dp"
-                    android:layout_height="64dp"
-                    android:layout_weight="0"
-                    android:backgroundTint="@color/feeding_enabled"
-                    android:scaleType="fitCenter"
-                    android:src="@drawable/pkg_bottle"
                     android:tintMode="src_in"
                     android:visibility="visible"
                     app:tint="@color/fixed_color_button_text_color" />
