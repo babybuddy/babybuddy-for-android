@@ -130,11 +130,17 @@ public class BabyLayoutHolder extends RecyclerView.ViewHolder implements TimerCo
                 new FragmentCallbacks() {
                     @Override
                     public void insertControls(@NonNull View view) {
+                        if (view.getParent() != null) {
+                            return;
+                        }
                         binding.loggingEditors.addView(view);
                     }
 
                     @Override
                     public void removeControls(@NonNull View view) {
+                        if (view.getParent() == null) {
+                            return;
+                        }
                         binding.loggingEditors.removeView(view);
                     }
 

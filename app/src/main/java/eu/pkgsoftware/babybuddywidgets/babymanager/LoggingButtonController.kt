@@ -491,6 +491,7 @@ class LoggingButtonController(
 
                     controller.updateTimer(timer)
                     controller.updateVisuals()
+                    controlsInterface.insertControls(controller.controlsView)
                 }
             }
             logicMap[timer.name]?.let { logic ->
@@ -499,6 +500,9 @@ class LoggingButtonController(
         }
         for (name in toDisable) {
             logicMap[name]?.state = false
+            loggingControllers[name]?.let {
+                controlsInterface.removeControls(it.controlsView)
+            }
         }
     }
 }

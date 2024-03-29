@@ -17,7 +17,8 @@
         android:minLines="1"
         android:selectAllOnFocus="false"
         android:singleLine="false"
-        app:layout_constraintTop_toBottomOf="@+id/currentTimerTime" />
+        app:layout_constraintTop_toBottomOf="@+id/additional_controls"
+        tools:layout_editor_absoluteX="32dp" />
 
     <TextView
         android:id="@+id/currentTimerTime"
@@ -121,5 +122,14 @@
             app:srcCompat="@android:drawable/ic_menu_save" />
 
     </androidx.constraintlayout.widget.ConstraintLayout>
+
+    <LinearLayout
+        android:id="@+id/additional_controls"
+        android:layout_width="0dp"
+        android:layout_height="wrap_content"
+        android:orientation="vertical"
+        app:layout_constraintEnd_toEndOf="parent"
+        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintTop_toBottomOf="@+id/currentTimerTime"></LinearLayout>
 
 </androidx.constraintlayout.widget.ConstraintLayout>
