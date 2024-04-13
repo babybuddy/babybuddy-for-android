@@ -342,7 +342,6 @@ class MainActivity : AppCompatActivity() {
                     storeInterface.cancel()
                 }
             } catch (e: Exception) {
-                e.printStackTrace()
                 storeInterface.error(e)
             } finally {
                 progressDialog.cancel()
