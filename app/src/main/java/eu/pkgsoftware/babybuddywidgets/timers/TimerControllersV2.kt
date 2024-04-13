@@ -1,4 +1,4 @@
-package eu.pkgsoftware.babybuddywidgets.babymanager
+package eu.pkgsoftware.babybuddywidgets.timers
 
 import android.os.Handler
 import android.view.View
@@ -24,9 +24,6 @@ import eu.pkgsoftware.babybuddywidgets.networking.babybuddy.models.TimeEntry
 import eu.pkgsoftware.babybuddywidgets.networking.babybuddy.models.TummyTimeEntry
 import eu.pkgsoftware.babybuddywidgets.networking.babybuddy.models.classActivityName
 import eu.pkgsoftware.babybuddywidgets.networking.babybuddy.nowServer
-import eu.pkgsoftware.babybuddywidgets.timers.TimerControlInterface
-import eu.pkgsoftware.babybuddywidgets.timers.TimersUpdatedCallback
-import eu.pkgsoftware.babybuddywidgets.timers.TranslatedException
 import eu.pkgsoftware.babybuddywidgets.utils.AsyncPromise
 import eu.pkgsoftware.babybuddywidgets.utils.AsyncPromiseFailure
 import eu.pkgsoftware.babybuddywidgets.utils.EmptyException

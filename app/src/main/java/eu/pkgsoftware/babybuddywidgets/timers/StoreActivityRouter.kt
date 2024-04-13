@@ -6,7 +6,6 @@ import eu.pkgsoftware.babybuddywidgets.MainActivity
 import eu.pkgsoftware.babybuddywidgets.R
 import eu.pkgsoftware.babybuddywidgets.StoreFunction
 import eu.pkgsoftware.babybuddywidgets.networking.BabyBuddyClient
-import eu.pkgsoftware.babybuddywidgets.networking.BabyBuddyClient.ACTIVITIES
 import eu.pkgsoftware.babybuddywidgets.networking.BabyBuddyClient.RequestCallback
 import eu.pkgsoftware.babybuddywidgets.networking.BabyBuddyClient.Timer
 import eu.pkgsoftware.babybuddywidgets.utils.AsyncClientRequest
@@ -76,7 +75,7 @@ class StoreActivityRouter(val mainActivity: MainActivity) {
     suspend fun asyncStore(activity: String, notes: String, timer: Timer): Boolean {
         return suspendCoroutine<Boolean> { continuation ->
             val storeInterface = when (activity) {
-                ACTIVITIES.SLEEP -> SimpleStoreFunction(
+                BabyBuddyClient.ACTIVITIES.SLEEP -> SimpleStoreFunction(
                     activity,
                     timer,
                     continuation,
@@ -87,7 +86,7 @@ class StoreActivityRouter(val mainActivity: MainActivity) {
                     }
                 )
 
-                ACTIVITIES.TUMMY_TIME -> SimpleStoreFunction(
+                BabyBuddyClient.ACTIVITIES.TUMMY_TIME -> SimpleStoreFunction(
                     activity,
                     timer,
                     continuation,
@@ -98,7 +97,7 @@ class StoreActivityRouter(val mainActivity: MainActivity) {
                     }
                 )
 
-                ACTIVITIES.FEEDING -> {
+                BabyBuddyClient.ACTIVITIES.FEEDING -> {
                     mainActivity.selectedTimer = timer
                     findNavController(mainActivity.findViewById(R.id.nav_host_fragment_content_main)).navigate(
                         R.id.action_loggedInFragment2_to_feedingFragment, bundleOf("notes" to notes)
