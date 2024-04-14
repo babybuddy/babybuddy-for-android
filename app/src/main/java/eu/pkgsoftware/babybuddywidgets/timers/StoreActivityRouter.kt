@@ -30,7 +30,7 @@ class StoreActivityRouter(val mainActivity: MainActivity) {
             return activityName
         }
 
-        override fun timerStopped() {
+        override fun stopTimer(timer: Timer) {
             mainActivity.scope.launch {
                 try {
                     AsyncClientRequest.call<Boolean> {

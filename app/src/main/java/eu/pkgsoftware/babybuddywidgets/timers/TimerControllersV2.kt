@@ -150,7 +150,7 @@ abstract class GenericLoggingController(
     childId: Int,
     val timerControl: TimerControlInterface,
     val entryKlass: KClass<*>
-) : LoggingControls(childId), TimerBase {
+) : LoggingControls(childId), TimerBase, StoreFunction<TimeEntry> {
     protected abstract suspend fun createEntry(timer: Timer): TimeEntry
 
     val bindings = GenericTimerLoggingEntryBinding.inflate(fragment.layoutInflater)
@@ -160,6 +160,7 @@ abstract class GenericLoggingController(
     override val controlsView: View = bindings.root
 
     private var timer: Timer? = null
+    private var storingPromise: Promise<TimeEntry?, Exception>? = null
 
     init {
         fragment.mainActivity.storage.child<GenericTimerRecord>(childId, typeName)?.let {
@@ -188,108 +189,22 @@ abstract class GenericLoggingController(
     }
 
     override suspend fun save(): TimeEntry? {
+        storingPromise?.let {
+            throw IOException("Already storing activity of type ${typeName}")
+        }
+
         timer?.let { timer ->
             try {
-                val result = AsyncPromise.call<TimeEntry?, Exception> { promise ->
-                    fragment.mainActivity.storeActivity(
-                        timer,
-                        object : StoreFunction<TimeEntry> {
-                            override fun store(
-                                timer: Timer,
-                                callback: BabyBuddyClient.RequestCallback<TimeEntry>
-                            ) {
-                                fragment.mainActivity.scope.launch {
-                                    try {
-                                        val result = createEntry(timer)
-                                        timerControl.stopTimer(
-                                            timer,
-                                            object : Promise<Any, TranslatedException> {
-                                                override fun succeeded(s: Any?) {
-                                                    callback.response(result)
-                                                }
-
-                                                override fun failed(f: TranslatedException?) {
-                                                    callback.error(
-                                                        f?.originalError
-                                                            ?: IOException("Failed to stop timer")
-                                                    )
-                                                }
-                                            })
-                                    } catch (e: Exception) {
-                                        callback.error(e)
-                                    }
-                                }
-                            }
-
-                            override fun name(): String {
-                                return this@GenericLoggingController.typeName
-                            }
-
-                            override fun timerStopped() {
-                                timerControl.stopTimer(
-                                    timer,
-                                    object : Promise<Any, TranslatedException> {
-                                        override fun succeeded(s: Any?) {
-                                            promise.succeeded(null)
-                                        }
-
-                                        override fun failed(f: TranslatedException?) {
-                                            promise.failed(f)
-                                        }
-                                    })
-                            }
-
-                            override fun cancel() {
-                                promise.failed(EmptyException())
-                            }
-
-                            override fun error(error: java.lang.Exception) {
-                                var message = "" + (error.message ?: "")
-                                if ((error is RequestCodeFailure) && (error.hasJSONMessage())) {
-                                    message = Phrase.from(
-                                        fragment.requireContext(),
-                                        R.string.activity_store_failure_server_error
-                                    )
-                                        .put("message", "Error while storing activity")
-                                        .put("server_message", error.jsonErrorMessages().joinToString(", "))
-                                        .format().toString()
-                                }
-
-                                fragment.showQuestion(
-                                    true,
-                                    fragment.getString(R.string.activity_store_failure_message),
-                                    message,
-                                    fragment.getString(R.string.activity_store_failure_cancel),
-                                    fragment.getString(R.string.activity_store_failure_stop_timer),
-                                    object : DialogCallback {
-                                        override fun call(b: Boolean) {
-                                            if (!b) {
-                                                timerControl.stopTimer(
-                                                    timer,
-                                                    object : Promise<Any, TranslatedException> {
-                                                        override fun succeeded(s: Any?) {
-                                                            promise.succeeded(null)
-                                                        }
-
-                                                        override fun failed(f: TranslatedException?) {
-                                                            promise.failed(f)
-                                                        }
-                                                    })
-                                            } else {
-                                                promise.succeeded(null)
-                                            }
-                                        }
-                                    }
-                                )
-                            }
-
-                            override fun response(response: TimeEntry?) {
-                                promise.succeeded(response!!)
-                            }
-                        }
-                    )
+                try {
+                    val result = AsyncPromise.call<TimeEntry?, Exception> { promise ->
+                        storingPromise = promise
+                        fragment.mainActivity.storeActivity(timer,this)
+                    }
+                    return result
                 }
-                return result
+                finally {
+                    storingPromise = null
+                }
             }
             catch (e: AsyncPromiseFailure) {
                 if (e.value is EmptyException) {
@@ -299,7 +214,6 @@ abstract class GenericLoggingController(
                     true,
                     R.string.activity_store_failure_message,
                     R.string.activity_store_failure_server_error
-
                 )
             }
         }
@@ -325,6 +239,90 @@ abstract class GenericLoggingController(
                 .replace("MM".toRegex(), Utils.padToLen("" + minutes % 60, '0', 2))
                 .replace("ss".toRegex(), Utils.padToLen("" + seconds % 60, '0', 2))
         }
+    }
+
+    override fun store(
+        timer: Timer,
+        callback: BabyBuddyClient.RequestCallback<TimeEntry>
+    ) {
+        fragment.mainActivity.scope.launch {
+            try {
+                val result = createEntry(timer)
+                timerControl.stopTimer(
+                    timer,
+                    object : Promise<Any, TranslatedException> {
+                        override fun succeeded(s: Any?) {
+                            callback.response(result)
+                        }
+
+                        override fun failed(f: TranslatedException?) {
+                            callback.error(
+                                f?.originalError
+                                    ?: IOException("Failed to stop timer")
+                            )
+                        }
+                    })
+            } catch (e: Exception) {
+                callback.error(e)
+            }
+        }
+    }
+
+    override fun name(): String {
+        return this@GenericLoggingController.typeName
+    }
+
+    override fun stopTimer(timer: Timer) {
+        timerControl.stopTimer(
+            timer,
+            object : Promise<Any, TranslatedException> {
+                override fun succeeded(s: Any?) {
+                    storingPromise!!.succeeded(null)
+                }
+
+                override fun failed(f: TranslatedException?) {
+                    storingPromise!!.failed(f)
+                }
+            })
+    }
+
+    override fun cancel() {
+        // TODO: Review!
+        storingPromise!!.failed(EmptyException())
+    }
+
+    override fun error(error: java.lang.Exception) {
+        var message = "" + (error.message ?: "")
+        if ((error is RequestCodeFailure) && (error.hasJSONMessage())) {
+            message = Phrase.from(
+                fragment.requireContext(),
+                R.string.activity_store_failure_server_error
+            )
+                .put("message", "Error while storing activity")
+                .put("server_message", error.jsonErrorMessages().joinToString(", "))
+                .format().toString()
+        }
+
+        fragment.showQuestion(
+            true,
+            fragment.getString(R.string.activity_store_failure_message),
+            message,
+            fragment.getString(R.string.activity_store_failure_cancel),
+            fragment.getString(R.string.activity_store_failure_stop_timer),
+            object : DialogCallback {
+                override fun call(b: Boolean) {
+                    if (!b) {
+                        timer?.let { stopTimer(it) }
+                    } else {
+                        storingPromise!!.succeeded(null)
+                    }
+                }
+            }
+        )
+    }
+
+    override fun response(response: TimeEntry?) {
+        storingPromise!!.succeeded(response)
     }
 }
 

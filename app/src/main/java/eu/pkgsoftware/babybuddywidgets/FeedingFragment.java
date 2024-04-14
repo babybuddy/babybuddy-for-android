@@ -10,6 +10,7 @@ import android.widget.Button;
 import android.widget.LinearLayout;
 import android.widget.Spinner;
 
+import org.jetbrains.annotations.NotNull;
 import org.json.JSONException;
 import org.json.JSONObject;
 
@@ -408,7 +409,7 @@ public class FeedingFragment extends BaseFragment {
             }
 
             @Override
-            public void timerStopped() {
+            public void stopTimer(@NotNull BabyBuddyClient.Timer timer) {
                 navUp();
             }
 

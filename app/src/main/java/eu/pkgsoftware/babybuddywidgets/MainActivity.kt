@@ -29,7 +29,7 @@ import kotlin.coroutines.suspendCoroutine
 interface StoreFunction<X> : BabyBuddyClient.RequestCallback<X> {
     fun store(timer: BabyBuddyClient.Timer, callback: BabyBuddyClient.RequestCallback<X>)
     fun name(): String
-    fun timerStopped()
+    fun stopTimer(timer: BabyBuddyClient.Timer)
     fun cancel()
 }
 
@@ -322,7 +322,7 @@ class MainActivity : AppCompatActivity() {
                 progressDialog.show()
                 if (resolution == ConflictResolutionOptions.STOP_TIMER) {
                     progressDialog.cancel()
-                    storeInterface.timerStopped()
+                    storeInterface.stopTimer(timer)
                 } else if (resolution == ConflictResolutionOptions.RESOLVE) {
                     var retries = 3
                     while (retries > 0) {
