@@ -26,7 +26,6 @@ import eu.pkgsoftware.babybuddywidgets.networking.babybuddy.models.classActivity
 import eu.pkgsoftware.babybuddywidgets.networking.babybuddy.nowServer
 import eu.pkgsoftware.babybuddywidgets.utils.AsyncPromise
 import eu.pkgsoftware.babybuddywidgets.utils.AsyncPromiseFailure
-import eu.pkgsoftware.babybuddywidgets.utils.EmptyException
 import eu.pkgsoftware.babybuddywidgets.utils.Promise
 import eu.pkgsoftware.babybuddywidgets.widgets.SwitchButtonLogic
 import kotlinx.coroutines.Runnable
@@ -207,9 +206,6 @@ abstract class GenericLoggingController(
                 }
             }
             catch (e: AsyncPromiseFailure) {
-                if (e.value is EmptyException) {
-                    return null
-                }
                 fragment.showError(
                     true,
                     R.string.activity_store_failure_message,
@@ -287,8 +283,7 @@ abstract class GenericLoggingController(
     }
 
     override fun cancel() {
-        // TODO: Review!
-        storingPromise!!.failed(EmptyException())
+        storingPromise!!.succeeded(null)
     }
 
     override fun error(error: java.lang.Exception) {

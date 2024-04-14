@@ -210,7 +210,8 @@ class MainActivity : AppCompatActivity() {
                     BabyBuddyClient.QueryValues()
                         .add("start_max", timer.computeCurrentServerEndTime(client))
                         .add("end_min", timer.start)
-                        .add("limit", 50),
+                        .add("limit", 50)
+                        .add("child", timer.child_id),
                     it
                 )
             }
