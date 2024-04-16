@@ -132,4 +132,8 @@ interface ApiInterface {
     @POST("tummy-times/")
     @Headers("Content-Type: application/json")
     fun sendTummyTimeEntry(@Body data: JsonNode): Call<TummyTimeEntry>
+
+    @POST("notes/")
+    @Headers("Content-Type: application/json")
+    fun sendNoteEntry(@Body data: JsonNode): Call<NoteEntry>
 }

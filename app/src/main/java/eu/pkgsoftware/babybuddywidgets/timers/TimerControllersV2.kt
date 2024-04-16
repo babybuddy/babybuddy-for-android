@@ -14,11 +14,13 @@ import eu.pkgsoftware.babybuddywidgets.StoreFunction
 import eu.pkgsoftware.babybuddywidgets.databinding.BabyManagerBinding
 import eu.pkgsoftware.babybuddywidgets.databinding.DiaperLoggingEntryBinding
 import eu.pkgsoftware.babybuddywidgets.databinding.GenericTimerLoggingEntryBinding
+import eu.pkgsoftware.babybuddywidgets.databinding.NoteLoggingEntryBinding
 import eu.pkgsoftware.babybuddywidgets.login.Utils
 import eu.pkgsoftware.babybuddywidgets.networking.BabyBuddyClient
 import eu.pkgsoftware.babybuddywidgets.networking.BabyBuddyClient.Timer
 import eu.pkgsoftware.babybuddywidgets.networking.RequestCodeFailure
 import eu.pkgsoftware.babybuddywidgets.networking.babybuddy.models.ChangeEntry
+import eu.pkgsoftware.babybuddywidgets.networking.babybuddy.models.NoteEntry
 import eu.pkgsoftware.babybuddywidgets.networking.babybuddy.models.SleepEntry
 import eu.pkgsoftware.babybuddywidgets.networking.babybuddy.models.TimeEntry
 import eu.pkgsoftware.babybuddywidgets.networking.babybuddy.models.TummyTimeEntry
@@ -59,81 +61,6 @@ val ACTIVITIES = listOf(
     BabyBuddyClient.ACTIVITIES.TUMMY_TIME,
     BabyBuddyClient.ACTIVITIES.PUMPING,
 )
-
-@JsonIgnoreProperties(ignoreUnknown = true)
-data class DiaperDataRecord(
-    @JsonProperty("wet") val wet: Boolean,
-    @JsonProperty("solid") val solid: Boolean,
-    @JsonProperty("note") val note: String
-)
-
-class DiaperLoggingController(val fragment: BaseFragment, childId: Int) : LoggingControls(childId) {
-    val bindings = DiaperLoggingEntryBinding.inflate(fragment.layoutInflater)
-    override val controlsView = bindings.root
-    override val saveButton = bindings.sendButton
-
-    val wetLogic = SwitchButtonLogic(
-        bindings.wetDisabledButton, bindings.wetEnabledButton, false
-    )
-    val solidLogic = SwitchButtonLogic(
-        bindings.solidDisabledButton, bindings.solidEnabledButton, false
-    )
-    val noteEditor = bindings.noteEditor
-
-    init {
-        wetLogic.addStateListener { _, _ ->
-            updateSaveEnabledState()
-        }
-        solidLogic.addStateListener { _, _ ->
-            updateSaveEnabledState()
-        }
-
-        fragment.mainActivity.storage.child<DiaperDataRecord>(childId, "diaper")?.let {
-            wetLogic.state = it.wet
-            solidLogic.state = it.solid
-            noteEditor.setText(it.note)
-        }
-
-        updateSaveEnabledState()
-    }
-
-    fun updateSaveEnabledState() {
-        saveButton.visibility = if (wetLogic.state || solidLogic.state) {
-            View.VISIBLE
-        } else {
-            View.INVISIBLE
-        }
-    }
-
-    override fun storeStateForSuspend() {
-        val ddr = DiaperDataRecord(
-            wetLogic.state, solidLogic.state, noteEditor.text.toString()
-        )
-        fragment.mainActivity.storage.child(childId, "diaper", ddr)
-    }
-
-    override fun reset() {
-        noteEditor.setText("")
-        wetLogic.state = false
-        solidLogic.state = false
-    }
-
-    suspend override fun save(): TimeEntry {
-        return fragment.mainActivity.client.v2client.createEntry(
-            ChangeEntry::class,
-            ChangeEntry(
-                id = 0,
-                childId = childId,
-                start = nowServer(),
-                _notes = noteEditor.text.toString(),
-                wet = wetLogic.state,
-                solid = solidLogic.state,
-                color = "",
-                amount = null
-            )
-        )
-    }
-}
 
 interface TimerBase {
     fun updateTimer(timer: Timer?)
@@ -321,6 +248,121 @@ abstract class GenericLoggingController(
     }
 }
 
+@JsonIgnoreProperties(ignoreUnknown = true)
+data class DiaperDataRecord(
+    @JsonProperty("wet") val wet: Boolean,
+    @JsonProperty("solid") val solid: Boolean,
+    @JsonProperty("note") val note: String
+)
+
+class DiaperLoggingController(val fragment: BaseFragment, childId: Int) : LoggingControls(childId) {
+    val bindings = DiaperLoggingEntryBinding.inflate(fragment.layoutInflater)
+    override val controlsView = bindings.root
+    override val saveButton = bindings.sendButton
+
+    val wetLogic = SwitchButtonLogic(
+        bindings.wetDisabledButton, bindings.wetEnabledButton, false
+    )
+    val solidLogic = SwitchButtonLogic(
+        bindings.solidDisabledButton, bindings.solidEnabledButton, false
+    )
+    val noteEditor = bindings.noteEditor
+
+    init {
+        wetLogic.addStateListener { _, _ ->
+            updateSaveEnabledState()
+        }
+        solidLogic.addStateListener { _, _ ->
+            updateSaveEnabledState()
+        }
+
+        fragment.mainActivity.storage.child<DiaperDataRecord>(childId, "diaper")?.let {
+            wetLogic.state = it.wet
+            solidLogic.state = it.solid
+            noteEditor.setText(it.note)
+        }
+
+        updateSaveEnabledState()
+    }
+
+    fun updateSaveEnabledState() {
+        saveButton.visibility = if (wetLogic.state || solidLogic.state) {
+            View.VISIBLE
+        } else {
+            View.INVISIBLE
+        }
+    }
+
+    override fun storeStateForSuspend() {
+        val ddr = DiaperDataRecord(
+            wetLogic.state, solidLogic.state, noteEditor.text.toString()
+        )
+        fragment.mainActivity.storage.child(childId, "diaper", ddr)
+    }
+
+    override fun reset() {
+        noteEditor.setText("")
+        wetLogic.state = false
+        solidLogic.state = false
+    }
+
+    suspend override fun save(): TimeEntry {
+        return fragment.mainActivity.client.v2client.createEntry(
+            ChangeEntry::class,
+            ChangeEntry(
+                id = 0,
+                childId = childId,
+                start = nowServer(),
+                _notes = noteEditor.text.toString(),
+                wet = wetLogic.state,
+                solid = solidLogic.state,
+                color = "",
+                amount = null
+            )
+        )
+    }
+}
+
+@JsonIgnoreProperties(ignoreUnknown = true)
+data class NotesDataRecord(
+    @JsonProperty("note") val note: String
+)
+
+class NotesLoggingController(val fragment: BaseFragment, childId: Int) : LoggingControls(childId) {
+    val bindings = NoteLoggingEntryBinding.inflate(fragment.layoutInflater)
+    override val controlsView = bindings.root
+    override val saveButton = bindings.sendButton
+
+    val noteEditor = bindings.noteEditor
+
+    init {
+        fragment.mainActivity.storage.child<DiaperDataRecord>(childId, "notes")?.let {
+            noteEditor.setText(it.note)
+        }
+    }
+
+    override fun storeStateForSuspend() {
+        val ddr = NotesDataRecord(noteEditor.text.toString())
+        fragment.mainActivity.storage.child(childId, "notes", ddr)
+    }
+
+    override fun reset() {
+        noteEditor.setText("")
+    }
+
+    suspend override fun save(): TimeEntry {
+        return fragment.mainActivity.client.v2client.createEntry(
+            NoteEntry::class,
+            NoteEntry(
+                id = 0,
+                childId = childId,
+                start = nowServer(),
+                _notes = noteEditor.text.toString()
+            )
+        )
+    }
+}
+
 class SleepLoggingController(
     fragment: BaseFragment,
     childId: Int,
@@ -394,6 +436,7 @@ class LoggingButtonController(
 
     val loggingControllers: Map<String, LoggingControls> = mapOf(
         BabyBuddyClient.EVENTS.CHANGE to DiaperLoggingController(fragment, child.id),
+        BabyBuddyClient.EVENTS.NOTE to NotesLoggingController(fragment, child.id),
         BabyBuddyClient.ACTIVITIES.SLEEP to SleepLoggingController(
             fragment, child.id, timerControl
         ),

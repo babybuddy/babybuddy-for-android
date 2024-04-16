@@ -118,12 +118,17 @@ data class PumpingEntry(
 @ActivityName(EVENTS.CHANGE)
 @JsonIgnoreProperties(ignoreUnknown = true)
 data class ChangeEntry(
-    @JsonProperty("id", required = true) override val id: Int,
-    @JsonProperty("child", required = true) override val childId: Int,
+    @JsonProperty("id", required = true)
+    override val id: Int,
+
+    @JsonProperty("child", required = true)
+    override val childId: Int,
+
     @JsonProperty("time", required = true)
     @JsonDeserialize(using = DateTimeDeserializer::class)
     @JsonSerialize(using = DateTimeSerializer::class)
     override val start: Date,
+
     @JsonSetter("notes") val _notes: String?,
     @JsonProperty("wet", required = true) val wet: Boolean,
     @JsonProperty("solid", required = true) val solid: Boolean,
@@ -141,9 +146,17 @@ data class ChangeEntry(
 @ActivityName(EVENTS.NOTE)
 @JsonIgnoreProperties(ignoreUnknown = true)
 data class NoteEntry(
-    @JsonProperty("id", required = true) override val id: Int,
-    @JsonProperty("child", required = true) override val childId: Int,
-    @JsonProperty("time", required = true) @JsonDeserialize(using = DateTimeDeserializer::class) override val start: Date,
+    @JsonProperty("id", required = true)
+    override val id: Int,
+
+    @JsonProperty("child", required = true)
+    override val childId: Int,
+
+    @JsonProperty("time", required = true)
+    @JsonDeserialize(using = DateTimeDeserializer::class)
+    @JsonSerialize(using = DateTimeSerializer::class)
+    override val start: Date,
+
     @JsonProperty("note", required = false) val _notes: String?,
 ) : TimeEntry {
     override val type: String = EVENTS.NOTE
