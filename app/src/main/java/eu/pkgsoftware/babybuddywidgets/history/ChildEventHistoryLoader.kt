@@ -140,7 +140,7 @@ class ChildEventHistoryLoader(
     private fun timeEntryToContinuousListItem(e: TimeEntry): ContinuousListItem {
         val result = ContinuousListItem(
             -e.start.time,
-            e.type,
+            e.appType,
             e.id.toString(),
         )
         timeEntryLookup[result] = e

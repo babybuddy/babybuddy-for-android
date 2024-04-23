@@ -2,7 +2,6 @@ package eu.pkgsoftware.babybuddywidgets.history
 
 import android.view.MotionEvent
 import android.view.View
-import android.view.ViewConfiguration
 import com.squareup.phrase.Phrase
 import eu.pkgsoftware.babybuddywidgets.BaseFragment
 import eu.pkgsoftware.babybuddywidgets.Constants.FeedingMethodEnum
@@ -55,17 +54,17 @@ class TimelineEntry(private val fragment: BaseFragment, private var _entry: Time
             binding.root.visibility = View.INVISIBLE
         } else {
             binding.root.visibility = View.VISIBLE
-            if (BabyBuddyClient.ACTIVITIES.TUMMY_TIME == entry.type) {
+            if (BabyBuddyClient.ACTIVITIES.TUMMY_TIME == entry.appType) {
                 configureTummyTime()
-            } else if (BabyBuddyClient.EVENTS.CHANGE == entry.type) {
+            } else if (BabyBuddyClient.EVENTS.CHANGE == entry.appType) {
                 configureChange()
-            } else if (BabyBuddyClient.ACTIVITIES.SLEEP == entry.type) {
+            } else if (BabyBuddyClient.ACTIVITIES.SLEEP == entry.appType) {
                 configureSleep()
-            } else if (BabyBuddyClient.ACTIVITIES.FEEDING == entry.type) {
+            } else if (BabyBuddyClient.ACTIVITIES.FEEDING == entry.appType) {
                 configureFeeding()
-            } else if (BabyBuddyClient.EVENTS.NOTE == entry.type) {
+            } else if (BabyBuddyClient.EVENTS.NOTE == entry.appType) {
                 configureNote()
-            } else if (BabyBuddyClient.ACTIVITIES.PUMPING == entry.type) {
+            } else if (BabyBuddyClient.ACTIVITIES.PUMPING == entry.appType) {
                 configurePumping()
             } else {
                 configureDefaultView()
@@ -85,7 +84,7 @@ class TimelineEntry(private val fragment: BaseFragment, private var _entry: Time
 
     private fun defaultPhraseFields(phrase: Phrase): Phrase {
         return phrase
-            .putOptional("type", entry!!.type)
+            .putOptional("type", entry!!.appType)
             .putOptional("start_date", DATE_FORMAT.format(entry!!.start))
             .putOptional("start_time", TIME_FORMAT.format(entry!!.start))
             .putOptional("end_date", DATE_FORMAT.format(entry!!.end))

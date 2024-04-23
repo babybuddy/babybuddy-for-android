@@ -19,9 +19,12 @@ import kotlinx.coroutines.withContext
 import okhttp3.Interceptor
 import okhttp3.OkHttpClient
 import okhttp3.Response
+import okio.Buffer
+import okio.BufferedSink
 import retrofit2.Call
 import retrofit2.Retrofit
 import retrofit2.converter.jackson.JacksonConverterFactory
+import java.io.ByteArrayOutputStream
 import java.net.MalformedURLException
 import java.net.URL
 import kotlin.random.Random
@@ -50,6 +53,22 @@ class AuthInterceptor(private val authToken: String) : Interceptor {
     }
 }
 
+class DebugNetworkInterceptor : Interceptor {
+    override fun intercept(chain: Interceptor.Chain): Response {
+        val request = chain.request()
+        val response = chain.proceed(request)
+
+        val buf = Buffer();
+        request.body()?.writeTo(buf) ?: buf.writeUtf8("null");
+        val bodyStream = ByteArrayOutputStream(10000)
+        buf.copyTo(bodyStream)
+
+        println("Debug Network request: ${request.url()} - Body: ${bodyStream}")
+        println("Debug Network response: ${response.message()}")
+        return response
+    }
+}
+
 class InvalidBody() : Exception("Invalid body")
 
 data class PaginatedResult<T> (
@@ -61,6 +80,7 @@ data class PaginatedResult<T> (
 class Client(val credStore: ServerAccessProviderInterface) {
     val httpClient = OkHttpClient.Builder()
         .addInterceptor(AuthInterceptor("Token " + credStore.appToken))
+        .addInterceptor(DebugNetworkInterceptor())
         .build()
 
     val retrofit = Retrofit.Builder()
@@ -234,8 +254,6 @@ class Client(val credStore: ServerAccessProviderInterface) {
         val mapper = jacksonObjectMapper()
         val node = mapper.valueToTree<ObjectNode>(item)
         node.remove("id")
-        node.remove("type")
-        node.remove("typeId")
 
         GlobalDebugObject.log("${REQID} V2Client::createEntry ${klass.simpleName}")
         return withContext(Dispatchers.IO) {
