@@ -63,8 +63,9 @@ class DebugNetworkInterceptor : Interceptor {
         val bodyStream = ByteArrayOutputStream(10000)
         buf.copyTo(bodyStream)
 
-        println("Debug Network request: ${request.url()} - Body: ${bodyStream}")
-        println("Debug Network response: ${response.message()}")
+        GlobalDebugObject.log(
+            "Raw request: ${request.url()} - Request body: ${bodyStream} - Response: ${response.message()}"
+        )
         return response
     }
 }
