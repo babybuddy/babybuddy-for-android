@@ -12,9 +12,9 @@ import kotlin.math.max
 import kotlin.math.pow
 
 class HorizontalDecIncEditor : LinearLayout {
-    var value: Int?
+    var value: Double?
         get() {
-            return binding.numberEditor.text.toString().toIntOrNull() ?: 0
+            return binding.numberEditor.text.toString().toDoubleOrNull()
         }
         set(value) {
             val v = value?.let {
@@ -55,10 +55,10 @@ class HorizontalDecIncEditor : LinearLayout {
         value = null
 
         binding.decButton.setOnClickListener {
-            value = (value ?: 0) - incrementValue
+            value = (value ?: 0.0) - incrementValue
         }
         binding.incButton.setOnClickListener {
-            value = (value ?: 0) + incrementValue
+            value = (value ?: 0.0) + incrementValue
         }
     }
 }

@@ -64,7 +64,9 @@ class DebugNetworkInterceptor : Interceptor {
         buf.copyTo(bodyStream)
 
         GlobalDebugObject.log(
-            "Raw request: ${request.url()} - Request body: ${bodyStream} - Response: ${response.message()}"
+            "Raw request: ${request.url()} - " +
+            "Request body: ${bodyStream} - " +
+            "Response: ${response.message()}"
         )
         return response
     }

@@ -20,7 +20,7 @@
         android:layout_weight="10"
         android:ems="10"
         android:hint="None"
-        android:inputType="number"
+        android:inputType="numberDecimal"
         android:textAlignment="center" />
 
     <Button

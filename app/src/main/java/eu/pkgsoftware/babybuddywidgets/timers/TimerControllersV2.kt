@@ -423,7 +423,7 @@ class TummyTimeLoggingController(
 
 @JsonIgnoreProperties(ignoreUnknown = true)
 data class FeedingRecord(
-    @JsonProperty("amount") val amount: Int?,
+    @JsonProperty("amount") val amount: Double?,
     @JsonProperty("note") val note: String,
     @JsonProperty("feeding_type") val feedingType: String?,
     @JsonProperty("feeding_method") val feedingMethod: String?,
@@ -517,7 +517,7 @@ class FeedingLoggingController(
 
     override fun storeStateForSuspend() {
         val fr = FeedingRecord(
-            feedingBinding.amountNumberPicker.value,
+            feedingBinding.amountNumberPicker.value?.toDouble(),
             feedingBinding.noteEditor.text.toString(),
             selectedType,
             selectedMethod,
@@ -528,10 +528,32 @@ class FeedingLoggingController(
     override fun reset() {
         feedingBinding.amountNumberPicker.value = null
         feedingBinding.noteEditor.setText("")
+        selectedType = null
+        selectedMethod = null
+        storeStateForSuspend()
     }
 
     override fun updateVisuals() {
         super.updateVisuals()
+
+        val selectedType = selectedType
+        if (selectedType == null) {
+            feedingBinding.feedingTypeButtons.visibility = View.VISIBLE
+            feedingBinding.feedingTypeSpinner.visibility = View.GONE
+            feedingBinding.feedingMethodButtons.visibility = View.GONE
+            feedingBinding.feedingMethodSpinner.visibility = View.GONE
+        } else if (selectedMethod == null) {
+            setupFeedingMethodButtons(FeedingTypeEnum.byPostName(selectedType))
+            feedingBinding.feedingTypeButtons.visibility = View.GONE
+            feedingBinding.feedingTypeSpinner.visibility = View.VISIBLE
+            feedingBinding.feedingMethodButtons.visibility = View.VISIBLE
+            feedingBinding.feedingMethodSpinner.visibility = View.GONE
+        } else {
+            feedingBinding.feedingTypeButtons.visibility = View.GONE
+            feedingBinding.feedingTypeSpinner.visibility = View.VISIBLE
+            feedingBinding.feedingMethodButtons.visibility = View.GONE
+            feedingBinding.feedingMethodSpinner.visibility = View.VISIBLE
+        }
 
         if (feedingBinding.feedingTypeSpinner.isVisible && feedingBinding.feedingMethodSpinner.isVisible) {
             saveButton.visibility = View.VISIBLE
@@ -551,7 +573,7 @@ class FeedingLoggingController(
                 feedingType = selectedType!!,
                 feedingMethod = selectedMethod!!,
                 amount = feedingBinding.amountNumberPicker.value?.toDouble(),
-                _notes = bindings.noteEditor.text.toString()
+                _notes = feedingBinding.noteEditor.text.toString()
             )
         )
     }
