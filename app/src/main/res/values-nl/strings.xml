@@ -89,11 +89,11 @@
     <!--- Store activities -->
     <string name="error_storing_activity_failed_title">Kon activiteit niet opslaan</string>
     <string name="error_storing_activity_unsupported">Niet-ondersteunde activiteit</string>
-    <string name="popup_message_storing">Opslaan {activiteit}</string>
+    <string name="popup_message_storing">{activity} opslaan …</string>
 
     <!-- Generic store error -->
     <string name="activity_store_failure_message">Kon activiteit niet opslaan</string>
-    <string name="activity_store_failure_server_error">{bericht}\n\nServer meldt: {server_bericht}</string>
+    <string name="activity_store_failure_server_error">{message}\n\nServer meldt: {server_berichtserver_message}</string>
     <string name="activity_store_failure_stop_timer">Stop de timer</string>
     <string name="activity_store_failure_cancel">Annuleren</string>
     <string name="activity_store_failure_failed_to_stop_title">Stoppen van timer</string>
@@ -116,8 +116,8 @@
     </string>
     <string name="history_delete_question_delete_button">Verwijderen</string>
     <string name="history_delete_question_cancel_button">Annuleren</string>
-    <string name="history_loading_timeline_entry_failed">Kan {activiteit} gegevens niet laden.</string>
-    <string name="history_loading_timeline_entry_failed_with_error">Kan {activiteit} gegevens niet laden: {error}</string>
+    <string name="history_loading_timeline_entry_failed">Kan {activity} gegevens niet laden.</string>
+    <string name="history_loading_timeline_entry_failed_with_error">Kan {activity} gegevens niet laden: {error}</string>
 
     <!-- QR Code Login -->
     <string name="login_qrcode_camera_access_needed_dialog_title">Cameratoegang nodig</string>
