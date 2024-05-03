@@ -5,13 +5,13 @@
         <item>Tummy time</item>
         <item>Pumping</item>
     </array>
-    <array name="feedingTypes" translatable="false">
+    <array name="feedingTypes">
         <item>Breast milk</item>
         <item>Formula</item>
         <item>Fortified breast milk</item>
         <item>Solid food</item>
     </array>
-    <array name="feedingMethods" translatable="false">
+    <array name="feedingMethods">
         <item>Bottle</item>
         <item>Left breast</item>
         <item>Right breast</item>

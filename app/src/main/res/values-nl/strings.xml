@@ -5,13 +5,13 @@
         <item>Buikliggen</item>
         <item>Afkolven</item>
     </array>
-    <array name="feedingTypes" translatable="false">
+    <array name="feedingTypes">
         <item>Borstvoeding</item>
         <item>Flesvoeding</item>
         <item>Verrijkte moedermelk</item>
         <item>Vast voedsel</item>
     </array>
-    <array name="feedingMethods" translatable="false">
+    <array name="feedingMethods">
         <item>Fles</item>
         <item>Linkerborst</item>
         <item>Rechterborst</item>
@@ -93,7 +93,7 @@
 
     <!-- Generic store error -->
     <string name="activity_store_failure_message">Kon activiteit niet opslaan</string>
-    <string name="activity_store_failure_server_error">{message}\n\nServer meldt: {server_berichtserver_message}</string>
+    <string name="activity_store_failure_server_error">{message}\n\nServer meldt: {server_message}</string>
     <string name="activity_store_failure_stop_timer">Stop de timer</string>
     <string name="activity_store_failure_cancel">Annuleren</string>
     <string name="activity_store_failure_failed_to_stop_title">Stoppen van timer</string>
@@ -127,7 +127,7 @@
     <string name="login_qrcode_camera_access_needed_dialog_confirm">Geef toestemming</string>
     <string name="login_qrcode_camera_access_needed_dialog_cancel">Annuleren</string>
     <string name="login_qrcode_title">Scan QR Code</string>
-    <string name="login_qrcode_explanation">U vindt de inlog-QR-code door de website van de Baby Buddy App te openen, op uw naam in de rechterbovenhoek te klikken en de optie 'Voeg een apparaat toe' te selecteren.</string>
+    <string name="login_qrcode_explanation">U vindt de inlog-QR-code door de website van de Baby Buddy App te openen, op uw naam in de rechterbovenhoek te klikken en de optie \'Voeg een apparaat toe\' te selecteren.</string>
     <string name="login_qrcode_status_no_code">[Geen code gevonden]</string>
     <string name="login_qrcode_status_valid_code">[Inlogcode gevonden]</string>
     <string name="login_qrcode_status_invalid_code">[Ongeldige QR-code]</string>
