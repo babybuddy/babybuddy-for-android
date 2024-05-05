@@ -9,7 +9,7 @@
         android:layout_height="wrap_content"
         android:layout_weight="1"
         android:gravity="top|left"
-        android:hint="Notes"
+        android:hint="@string/notes_editor_hint"
         android:inputType="textLongMessage|textMultiLine|text"
         android:maxLines="2"
         android:minLines="2"

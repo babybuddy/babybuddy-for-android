@@ -171,4 +171,10 @@
     <string name="send_message_info">Stuur een bericht naar mij, de hoofdontwikkelaar, als je fouten of problemen ervaart met de app. Let op: ik wil je gegevens vertrouwelijk behandelen, dus ik kan niet rechtstreeks reageren op je berichten. Voor directe communicatie, raadpleeg <a href="https://github.com/babybuddy/babybuddy-for-android">GitHub</a> in plaats daarvan.</string>
     <string name="send_message_send_title">Neem contact op met de ontwikkelaar</string>
     <string name="send_message_send_button">Versturen</string>
+    <string name="notes_editor_hint">Notities</string>
+    <string name="send_message_back_button">Terug</string>
+    <string name="send_message_failed_message">Bericht kon niet worden verstuurd</string>
+    <string name="send_message_sent_message">Bericht verstuurd naar ontwikkelaar</string>
+    <string name="store_feeding_amount_string">Hoeveelheid: {quantity}</string>
+    <string name="store_feeding_amount_none">Geen</string>
 </resources>

@@ -10,10 +10,13 @@ import android.widget.Button;
 import android.widget.LinearLayout;
 import android.widget.Spinner;
 
+import com.squareup.phrase.Phrase;
+
 import org.json.JSONException;
 import org.json.JSONObject;
 
 import java.text.DecimalFormat;
+import java.text.NumberFormat;
 import java.text.ParseException;
 import java.util.ArrayList;
 import java.util.List;
@@ -33,8 +36,8 @@ public class FeedingFragment extends BaseFragment {
         void onSelectionChanged(int i);
     }
 
-    public static class AmountValuesGenerator implements HorizontalNumberPicker.ValueGenerator {
-        public static final DecimalFormat FORMAT_VALUE = new DecimalFormat("#.#");
+    public class AmountValuesGenerator implements HorizontalNumberPicker.ValueGenerator {
+        public static final NumberFormat FORMAT_VALUE = DecimalFormat.getNumberInstance();
 
         public long minValue() {
             return -1L;
@@ -50,7 +53,7 @@ public class FeedingFragment extends BaseFragment {
 
         public String getValue(long index) {
             if (index < 0) {
-                return "None";
+                return getString(R.string.store_feeding_amount_none);
             } else {
                 return FORMAT_VALUE.format(getRawValue(index, 0f));
             }
@@ -275,11 +278,15 @@ public class FeedingFragment extends BaseFragment {
     }
 
     private void updateAmount() {
-        String text = "(None)";
+        String text = "(" + getString(R.string.store_feeding_amount_none) + ")";
         if (amount != null) {
             text = AmountValuesGenerator.FORMAT_VALUE.format(amount);
         }
-        binding.amountText.setText("Amount: " + text);
+        binding.amountText.setText(
+            Phrase.from(requireContext(), R.string.store_feeding_amount_string)
+                .put("quantity", text)
+                .format()
+        );
     }
 
     private static class ButtonListOnClickListener implements View.OnClickListener {
@@ -350,7 +357,9 @@ public class FeedingFragment extends BaseFragment {
         }
 
         binding.feedingMethodSpinner.setAdapter(
-            new ArrayAdapter<CharSequence>(getContext(), android.R.layout.simple_spinner_dropdown_item, textItems)
+            new ArrayAdapter<CharSequence>(
+                requireContext(), android.R.layout.simple_spinner_dropdown_item, textItems
+            )
         );
 
         populateButtonList(

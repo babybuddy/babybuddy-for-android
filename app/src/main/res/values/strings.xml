@@ -39,6 +39,10 @@
     <string name="activity_singular_height">height</string>
     <string name="activity_singular_head_circumference">head circumference</string>
 
+    <!-- Feeding store messages -->
+    <string name="store_feeding_amount_string">Amount: {quantity}</string>
+    <string name="store_feeding_amount_none">None</string>
+
     <!-- Tutorial Messages -->
     <string name="tutorial_suggest_visit_help">To get started, check out the\nhelp in the main menu.</string>
     <string name="tutorial_long_click_notification">Long press a timeline entry to navigate directly to the\ncorresponding babybuddy page in your web browser.</string>
@@ -48,6 +52,7 @@
     <string name="first_fragment_label">Login to Baby Buddy</string>
     <string name="logged_in_label">Logged in to Baby Buddy</string>
     <string name="next">Next</string>
+    <string name="notes_editor_hint">Notes</string>
 
     <string name="previous">Previous</string>
     <string name="configure">Configure</string>
