@@ -99,6 +99,7 @@
     <!-- Generic store error -->
     <string name="activity_store_failure_message">Could not store activity</string>
     <string name="activity_store_failure_server_error">{message}\n\nServer reported: {server_message}</string>
+    <string name="activity_store_failure_server_error_general">Error while storing activity</string>
     <string name="activity_store_failure_stop_timer">Stop timer</string>
     <string name="activity_store_failure_cancel">Cancel</string>
     <string name="activity_store_failure_failed_to_stop_title">Timer stop</string>
@@ -113,6 +114,7 @@
     <string name="conflicting_activity_modify_option">Adjust stored</string>
     <string name="conflicting_activity_cancel_option">Cancel saving</string>
     <string name="conflicting_activity_stop_timer_option">Cancel this timer</string>
+    <string name="conflicting_activity_failed_to_correct_conflicts">Failed to correct conflicting time entries</string>
 
     <!-- Activities history strings -->
     <string name="history_delete_title">Delete entry</string>

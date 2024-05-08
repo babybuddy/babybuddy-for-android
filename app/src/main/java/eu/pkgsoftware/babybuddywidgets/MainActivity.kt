@@ -197,7 +197,8 @@ class MainActivity : AppCompatActivity() {
                     BabyBuddyClient.QueryValues()
                         .add("start_max", timer.computeCurrentServerEndTime(client))
                         .add("end_min", timer.start)
-                        .add("limit", 50),
+                        .add("limit", 50)
+                        .add("child", timer.child_id),
                     it
                 )
             }
@@ -248,17 +249,8 @@ class MainActivity : AppCompatActivity() {
             val endTime = timer.computeCurrentServerEndTime(client)
             for (c in conflicts) {
                 val values = BabyBuddyClient.QueryValues()
-                if (c.start.time < timer.start.time) {
-                    values.add("end", timer.start)
-                } else if (c.end.time > endTime.time) {
-                    values.add("start", endTime)
-                } else {
-                    val startDistance = Math.abs(c.start.time - timer.start.time)
-                    val endDistance = Math.abs(c.end.time - endTime.time)
-                    val adjustTimeTo = if (startDistance <= endDistance) timer.start else endTime
-                    values.add("start", adjustTimeTo)
-                    values.add("end", adjustTimeTo)
-                }
+                values.add("start", timer.start)
+                values.add("end", timer.start)
                 try {
                     patchEntry(c, values)
                 } catch (e: Exception) {
@@ -323,7 +315,8 @@ class MainActivity : AppCompatActivity() {
                         retries--
                         delay(1000)
                     }
-                    storeInterface.error(java.lang.Exception("Failed to correct conflicting time entries"))
+                    val msg = getString(R.string.conflicting_activity_failed_to_correct_conflicts)
+                    storeInterface.error(java.lang.Exception(msg))
                 } else {
                     progressDialog.cancel()
                     storeInterface.cancel()
