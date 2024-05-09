@@ -236,10 +236,11 @@ class Help : BaseFragment() {
     }
 
     fun updateTitle(message: String?) {
+        val helpTitle = resources.getString(R.string.help_title)
         if (message == null) {
-            mainActivity.setTitle("Help")
+            mainActivity.setTitle(helpTitle)
         } else {
-            mainActivity.setTitle("Help: ${message}")
+            mainActivity.setTitle("${helpTitle}: ${message}")
         }
     }
 

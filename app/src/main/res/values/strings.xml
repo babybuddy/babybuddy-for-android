@@ -156,6 +156,9 @@
     <!-- Generic dialog fields -->
     <string name="dialog_ok">OK</string>
 
+    <!-- Help screen -->
+    <string name="help_title">Help</string>
+
     <!-- Upgrade notifications -->
     <string name="upgrade_latest_info_version_less_than_or_equal">1.3.0z</string>
     <string name="upgrade_latest_info_title">Update {version}</string>
