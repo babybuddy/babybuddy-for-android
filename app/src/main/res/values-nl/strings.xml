@@ -1,0 +1,185 @@
+<resources>
+    <array name="timerTypeNames">
+        <item>Voeden</item>
+        <item>Slaap</item>
+        <item>Buikliggen</item>
+        <item>Afkolven</item>
+    </array>
+    <array name="feedingTypes">
+        <item>Borstvoeding</item>
+        <item>Flesvoeding</item>
+        <item>Verrijkte moedermelk</item>
+        <item>Vast voedsel</item>
+    </array>
+    <array name="feedingMethods">
+        <item>Fles</item>
+        <item>Linkerborst</item>
+        <item>Rechterborst</item>
+        <item>Beide borsten</item>
+        <item>Ouder voeding</item>
+        <item>Zelf voeding</item>
+    </array>
+
+    <string name="app_name">Baby Buddy</string>
+
+    <string name="about_text">Deze Android-app is Open Source-software gemaakt door &lt;a href=\'http://www.craftware.info\'&gt;Paul Konstantin Gerke&lt;/a&gt; en gelicentieerd onder de MIT-licentie (zie hieronder).\n\nDe broncode van de toepassing is beschikbaar op &lt;a href=\'https://github.com/babybuddy/babybuddy-for-android/\'&gt;https://github.com/babybuddy/babybuddy-for-android/&lt;/a&gt;.\n\nDe toepassing gebruikt media van derden onder attributielicenties hieronder.</string>
+    <string name="about_external_media_resources_title">Media van derden</string>
+    <string name="about_external_libraries_title">Derdenbibliotheken</string>
+
+    <!-- Translations for all events and activities using their activity name as keys without capitalization -->
+    <string name="activity_singular_sleep">slaap</string>
+    <string name="activity_singular_tummy_times">buikliggen</string>
+    <string name="activity_singular_feedings">voeding</string>
+    <string name="activity_singular_pumping">afkolven</string>
+    <string name="activity_singular_changes">verschoning</string>
+    <string name="activity_singular_notes">notitie</string>
+    <string name="activity_singular_bmi">BMI</string>
+    <string name="activity_singular_temperature">temperatuur</string>
+    <string name="activity_singular_weight">gewicht</string>
+    <string name="activity_singular_height">lengte</string>
+    <string name="activity_singular_head_circumference">hoofdomtrek</string>
+
+    <!-- Tutorial Messages -->
+    <string name="tutorial_suggest_visit_help">Om te beginnen, controleer de\nhulp in het hoofdmenu.</string>
+    <string name="tutorial_long_click_notification">Druk lang op een tijdlijnitem om direct naar de\ncorresponderende Baby Buddy-pagina in uw webbrowser te navigeren.</string>
+
+    <!-- Strings used for fragments for navigation -->
+    <string name="action_settings">Instellingen</string>
+    <string name="first_fragment_label">Inloggen bij Baby Buddy</string>
+    <string name="logged_in_label">Ingelogd bij Baby Buddy</string>
+    <string name="next">Volgende</string>
+
+    <string name="previous">Vorige</string>
+    <string name="configure">Configureren</string>
+    <string name="add_widget">Widget toevoegen</string>
+
+    <string name="about_page_title">Over Baby&#160;Buddy voor Android</string>
+
+    <!-- Menu items -->
+    <string name="logoutMenu">Uitloggen</string>
+    <string name="showHelpMenuButtonTitle">Hulp</string>
+
+    <!-- Login -->
+    <string name="login_explanation">Voer de URL van uw <a href="https://github.com/babybuddy/babybuddy">Baby Buddy-webapp</a>-installatie in. Als u nog geen Baby Buddy-server heeft, bezoek dan de projectpagina voor instructies over het hosten van een server zelf.</string>
+
+    <string name="login_button">Inloggen</string>
+
+    <string name="server_address_hint">Serveradres</string>
+    <string name="login_text_hint">Gebruikersnaam</string>
+    <string name="login_password_hint">Wachtwoord</string>
+
+    <string name="login_http_warning_title">Onveilige verbinding</string>
+    <string name="login_http_warning_message">
+        Deze server-URL begint niet met \'https\'. Dit betekent dat het wachtwoord
+        dat u invoerde kan worden onderschept en gestolen!
+    </string>
+    <string name="login_http_warning_cancel">Annuleren (aanbevolen)</string>
+    <string name="login_http_warning_continue_login">Toch doorgaan</string>
+
+    <string name="logging_in_message">Inloggen…</string>
+
+    <string name="login_qrcode_info_text_checking_camera">Controleren op de aanwezigheid van een camera…</string>
+    <string name="login_qrcode_info_text">U kunt ook proberen in te loggen met een Baby Buddy-QR-code:</string>
+    <string name="login_qrcode_info_text_no_camera">Uw apparaat heeft geen camera. U kunt geen QR-code-inloggen gebruiken.</string>
+    <string name="login_qrcode_button_text">Inloggen met QR-code</string>
+
+    <!-- Generic logged in -->
+    <string name="logged_in_no_children_found">(Geen kinderen gevonden)</string>
+
+    <!--- Store activities -->
+    <string name="error_storing_activity_failed_title">Kon activiteit niet opslaan</string>
+    <string name="error_storing_activity_unsupported">Niet-ondersteunde activiteit</string>
+    <string name="popup_message_storing">{activity} opslaan …</string>
+
+    <!-- Generic store error -->
+    <string name="activity_store_failure_message">Kon activiteit niet opslaan</string>
+    <string name="activity_store_failure_server_error">{message}\n\nServer meldt: {server_message}</string>
+    <string name="activity_store_failure_stop_timer">Stop de timer</string>
+    <string name="activity_store_failure_cancel">Annuleren</string>
+    <string name="activity_store_failure_failed_to_stop_title">Stoppen van timer</string>
+    <string name="activity_store_failure_failed_to_stop_message">Stoppen van timer mislukt</string>
+    <string name="activity_store_failure_start_timer_failed">Starten van timer mislukt</string>
+
+    <!--- Store activities: Conflicts -->
+    <string name="conflicting_activity_title">Overlappende tijd-invoer</string>
+    <string name="conflicting_activity_text">
+    De timer overlapt met opgeslagen invoer. Kies een actie om het conflict op te lossen.
+</string>
+    <string name="conflicting_activity_modify_option">Pas opgeslagen aan</string>
+    <string name="conflicting_activity_cancel_option">Annuleer opslaan</string>
+    <string name="conflicting_activity_stop_timer_option">Annuleer timer</string>
+
+    <!-- Activities history strings -->
+    <string name="history_delete_title">Invoer verwijderen</string>
+    <string name="history_delete_question">
+            Wilt u de {type}-gegevens van {start_date} {start_time} - {end_time} echt verwijderen?
+    </string>
+    <string name="history_delete_question_delete_button">Verwijderen</string>
+    <string name="history_delete_question_cancel_button">Annuleren</string>
+    <string name="history_loading_timeline_entry_failed">Kan {activity} gegevens niet laden.</string>
+    <string name="history_loading_timeline_entry_failed_with_error">Kan {activity} gegevens niet laden: {error}</string>
+
+    <!-- QR Code Login -->
+    <string name="login_qrcode_camera_access_needed_dialog_title">Cameratoegang nodig</string>
+    <string name="login_qrcode_camera_access_needed_dialog_body">
+        Om de QR-codescanner te gebruiken, heeft de app toegang nodig tot de camera van uw apparaat.\n\nAls alternatief kunt u ervoor kiezen om het inlogscherm te gebruiken en server, gebruikersnaam en wachtwoord handmatig in te voeren.
+    </string>
+    <string name="login_qrcode_camera_access_needed_dialog_confirm">Geef toestemming</string>
+    <string name="login_qrcode_camera_access_needed_dialog_cancel">Annuleren</string>
+    <string name="login_qrcode_title">Scan QR Code</string>
+    <string name="login_qrcode_explanation">U vindt de inlog-QR-code door de website van de Baby Buddy App te openen, op uw naam in de rechterbovenhoek te klikken en de optie \'Voeg een apparaat toe\' te selecteren.</string>
+    <string name="login_qrcode_status_no_code">[Geen code gevonden]</string>
+    <string name="login_qrcode_status_valid_code">[Inlogcode gevonden]</string>
+    <string name="login_qrcode_status_invalid_code">[Ongeldige QR-code]</string>
+    <string name="login_qrcode_feedback_template">Inlogcode gevonden voor Baby Buddy website op:\n<a href="{url}">{url}</a></string>
+    <string name="login_qrcode_login_button">Nu inloggen</string>
+    <string name="login_qrcode_cancel_button">Annuleren</string>
+    <string name="login_qrcode_camera_access_was_disabled_message">Cameratoegang is geweigerd.\nSchakel toegang tot de camera in via het instellingenmenu van Android en probeer het opnieuw.</string>
+
+    <string name="login_qrcode_homeassistant_beta_warning_title">Onstabiele Homeassistant ondersteuning</string>
+    <string name="login_qrcode_homeassistant_beta_warning_message">
+        U staat op het punt in te loggen op een Home Assistant ingress-server.
+        Inloggen op Baby Buddy op deze manier bevindt zich in bèta-ondersteuning en
+        u kunt onverwacht worden uitgelogd van uw Baby Buddy-instantie en moet mogelijk opnieuw inloggen.
+    </string>
+    <string name="login_qrcode_homeassistant_beta_warning_continue">Doorgaan</string>
+
+    <!-- Generic dialog fields -->
+    <string name="dialog_ok">OK</string>
+
+    <!-- Help screen -->
+    <string name="help_title">Hulp</string>
+
+    <!-- Upgrade notifications -->
+    <string name="upgrade_latest_info_version_less_than_or_equal">1.3.0z</string>
+    <string name="upgrade_latest_info_title">Update {version}</string>
+    <string name="upgrade_latest_info_note">
+        Deze versie is compatibel met BabyBuddy versie 2.0 en hoger.
+
+        \n\nDe timerfunctie moest worden aangepast om de app te laten werken met Baby Buddy 2.0
+        en hoger: Nu worden alleen de timers die door de app worden ondersteund getoond.
+        Timerbedieningen en handmatige koppelingen van timers aan activiteiten zijn verwijderd.
+    </string>
+
+    <!-- Disconnect dialog -->
+    <string name="disconnect_dialog_progress_message">Verbinding maken met server…</string>
+    <string name="disconnect_dialog_logout">Uitloggen</string>
+
+    <!-- Debugging -->
+    <string name="export_debug_logs_title">Debuglogs exporteren</string>
+    <string name="export_debug_logs_menu_item">Debuglogs exporteren</string>
+    <string name="export_debug_logs_menu_item_copy_to_clipboard">Kopiëren naar klembord</string>
+
+    <!-- Send message screen -->
+    <string name="send_message_info">Stuur een bericht naar mij, de hoofdontwikkelaar, als je fouten of problemen ervaart met de app. Let op: ik wil je gegevens vertrouwelijk behandelen, dus ik kan niet rechtstreeks reageren op je berichten. Voor directe communicatie, raadpleeg <a href="https://github.com/babybuddy/babybuddy-for-android">GitHub</a> in plaats daarvan.</string>
+    <string name="send_message_send_title">Neem contact op met de ontwikkelaar</string>
+    <string name="send_message_send_button">Versturen</string>
+    <string name="notes_editor_hint">Notities</string>
+    <string name="send_message_back_button">Terug</string>
+    <string name="send_message_failed_message">Bericht kon niet worden verstuurd</string>
+    <string name="send_message_sent_message">Bericht verstuurd naar ontwikkelaar</string>
+    <string name="store_feeding_amount_string">Hoeveelheid: {quantity}</string>
+    <string name="store_feeding_amount_none">Geen</string>
+    <string name="activity_store_failure_server_error_general">Kon activiteit niet opslaan.</string>
+    <string name="conflicting_activity_failed_to_correct_conflicts">Kon conflicterende tijdlijnitems niet aanpassen.</string>
+</resources>
