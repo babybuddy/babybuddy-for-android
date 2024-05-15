@@ -182,4 +182,5 @@
     <string name="store_feeding_amount_none">Geen</string>
     <string name="activity_store_failure_server_error_general">Kon activiteit niet opslaan.</string>
     <string name="conflicting_activity_failed_to_correct_conflicts">Kon conflicterende tijdlijnitems niet aanpassen.</string>
+    <string name="diaper_title">Luier</string>
 </resources>

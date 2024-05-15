@@ -92,6 +92,7 @@
     <string name="logged_in_no_children_found">(No children found)</string>
 
     <!--- Store activities -->
+    <string name="diaper_title">Diaper</string>
     <string name="error_storing_activity_failed_title">Could not store activity</string>
     <string name="error_storing_activity_unsupported">Unsupported activity</string>
     <string name="popup_message_storing">Storing {activity} …</string>
