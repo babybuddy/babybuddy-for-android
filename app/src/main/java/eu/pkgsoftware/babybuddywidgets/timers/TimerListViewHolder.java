@@ -160,48 +160,16 @@ public class TimerListViewHolder extends RecyclerView.ViewHolder {
     }
 
     private void tryResolveStoreError(@NotNull Exception error) {
-        String message = "" + error.getMessage();
-        if (error instanceof RequestCodeFailure) {
-            final RequestCodeFailure rcf = (RequestCodeFailure) error;
-            if (rcf.hasJSONMessage()) {
-                message = Phrase.from(baseFragment.getResources(), R.string.activity_store_failure_server_error)
-                    .put("message", "Error while storing activity")
-                    .put("server_message", String.join(", ", rcf.jsonErrorMessages()))
-                    .format().toString();
+        new ResolveConflicts(baseFragment, timer, timerControl) {
+            @Override
+            protected void updateTimerActiveState() {
+                updateActiveState();
             }
-        }
 
-        baseFragment.showQuestion(
-            true,
-            baseFragment.getString(R.string.activity_store_failure_message),
-            message,
-            baseFragment.getString(R.string.activity_store_failure_cancel),
-            baseFragment.getString(R.string.activity_store_failure_stop_timer),
-            b -> {
-                if (!b) {
-                    timerControl.stopTimer(timer, new Promise<>() {
-                        @Override
-                        public void succeeded(Object o) {
-                            updateActiveState();
-                        }
-
-                        @Override
-                        public void failed(TranslatedException s) {
-                            baseFragment.showError(
-                                true,
-                                R.string.activity_store_failure_failed_to_stop_title,
-                                R.string.activity_store_failure_failed_to_stop_message
-                            );
-                            updateActiveState();
-                        }
-                    });
-                } else {
-                    updateActiveState();
-                }
+            @Override
+            protected void finished() {
             }
-        );
-
-        updateActiveState();
+        }.tryResolveStoreError(error);
     }
 
     private void updateActiveState() {

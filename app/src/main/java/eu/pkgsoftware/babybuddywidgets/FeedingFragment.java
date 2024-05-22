@@ -10,10 +10,14 @@ import android.widget.Button;
 import android.widget.LinearLayout;
 import android.widget.Spinner;
 
+import com.squareup.phrase.Phrase;
+
 import org.jetbrains.annotations.NotNull;
 import org.json.JSONException;
 import org.json.JSONObject;
 
+import java.text.DecimalFormat;
+import java.text.NumberFormat;
 import java.text.ParseException;
 import java.util.ArrayList;
 import java.util.List;
@@ -22,11 +26,17 @@ import androidx.annotation.NonNull;
 import androidx.annotation.Nullable;
 import androidx.navigation.NavController;
 import androidx.navigation.Navigation;
+import eu.pkgsoftware.babybuddywidgets.activitycomponents.TimerControl;
 import eu.pkgsoftware.babybuddywidgets.compat.BabyBuddyV2TimerAdapter;
 import eu.pkgsoftware.babybuddywidgets.databinding.FeedingFragmentBinding;
 import eu.pkgsoftware.babybuddywidgets.databinding.NotesEditorBinding;
 import eu.pkgsoftware.babybuddywidgets.networking.BabyBuddyClient;
+import eu.pkgsoftware.babybuddywidgets.networking.RequestCodeFailure;
+import eu.pkgsoftware.babybuddywidgets.timers.ResolveConflicts;
+import eu.pkgsoftware.babybuddywidgets.timers.TimerControlInterface;
+import eu.pkgsoftware.babybuddywidgets.timers.TranslatedException;
 import eu.pkgsoftware.babybuddywidgets.timers.utils.AmountValuesGenerator;
+import eu.pkgsoftware.babybuddywidgets.utils.Promise;
 import eu.pkgsoftware.babybuddywidgets.widgets.HorizontalNumberPicker;
 
 public class FeedingFragment extends BaseFragment {
@@ -192,11 +202,15 @@ public class FeedingFragment extends BaseFragment {
     }
 
     private void updateAmount() {
-        String text = "(None)";
+        String text = "(" + getString(R.string.store_feeding_amount_none) + ")";
         if (amount != null) {
             text = AmountValuesGenerator.FORMAT_VALUE.format(amount);
         }
-        binding.amountText.setText("Amount: " + text);
+        binding.amountText.setText(
+            Phrase.from(requireContext(), R.string.store_feeding_amount_string)
+                .put("quantity", text)
+                .format()
+        );
     }
 
     private static class ButtonListOnClickListener implements View.OnClickListener {
@@ -267,7 +281,9 @@ public class FeedingFragment extends BaseFragment {
         }
 
         binding.feedingMethodSpinner.setAdapter(
-            new ArrayAdapter<CharSequence>(getContext(), android.R.layout.simple_spinner_dropdown_item, textItems)
+            new ArrayAdapter<CharSequence>(
+                requireContext(), android.R.layout.simple_spinner_dropdown_item, textItems
+            )
         );
 
         populateButtonList(
@@ -302,12 +318,19 @@ public class FeedingFragment extends BaseFragment {
         mainActivity().storeActivity(selectedTimer, new StoreFunction<Boolean>() {
             @Override
             public void error(@NonNull Exception error) {
-                showError(
-                    true,
-                    "Failed storing feeding",
-                    "Error: " + error.getMessage(),
-                    b -> navUp()
-                );
+                ResolveConflicts resolveConflicts = new ResolveConflicts(
+                    FeedingFragment.this, virtTimer, timerControl()
+                ) {
+                    @Override
+                    protected void updateTimerActiveState() {
+                    }
+
+                    @Override
+                    protected void finished() {
+                        navUp();
+                    }
+                };
+                resolveConflicts.tryResolveStoreError(error);
             }
 
             @Override
@@ -322,11 +345,27 @@ public class FeedingFragment extends BaseFragment {
 
             @Override
             public void cancel() {
+                navUp();
             }
 
             @Override
             public void stopTimer(@NotNull BabyBuddyClient.Timer timer) {
-                navUp();
+                timerControl().stopTimer(virtTimer, new Promise<>() {
+                    @Override
+                    public void succeeded(Object o) {
+                        navUp();
+                    }
+
+                    @Override
+                    public void failed(TranslatedException s) {
+                        showError(
+                            true,
+                            R.string.activity_store_failure_failed_to_stop_title,
+                            R.string.activity_store_failure_failed_to_stop_message
+                        );
+                        navUp();
+                    }
+                });
             }
 
             @NonNull
