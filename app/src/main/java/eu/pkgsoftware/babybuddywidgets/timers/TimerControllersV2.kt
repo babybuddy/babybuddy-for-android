@@ -144,7 +144,7 @@ abstract class GenericLoggingController(
                 try {
                     val result = AsyncPromise.call<TimeEntry?, Exception> { promise ->
                         storingPromise = promise
-                        fragment.mainActivity.storeActivity(timer,this)
+                        fragment.mainActivity.storeActivity(timer, this)
                     }
                     return result
                 }
@@ -205,7 +205,8 @@ abstract class GenericLoggingController(
                             )
                         }
                     })
-            } catch (e: Exception) {
+            }
+            catch (e: Exception) {
                 callback.error(e)
             }
         }
@@ -460,23 +461,29 @@ class FeedingLoggingController(
             feedingBinding.feedingMethodSpinner.visibility = View.GONE
             updateVisuals()
         }
-        feedingBinding.feedingTypeSpinner.onItemSelectedListener = object : AdapterView.OnItemSelectedListener {
-            override fun onItemSelected(parent: AdapterView<*>?, view: View?, position: Int, id: Long) {
-                val newType = FeedingTypeEnumValues[position]!!.post_name
-                if (newType == selectedType) return
-                selectedType = newType
-                selectedMethod = null
-                setupFeedingMethodButtons(FeedingTypeEnumValues[position]!!)
-                feedingBinding.feedingMethodButtons.visibility = View.VISIBLE
-                feedingBinding.feedingMethodSpinner.visibility = View.GONE
-                updateVisuals()
-            }
+        feedingBinding.feedingTypeSpinner.onItemSelectedListener =
+            object : AdapterView.OnItemSelectedListener {
+                override fun onItemSelected(
+                    parent: AdapterView<*>?,
+                    view: View?,
+                    position: Int,
+                    id: Long
+                ) {
+                    val newType = FeedingTypeEnumValues[position]!!.post_name
+                    if (newType == selectedType) return
+                    selectedType = newType
+                    selectedMethod = null
+                    setupFeedingMethodButtons(FeedingTypeEnumValues[position]!!)
+                    feedingBinding.feedingMethodButtons.visibility = View.VISIBLE
+                    feedingBinding.feedingMethodSpinner.visibility = View.GONE
+                    updateVisuals()
+                }
 
-            override fun onNothingSelected(parent: AdapterView<*>?) {
-                feedingBinding.feedingMethodSpinner.visibility = View.GONE
-                feedingBinding.feedingMethodButtons.visibility = View.GONE
+                override fun onNothingSelected(parent: AdapterView<*>?) {
+                    feedingBinding.feedingMethodSpinner.visibility = View.GONE
+                    feedingBinding.feedingMethodButtons.visibility = View.GONE
+                }
             }
-        }
 
         feedingBinding.amountNumberPicker.value = null
 
@@ -495,7 +502,8 @@ class FeedingLoggingController(
                     feedingBinding.feedingTypeSpinner.visibility = View.VISIBLE
                     setupFeedingMethodButtons(FeedingTypeEnum.byPostName(it))
                 }
-                catch (_: NoSuchElementException) {}
+                catch (_: NoSuchElementException) {
+                }
             }
             it.feedingMethod?.let {
                 if (selectedType != null) {
@@ -507,7 +515,8 @@ class FeedingLoggingController(
                         feedingBinding.feedingMethodButtons.visibility = View.GONE
                         feedingBinding.feedingMethodSpinner.visibility = View.VISIBLE
                     }
-                    catch (_: NoSuchElementException) {}
+                    catch (_: NoSuchElementException) {
+                    }
                 }
             }
         }
@@ -619,6 +628,7 @@ class FeedingLoggingController(
                     FeedingMethodEnum.SELF_FED,
                 )
             }
+
             else -> {
                 assignedMethodButtons = listOf(
                     FeedingMethodEnum.BOTTLE,
@@ -648,17 +658,23 @@ class FeedingLoggingController(
             selectedMethod = assignedMethodButtons[it].post_name
             updateVisuals()
         }
-        feedingBinding.feedingMethodSpinner.onItemSelectedListener = object : AdapterView.OnItemSelectedListener {
-            override fun onItemSelected(parent: AdapterView<*>?, view: View?, position: Int, id: Long) {
-                selectedMethod = assignedMethodButtons[position].post_name
-                updateVisuals()
-            }
+        feedingBinding.feedingMethodSpinner.onItemSelectedListener =
+            object : AdapterView.OnItemSelectedListener {
+                override fun onItemSelected(
+                    parent: AdapterView<*>?,
+                    view: View?,
+                    position: Int,
+                    id: Long
+                ) {
+                    selectedMethod = assignedMethodButtons[position].post_name
+                    updateVisuals()
+                }
 
-            override fun onNothingSelected(parent: AdapterView<*>?) {
-                selectedMethod = null
-                updateVisuals()
+                override fun onNothingSelected(parent: AdapterView<*>?) {
+                    selectedMethod = null
+                    updateVisuals()
+                }
             }
-        }
     }
 }
 
@@ -792,11 +808,37 @@ class LoggingButtonController(
     }
 
     suspend fun runSave(activity: String, controller: LoggingControls) {
-        logicMap[activity]?.state = false
-        val te = controller.save()
-        controller.reset()
-        storeStateForSuspend()
-        controlsInterface.updateTimeline(te)
+        try {
+            logicMap[activity]?.state = false
+            val te = controller.save()
+            controller.reset()
+            storeStateForSuspend()
+            controlsInterface.updateTimeline(te)
+        }
+        catch (e: RequestCodeFailure) {
+            fragment.showError(
+                true,
+                R.string.activity_store_failure_message,
+                Phrase.from(
+                    fragment.requireContext(),
+                    R.string.activity_store_failure_server_error
+                )
+                    .put(
+                        "message",
+                        fragment.getString(R.string.activity_store_failure_server_error_general)
+                    )
+                    .put("server_message", e.jsonErrorMessages().joinToString(", "))
+                    .format().toString()
+
+            )
+        }
+        catch (e: IOException) {
+            fragment.showError(
+                true,
+                R.string.activity_store_failure_message,
+                R.string.activity_store_failure_server_error_generic_ioerror
+            )
+        }
     }
 
     fun storeStateForSuspend() {

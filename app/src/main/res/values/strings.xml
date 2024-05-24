@@ -103,6 +103,7 @@
     <string name="activity_store_failure_message">Could not store activity</string>
     <string name="activity_store_failure_server_error">{message}\n\nServer reported: {server_message}</string>
     <string name="activity_store_failure_server_error_general">Error while storing activity</string>
+    <string name="activity_store_failure_server_error_generic_ioerror">IO Error while storing activity</string>
     <string name="activity_store_failure_stop_timer">Stop timer</string>
     <string name="activity_store_failure_cancel">Cancel</string>
     <string name="activity_store_failure_failed_to_stop_title">Timer stop</string>
