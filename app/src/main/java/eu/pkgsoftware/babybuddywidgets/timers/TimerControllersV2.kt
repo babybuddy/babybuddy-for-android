@@ -10,6 +10,7 @@ import android.widget.LinearLayout
 import android.widget.Spinner
 import androidx.core.view.children
 import androidx.core.view.isVisible
+import androidx.core.widget.addTextChangedListener
 import com.fasterxml.jackson.annotation.JsonIgnoreProperties
 import com.fasterxml.jackson.annotation.JsonProperty
 import com.squareup.phrase.Phrase
@@ -357,6 +358,9 @@ class NotesLoggingController(val fragment: BaseFragment, childId: Int) : Logging
     val noteEditor = bindings.noteEditor
 
     init {
+        noteEditor.addTextChangedListener {
+            updateVisuals()
+        }
         fragment.mainActivity.storage.child<DiaperDataRecord>(childId, "notes")?.let {
             noteEditor.setText(it.note)
         }
@@ -369,6 +373,7 @@ class NotesLoggingController(val fragment: BaseFragment, childId: Int) : Logging
 
     override fun reset() {
         noteEditor.setText("")
+        updateVisuals()
     }
 
     suspend override fun save(): TimeEntry {
@@ -381,6 +386,15 @@ class NotesLoggingController(val fragment: BaseFragment, childId: Int) : Logging
                 _notes = noteEditor.text.toString()
             )
         )
+    }
+
+    override fun updateVisuals() {
+        super.updateVisuals()
+        saveButton.visibility = if (noteEditor.text.isNotEmpty()) {
+            View.VISIBLE
+        } else {
+            View.INVISIBLE
+        }
     }
 }
 
