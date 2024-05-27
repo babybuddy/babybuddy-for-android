@@ -15,12 +15,10 @@ import com.fasterxml.jackson.annotation.JsonIgnoreProperties
 import com.fasterxml.jackson.annotation.JsonProperty
 import com.squareup.phrase.Phrase
 import eu.pkgsoftware.babybuddywidgets.BaseFragment
-import eu.pkgsoftware.babybuddywidgets.Constants
 import eu.pkgsoftware.babybuddywidgets.Constants.FeedingMethodEnum
 import eu.pkgsoftware.babybuddywidgets.Constants.FeedingTypeEnum
 import eu.pkgsoftware.babybuddywidgets.Constants.FeedingTypeEnumValues
 import eu.pkgsoftware.babybuddywidgets.DialogCallback
-import eu.pkgsoftware.babybuddywidgets.FeedingFragment.ButtonListCallback
 import eu.pkgsoftware.babybuddywidgets.R
 import eu.pkgsoftware.babybuddywidgets.StoreFunction
 import eu.pkgsoftware.babybuddywidgets.databinding.BabyManagerBinding
@@ -49,6 +47,10 @@ import kotlinx.coroutines.launch
 import java.io.IOException
 import java.util.Date
 import kotlin.reflect.KClass
+
+interface ButtonListCallback {
+    fun onSelectionChanged(i: Int)
+}
 
 interface FragmentCallbacks {
     fun insertControls(view: View)
@@ -466,15 +468,18 @@ class FeedingLoggingController(
         populateButtonList(
             fragment.resources.getTextArray(R.array.feedingTypes),
             feedingBinding.feedingTypeButtons,
-            feedingBinding.feedingTypeSpinner
-        ) { i ->
-            selectedType = FeedingTypeEnumValues[i]!!.post_name
-            selectedMethod = null
-            setupFeedingMethodButtons(FeedingTypeEnumValues[i]!!)
-            feedingBinding.feedingMethodButtons.visibility = View.VISIBLE
-            feedingBinding.feedingMethodSpinner.visibility = View.GONE
-            updateVisuals()
-        }
+            feedingBinding.feedingTypeSpinner,
+            object : ButtonListCallback {
+                override fun onSelectionChanged(i: Int) {
+                    selectedType = FeedingTypeEnumValues[i]!!.post_name
+                    selectedMethod = null
+                    setupFeedingMethodButtons(FeedingTypeEnumValues[i]!!)
+                    feedingBinding.feedingMethodButtons.visibility = View.VISIBLE
+                    feedingBinding.feedingMethodSpinner.visibility = View.GONE
+                    updateVisuals()
+                }
+            }
+        )
         feedingBinding.feedingTypeSpinner.onItemSelectedListener =
             object : AdapterView.OnItemSelectedListener {
                 override fun onItemSelected(
@@ -667,11 +672,14 @@ class FeedingLoggingController(
         populateButtonList(
             textItems.toTypedArray<CharSequence>(),
             feedingBinding.feedingMethodButtons,
-            feedingBinding.feedingMethodSpinner
-        ) {
-            selectedMethod = assignedMethodButtons[it].post_name
-            updateVisuals()
-        }
+            feedingBinding.feedingMethodSpinner,
+            object : ButtonListCallback {
+                override fun onSelectionChanged(i: Int) {
+                    selectedMethod = assignedMethodButtons[i].post_name
+                    updateVisuals()
+                }
+            }
+        )
         feedingBinding.feedingMethodSpinner.onItemSelectedListener =
             object : AdapterView.OnItemSelectedListener {
                 override fun onItemSelected(

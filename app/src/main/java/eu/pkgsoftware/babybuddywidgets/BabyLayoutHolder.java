@@ -22,7 +22,6 @@ import eu.pkgsoftware.babybuddywidgets.networking.BabyBuddyClient;
 import eu.pkgsoftware.babybuddywidgets.networking.ChildrenStateTracker;
 import eu.pkgsoftware.babybuddywidgets.networking.babybuddy.models.TimeEntry;
 import eu.pkgsoftware.babybuddywidgets.timers.EmptyTimerListProvider;
-import eu.pkgsoftware.babybuddywidgets.timers.StoreActivityRouter;
 import eu.pkgsoftware.babybuddywidgets.timers.TimerControlInterface;
 import eu.pkgsoftware.babybuddywidgets.timers.TimerListProvider;
 import eu.pkgsoftware.babybuddywidgets.timers.TimersUpdatedCallback;
@@ -41,7 +40,6 @@ public class BabyLayoutHolder extends RecyclerView.ViewHolder implements TimerCo
     private ChildEventHistoryLoader childHistoryLoader = null;
 
     private ChildrenStateTracker.ChildObserver childObserver = null;
-    private StoreActivityRouter storeActivityRouter;
 
     private BabyBuddyClient.Timer[] cachedTimers = null;
     private List<TimersUpdatedCallback> updateTimersCallbacks = new ArrayList<>(10);
@@ -56,8 +54,6 @@ public class BabyLayoutHolder extends RecyclerView.ViewHolder implements TimerCo
 
         baseFragment = fragment;
         client = fragment.getMainActivity().getClient();
-
-        storeActivityRouter = new StoreActivityRouter(baseFragment.getMainActivity());
 
         GridLayoutManager l = new GridLayoutManager(binding.timersList.getContext(), 1);
         binding.timersList.setLayoutManager(l);
