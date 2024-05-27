@@ -2,6 +2,7 @@ package eu.pkgsoftware.babybuddywidgets.timers
 
 import android.os.Handler
 import android.view.View
+import android.view.ViewGroup
 import android.widget.AdapterView
 import android.widget.ArrayAdapter
 import android.widget.Button
@@ -608,7 +609,7 @@ class FeedingLoggingController(
 
     private fun populateButtonList(
         textArray: Array<CharSequence>,
-        buttons: LinearLayout,
+        buttons: ViewGroup,
         spinner: Spinner,
         callback: ButtonListCallback
     ) {

@@ -6,17 +6,6 @@
     android:layout_height="wrap_content"
     android:orientation="horizontal">
 
-    <TextView
-        android:id="@+id/currentTimerTime"
-        android:layout_width="wrap_content"
-        android:layout_height="wrap_content"
-        android:layout_marginEnd="100dp"
-        android:layout_weight="0"
-        android:text="1:10:00"
-        android:textAppearance="@style/TextAppearance.AppCompat.Body1"
-        app:layout_constraintEnd_toEndOf="parent"
-        app:layout_constraintTop_toBottomOf="@+id/constraintLayout" />
-
     <androidx.constraintlayout.widget.ConstraintLayout
         android:id="@+id/constraintLayout"
         android:layout_width="match_parent"
@@ -57,23 +46,32 @@
             app:layout_constraintBottom_toBottomOf="parent"
             app:layout_constraintEnd_toEndOf="parent"
             app:layout_constraintHorizontal_bias="1.0"
-            app:layout_constraintStart_toEndOf="@+id/solidButtonGroup"
             app:layout_constraintTop_toTopOf="parent"
             app:srcCompat="@android:drawable/ic_menu_save" />
 
+        <TextView
+            android:id="@+id/currentTimerTime"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_marginEnd="16dp"
+            android:layout_weight="0"
+            android:text="1:10:00"
+            android:textAppearance="@style/TextAppearance.AppCompat.Body1"
+            app:layout_constraintBottom_toBottomOf="@+id/sendButton"
+            app:layout_constraintEnd_toStartOf="@+id/sendButton"
+            app:layout_constraintTop_toTopOf="@+id/sendButton" />
     </androidx.constraintlayout.widget.ConstraintLayout>
 
     <androidx.constraintlayout.widget.ConstraintLayout
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
-        app:layout_constraintTop_toBottomOf="@+id/currentTimerTime"
+        app:layout_constraintTop_toBottomOf="@id/constraintLayout"
         tools:layout_editor_absoluteX="0dp">
 
         <EditText
             android:id="@+id/noteEditor"
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
-            android:layout_marginTop="8dp"
             android:layout_weight="1"
             android:gravity="top|left"
             android:hint="@string/activity_notes_hint"
@@ -89,13 +87,11 @@
             android:id="@+id/feedingTypeGroup"
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
-            android:layout_marginEnd="8dp"
-            android:layout_marginStart="8dp"
-            android:layout_marginTop="16dp"
             android:layout_weight="1"
             android:gravity="center"
             android:orientation="vertical"
-            app:layout_constraintTop_toBottomOf="@id/amountNumberPicker">
+            app:layout_constraintTop_toBottomOf="@id/amountNumberPicker"
+            tools:layout_editor_absoluteX="8dp">
 
             <Spinner
                 android:id="@+id/feedingTypeSpinner"
@@ -105,52 +101,49 @@
                 android:layout_marginTop="8dp"
                 android:entries="@array/feedingTypes" />
 
-            <LinearLayout
-                android:id="@+id/feedingTypeButtons"
-                android:layout_width="match_parent"
-                android:layout_height="wrap_content"
-                android:layout_marginEnd="8dp"
-                android:layout_marginStart="8dp"
-                android:layout_marginTop="16dp"
-                android:gravity="center"
-                android:orientation="vertical" />
-
-            <LinearLayout
-                android:id="@+id/feedingMethodButtons"
-                android:layout_width="match_parent"
-                android:layout_height="wrap_content"
-                android:layout_marginEnd="8dp"
-                android:layout_marginStart="8dp"
-                android:layout_marginTop="16dp"
-                android:gravity="center"
-                android:orientation="vertical"
-                android:visibility="gone" />
-
             <Spinner
                 android:id="@+id/feedingMethodSpinner"
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
-                android:layout_marginBottom="8dp"
-                android:layout_marginTop="8dp"
                 android:entries="@array/feedingMethods"
-                android:visibility="gone" />
+                android:visibility="gone"
+                tools:visibility="visible" />
+
+            <eu.pkgsoftware.babybuddywidgets.widgets.AutoHGrid
+                android:id="@+id/feedingMethodButtons"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:gravity="center"
+                tools:visibility="visible" />
+
+            <eu.pkgsoftware.babybuddywidgets.widgets.AutoHGrid
+                android:id="@+id/feedingTypeButtons"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                tools:visibility="visible" />
 
         </LinearLayout>
 
         <eu.pkgsoftware.babybuddywidgets.widgets.HorizontalDecIncEditor
             android:id="@+id/amountNumberPicker"
-            android:layout_width="match_parent"
+            android:layout_width="0dp"
             android:layout_height="wrap_content"
+            android:layout_marginEnd="8dp"
+            android:layout_marginStart="16dp"
             android:visibility="visible"
-            app:layout_constraintTop_toBottomOf="@id/amountText" />
+            app:layout_constraintBottom_toBottomOf="@+id/amountText"
+            app:layout_constraintEnd_toEndOf="parent"
+            app:layout_constraintStart_toEndOf="@+id/amountText"
+            app:layout_constraintTop_toTopOf="@+id/amountText" />
 
         <TextView
             android:id="@+id/amountText"
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
+            android:layout_marginStart="8dp"
             android:layout_marginTop="16dp"
             android:text="Amount"
-            android:textAppearance="@style/TextAppearance.AppCompat.Large"
+            android:textAppearance="@android:style/TextAppearance.DeviceDefault.Widget.TextView.SpinnerItem"
             app:layout_constraintStart_toStartOf="parent"
             app:layout_constraintTop_toTopOf="parent" />
     </androidx.constraintlayout.widget.ConstraintLayout>

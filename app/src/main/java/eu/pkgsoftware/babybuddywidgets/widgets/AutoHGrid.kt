@@ -102,8 +102,8 @@ class AutoHGrid : ViewGroup {
     private fun computeRows(width: Int): List<RowData> {
         val placeableChildren = children.filter { it.visibility != View.GONE }.toList()
 
-        var rows = mutableListOf(mutableListOf<View>())
-        var rowWidths = mutableListOf<Int>()
+        val rows = mutableListOf(mutableListOf<View>())
+        val rowWidths = mutableListOf<Int>()
 
         val spacing = Tools.dpToPx(context, rowSpacing)
 
@@ -158,7 +158,7 @@ class AutoHGrid : ViewGroup {
         val spacing = Tools.dpToPx(context, rowSpacing)
 
         val rows = computeRows(width)
-        var currentY = t
+        var currentY = 0
         for (row in rows) {
             var currentX = (width - row.width) / 2
             for (child in row.children) {
