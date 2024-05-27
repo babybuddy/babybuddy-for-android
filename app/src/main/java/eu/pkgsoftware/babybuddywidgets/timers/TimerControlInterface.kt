@@ -17,12 +17,6 @@ interface TimerControlInterface {
     fun createNewTimer(timer: Timer, cb: Promise<Timer, TranslatedException>)
     fun startTimer(timer: Timer, cb: Promise<Timer, TranslatedException>)
     fun stopTimer(timer: Timer, cb: Promise<Any, TranslatedException>)
-    fun storeActivity(
-        timer: Timer,
-        activity: String,
-        notes: String,
-        cb: Promise<Boolean, Exception>
-    )
     fun registerTimersUpdatedCallback(callback: TimersUpdatedCallback)
     fun unregisterTimersUpdatedCallback(callback: TimersUpdatedCallback)
     fun getNotes(timer: Timer): Notes

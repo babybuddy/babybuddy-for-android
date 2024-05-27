@@ -236,19 +236,6 @@ class BabyBuddyV2TimerAdapter(
         }
     }
 
-    override fun storeActivity(
-        timer: Timer,
-        activity: String,
-        notes: String,
-        cb: Promise<Boolean, Exception>
-    ) {
-        virtualToActualTimer(timer)?.let {
-            wrap.storeActivity(it, activity, notes, cb)
-        } ?: {
-            cb.failed(java.lang.Exception("Timer ${timer.name} does not exist"))
-        }
-    }
-
     override fun registerTimersUpdatedCallback(callback: TimersUpdatedCallback) {
         timersCallback = callback
         triggerTimerCallback()

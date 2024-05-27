@@ -21,9 +21,7 @@ import eu.pkgsoftware.babybuddywidgets.history.ChildEventHistoryLoader;
 import eu.pkgsoftware.babybuddywidgets.networking.BabyBuddyClient;
 import eu.pkgsoftware.babybuddywidgets.networking.ChildrenStateTracker;
 import eu.pkgsoftware.babybuddywidgets.networking.babybuddy.models.TimeEntry;
-import eu.pkgsoftware.babybuddywidgets.timers.EmptyTimerListProvider;
 import eu.pkgsoftware.babybuddywidgets.timers.TimerControlInterface;
-import eu.pkgsoftware.babybuddywidgets.timers.TimerListProvider;
 import eu.pkgsoftware.babybuddywidgets.timers.TimersUpdatedCallback;
 import eu.pkgsoftware.babybuddywidgets.timers.TranslatedException;
 import eu.pkgsoftware.babybuddywidgets.utils.Promise;
@@ -32,7 +30,6 @@ public class BabyLayoutHolder extends RecyclerView.ViewHolder implements TimerCo
     private final BabyManagerBinding binding;
     private final BaseFragment baseFragment;
     private final BabyBuddyClient client;
-    private TimerListProvider timerListProvider = null;
 
 
     private BabyBuddyClient.Child child = null;
@@ -54,9 +51,6 @@ public class BabyLayoutHolder extends RecyclerView.ViewHolder implements TimerCo
 
         baseFragment = fragment;
         client = fragment.getMainActivity().getClient();
-
-        GridLayoutManager l = new GridLayoutManager(binding.timersList.getContext(), 1);
-        binding.timersList.setLayoutManager(l);
 
         binding.mainScrollView.setOnScrollChangeListener((v, scrollX, scrollY, oldScrollX, oldScrollY) -> {
             if (childHistoryLoader != null) {
@@ -87,7 +81,6 @@ public class BabyLayoutHolder extends RecyclerView.ViewHolder implements TimerCo
             childHistoryLoader.close();
         }
         childHistoryLoader = null;
-        binding.timersList.setAdapter(new EmptyTimerListProvider());
     }
 
     public void updateChild(BabyBuddyClient.Child c, ChildrenStateTracker stateTracker) {
@@ -117,8 +110,6 @@ public class BabyLayoutHolder extends RecyclerView.ViewHolder implements TimerCo
                 }
 
             );
-            timerListProvider = new TimerListProvider(baseFragment, this);
-            binding.timersList.setAdapter(timerListProvider);
 
             loggingButtonController = new LoggingButtonController(
                 baseFragment,
@@ -208,7 +199,6 @@ public class BabyLayoutHolder extends RecyclerView.ViewHolder implements TimerCo
 
     public void close() {
         clear();
-        timerListProvider.close();
     }
 
     private class UpdateBufferingPromise<A, B> implements Promise<A, B> {
@@ -250,29 +240,6 @@ public class BabyLayoutHolder extends RecyclerView.ViewHolder implements TimerCo
     public void stopTimer(@NotNull BabyBuddyClient.Timer timer, @NonNull Promise<Object, TranslatedException> cb) {
         baseFragment.getMainActivity().getChildTimerControl(child).stopTimer(
             timer, new UpdateBufferingPromise<>(cb)
-        );
-    }
-
-    @Override
-    public void storeActivity(
-        @NotNull BabyBuddyClient.Timer timer,
-        @NonNull String activity,
-        @NonNull String notes,
-        @NonNull Promise<Boolean, Exception> cb
-    ) {
-        baseFragment.getMainActivity().getChildTimerControl(child).storeActivity(
-            timer,
-            activity,
-            notes,
-            new UpdateBufferingPromise<>(cb) {
-                @Override
-                public void succeeded(Boolean aBoolean) {
-                    super.succeeded(aBoolean);
-                    if (childHistoryLoader != null) {
-                        childHistoryLoader.forceRefresh();
-                    }
-                }
-            }
         );
     }
 

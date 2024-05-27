@@ -174,12 +174,6 @@
                     app:tint="@color/fixed_color_button_text_color" />
             </eu.pkgsoftware.babybuddywidgets.widgets.AutoHGrid>
 
-            <androidx.recyclerview.widget.RecyclerView
-                android:id="@+id/timersList"
-                android:layout_width="match_parent"
-                android:layout_height="wrap_content"
-                android:visibility="gone"></androidx.recyclerview.widget.RecyclerView>
-
             <LinearLayout
                 android:id="@+id/loggingEditors"
                 android:layout_width="match_parent"

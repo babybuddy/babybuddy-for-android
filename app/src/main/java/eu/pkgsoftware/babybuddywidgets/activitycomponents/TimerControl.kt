@@ -70,15 +70,6 @@ class TimerControl(val mainActivity: MainActivity, val childId: Int) : TimerCont
         })
     }
 
-    override fun storeActivity(
-        timer: Timer,
-        activity: String,
-        notes: String,
-        cb: Promise<Boolean, Exception>
-    ) {
-        throw NotImplementedError()
-    }
-
     override fun registerTimersUpdatedCallback(callback: TimersUpdatedCallback) {
         updateTimersCallback = callback
     }
