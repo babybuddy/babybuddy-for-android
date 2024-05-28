@@ -757,44 +757,11 @@ class LoggingButtonController(
             controller.postInit()
 
             logicMap[activity]?.addStateListener { state, userInduced ->
-                if (state) {
-                    controlsInterface.insertControls(controller.controlsView)
-                    if (userInduced && (controller is TimerBase)) {
-                        cachedTimers.firstOrNull { it.name == activity }?.let {
-                            runningTimerMods += 1
-                            timerControl.startTimer(
-                                it,
-                                object : Promise<Timer, TranslatedException> {
-                                    override fun succeeded(t: Timer) {
-                                        runningTimerMods -= 1
-                                    }
-
-                                    override fun failed(f: TranslatedException?) {
-                                        runningTimerMods -= 1
-                                        newTimerListLoaded(cachedTimers)
-                                    }
-                                })
-                        }
-                    }
-                } else {
-                    controlsInterface.removeControls(controller.controlsView)
-                    if (userInduced && (controller is TimerBase)) {
-                        controller.updateTimer(null)
-                        cachedTimers.firstOrNull { it.name == activity }?.let {
-                            runningTimerMods += 1
-                            timerControl.stopTimer(
-                                it,
-                                object : Promise<Any, TranslatedException> {
-                                    override fun succeeded(s: Any?) {
-                                        runningTimerMods -= 1
-                                    }
-
-                                    override fun failed(f: TranslatedException?) {
-                                        runningTimerMods -= 1
-                                        newTimerListLoaded(cachedTimers)
-                                    }
-                                })
-                        }
+                fragment.mainActivity.scope.launch {
+                    if (state) {
+                        startTimerFromSwitch(controller, userInduced, activity)
+                    } else {
+                        stopTimerFromSwitch(controller, userInduced, activity)
                     }
                 }
             }
@@ -819,6 +786,93 @@ class LoggingButtonController(
         }
 
         timerHandler()
+    }
+
+    private fun startTimerFromSwitch(
+        controller: LoggingControls,
+        userInduced: Boolean,
+        activity: String
+    ) {
+        controlsInterface.insertControls(controller.controlsView)
+        if (userInduced && (controller is TimerBase)) {
+            cachedTimers.firstOrNull { it.name == activity }?.let {
+                runningTimerMods += 1
+                timerControl.startTimer(
+                    it,
+                    object : Promise<Timer, TranslatedException> {
+                        override fun succeeded(t: Timer) {
+                            runningTimerMods -= 1
+                        }
+
+                        override fun failed(f: TranslatedException?) {
+                            runningTimerMods -= 1
+                            newTimerListLoaded(cachedTimers)
+                        }
+                    })
+            }
+        }
+    }
+
+    private suspend fun stopTimerFromSwitch(
+        controller: LoggingControls,
+        userInduced: Boolean,
+        activity: String
+    ) {
+        val timer = cachedTimers.firstOrNull { it.name == activity }
+        if (AsyncPromise.call<Boolean, TranslatedException> { promise ->
+            var defaultSucceed = true
+            timer?.let { timer ->
+                if (timer.active && userInduced) {
+                    val timeMs = nowServer().time - timer.start.time
+                    if (timeMs > 10000) {
+                        defaultSucceed = false;
+
+                        val message = Phrase.from(
+                            fragment.requireContext(),
+                            R.string.cancel_timer_warning_message
+                        )
+                            .put("activity", fragment.translateActivityName(activity))
+                            .format().toString()
+
+                        fragment.showQuestion(
+                            true,
+                            fragment.getString(R.string.cancel_timer_warning_title),
+                            message,
+                            fragment.getString(R.string.cancel_timer_warning_stop),
+                            fragment.getString(R.string.cancel_timer_warning_keep),
+                            object : DialogCallback {
+                                override fun call(b: Boolean) {
+                                    promise.succeeded(b)
+                                }
+                            }
+                        );
+                    }
+                }
+            }
+            if (defaultSucceed) {
+                promise.succeeded(true)
+            }
+        }) {
+            controlsInterface.removeControls(controller.controlsView)
+            if (userInduced && (controller is TimerBase)) {
+                controller.updateTimer(null)
+                timer?.let {
+                    runningTimerMods += 1
+                    timerControl.stopTimer(
+                        it,
+                        object : Promise<Any, TranslatedException> {
+                            override fun succeeded(s: Any?) {
+                                runningTimerMods -= 1
+                            }
+
+                            override fun failed(f: TranslatedException?) {
+                                runningTimerMods -= 1
+                                newTimerListLoaded(cachedTimers)
+                            }
+                        })
+                }
+            }
+        }
     }
 
     private fun timerHandler() {

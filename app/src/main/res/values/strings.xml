@@ -110,6 +110,13 @@
     <string name="activity_store_failure_failed_to_stop_message">Stopping timer failed</string>
     <string name="activity_store_failure_start_timer_failed">Start timer failed</string>
 
+    <!--- Cancel timer warning -->
+    <string name="cancel_timer_warning_title">Stop timer?</string>
+    <string name="cancel_timer_warning_message">The {activity} timer is running for a long time already. Do you really want to stop it or keep it running?</string>
+    <string name="cancel_timer_warning_stop">Stop</string>
+    <string name="cancel_timer_warning_keep">Keep</string>
+
+
     <!--- Store activities: Conflicts -->
     <string name="conflicting_activity_title">Overlapping time entries</string>
     <string name="conflicting_activity_text">
