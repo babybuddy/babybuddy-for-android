@@ -116,7 +116,6 @@
     <string name="cancel_timer_warning_stop">Stop</string>
     <string name="cancel_timer_warning_keep">Keep</string>
 
-
     <!--- Store activities: Conflicts -->
     <string name="conflicting_activity_title">Overlapping time entries</string>
     <string name="conflicting_activity_text">

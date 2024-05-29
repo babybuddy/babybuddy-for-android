@@ -71,15 +71,6 @@ abstract class LoggingControls(val childId: Int) {
     open fun postInit() {}
 }
 
-val ACTIVITIES = listOf(
-    BabyBuddyClient.EVENTS.CHANGE,
-    BabyBuddyClient.EVENTS.NOTE,
-    BabyBuddyClient.ACTIVITIES.SLEEP,
-    BabyBuddyClient.ACTIVITIES.FEEDING,
-    BabyBuddyClient.ACTIVITIES.TUMMY_TIME,
-    BabyBuddyClient.ACTIVITIES.PUMPING,
-)
-
 interface TimerBase {
     fun updateTimer(timer: Timer?)
 }

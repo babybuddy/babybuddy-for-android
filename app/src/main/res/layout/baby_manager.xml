@@ -178,7 +178,45 @@
                 android:id="@+id/loggingEditors"
                 android:layout_width="match_parent"
                 android:layout_height="match_parent"
-                android:orientation="vertical"></LinearLayout>
+                android:orientation="vertical">
+
+            </LinearLayout>
+
+            <LinearLayout
+                android:layout_width="match_parent"
+                android:layout_height="match_parent"
+                android:layout_marginBottom="4dp"
+                android:layout_marginTop="16dp"
+                android:gravity="center"
+                android:orientation="horizontal">
+
+                <FrameLayout
+                    android:id="@+id/leftTimelineTitleLine"
+                    style="@style/SeparatorLine"
+                    android:layout_width="wrap_content"
+                    android:layout_height="4dp"
+                    android:layout_margin="10dp"
+                    android:layout_weight="1">
+
+                </FrameLayout>
+
+                <TextView
+                    android:id="@+id/timelineTitle"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:layout_weight="0"
+                    android:text="Timeline" />
+
+                <FrameLayout
+                    android:id="@+id/rightTimelineTitleLine"
+                    style="@style/SeparatorLine"
+                    android:layout_width="wrap_content"
+                    android:layout_height="4dp"
+                    android:layout_margin="10dp"
+                    android:layout_weight="1">
+
+                </FrameLayout>
+            </LinearLayout>
 
             <LinearLayout
                 android:id="@+id/innerTimeline"
