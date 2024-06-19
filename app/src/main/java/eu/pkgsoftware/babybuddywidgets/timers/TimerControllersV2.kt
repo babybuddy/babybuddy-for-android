@@ -578,7 +578,7 @@ class FeedingLoggingController(
         if (feedingBinding.feedingTypeSpinner.isVisible && feedingBinding.feedingMethodSpinner.isVisible) {
             saveButton.visibility = View.VISIBLE
         } else {
-            saveButton.visibility = View.INVISIBLE
+            saveButton.visibility = View.GONE
         }
     }
 

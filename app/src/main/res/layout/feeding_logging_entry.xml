@@ -6,67 +6,46 @@
     android:layout_height="wrap_content"
     android:orientation="horizontal">
 
-    <androidx.constraintlayout.widget.ConstraintLayout
-        android:id="@+id/constraintLayout"
-        android:layout_width="match_parent"
-        android:layout_height="wrap_content"
-        app:layout_constraintEnd_toEndOf="parent"
+    <FrameLayout
+        android:id="@+id/sleepIcon"
+        android:layout_width="48dp"
+        android:layout_height="0dp"
+        android:layout_margin="8dp"
+        android:background="@color/feeding_enabled"
+        android:padding="8dp"
+        app:layout_constraintBottom_toBottomOf="parent"
         app:layout_constraintStart_toStartOf="parent"
         app:layout_constraintTop_toTopOf="parent">
 
-        <FrameLayout
-            android:id="@+id/sleepIcon"
-            android:layout_width="48dp"
-            android:layout_height="48dp"
-            android:background="@color/feeding_enabled"
-            android:padding="8dp"
-            app:layout_constraintBottom_toBottomOf="parent"
-            app:layout_constraintStart_toStartOf="parent"
-            app:layout_constraintTop_toTopOf="parent">
-
-            <ImageView
-                android:layout_width="match_parent"
-                android:layout_height="match_parent"
-                android:scaleType="fitCenter"
-                android:src="@drawable/pkg_bottle"
-                android:tintMode="src_in"
-                android:visibility="visible"
-                app:tint="@color/fixed_color_button_text_color" />
-        </FrameLayout>
-
-        <ImageButton
-            android:id="@+id/sendButton"
-            android:layout_width="wrap_content"
-            android:layout_height="wrap_content"
-            android:layout_margin="4dp"
-            android:layout_marginBottom="8dp"
-            android:layout_marginTop="8dp"
-            android:layout_weight="0"
+        <ImageView
+            android:layout_width="match_parent"
+            android:layout_height="match_parent"
+            android:scaleType="fitCenter"
+            android:src="@drawable/pkg_bottle"
+            android:tintMode="src_in"
             android:visibility="visible"
-            app:layout_constraintBottom_toBottomOf="parent"
-            app:layout_constraintEnd_toEndOf="parent"
-            app:layout_constraintHorizontal_bias="1.0"
-            app:layout_constraintTop_toTopOf="parent"
-            app:srcCompat="@android:drawable/ic_menu_save" />
+            app:tint="@color/fixed_color_button_text_color" />
+    </FrameLayout>
 
-        <TextView
-            android:id="@+id/currentTimerTime"
-            android:layout_width="wrap_content"
-            android:layout_height="wrap_content"
-            android:layout_marginEnd="16dp"
-            android:layout_weight="0"
-            android:text="1:10:00"
-            android:textAppearance="@style/TextAppearance.AppCompat.Body1"
-            app:layout_constraintBottom_toBottomOf="@+id/sendButton"
-            app:layout_constraintEnd_toStartOf="@+id/sendButton"
-            app:layout_constraintTop_toTopOf="@+id/sendButton" />
-    </androidx.constraintlayout.widget.ConstraintLayout>
+    <TextView
+        android:id="@+id/currentTimerTime"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_marginEnd="24dp"
+        android:layout_marginTop="8dp"
+        android:layout_weight="0"
+        android:text="1:10:00"
+        android:textAppearance="@style/TextAppearance.AppCompat.Body1"
+        app:layout_constraintEnd_toEndOf="parent"
+        app:layout_constraintTop_toTopOf="parent" />
 
     <androidx.constraintlayout.widget.ConstraintLayout
-        android:layout_width="match_parent"
+        android:layout_width="0dp"
         android:layout_height="wrap_content"
-        app:layout_constraintTop_toBottomOf="@id/constraintLayout"
-        tools:layout_editor_absoluteX="0dp">
+        android:layout_marginStart="8dp"
+        app:layout_constraintEnd_toEndOf="parent"
+        app:layout_constraintStart_toEndOf="@+id/sleepIcon"
+        app:layout_constraintTop_toTopOf="parent">
 
         <EditText
             android:id="@+id/noteEditor"
@@ -80,13 +59,25 @@
             android:minLines="1"
             android:selectAllOnFocus="false"
             android:singleLine="false"
-            app:layout_constraintTop_toBottomOf="@id/feedingTypeGroup" />
+            app:layout_constraintTop_toBottomOf="@+id/sendButton" />
 
+
+        <ImageButton
+            android:id="@+id/sendButton"
+            android:layout_width="56dp"
+            android:layout_height="wrap_content"
+            android:layout_margin="4dp"
+            android:layout_weight="0"
+            android:visibility="visible"
+            app:layout_constraintStart_toStartOf="parent"
+            app:layout_constraintTop_toBottomOf="@+id/feedingTypeGroup"
+            app:srcCompat="@android:drawable/ic_menu_save" />
 
         <LinearLayout
             android:id="@+id/feedingTypeGroup"
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
+            android:layout_marginTop="8dp"
             android:layout_weight="1"
             android:gravity="center"
             android:orientation="vertical"
@@ -124,18 +115,6 @@
 
         </LinearLayout>
 
-        <eu.pkgsoftware.babybuddywidgets.widgets.HorizontalDecIncEditor
-            android:id="@+id/amountNumberPicker"
-            android:layout_width="0dp"
-            android:layout_height="wrap_content"
-            android:layout_marginEnd="8dp"
-            android:layout_marginStart="16dp"
-            android:visibility="visible"
-            app:layout_constraintBottom_toBottomOf="@+id/amountText"
-            app:layout_constraintEnd_toEndOf="parent"
-            app:layout_constraintStart_toEndOf="@+id/amountText"
-            app:layout_constraintTop_toTopOf="@+id/amountText" />
-
         <TextView
             android:id="@+id/amountText"
             android:layout_width="wrap_content"
@@ -146,5 +125,17 @@
             android:textAppearance="@android:style/TextAppearance.DeviceDefault.Widget.TextView.SpinnerItem"
             app:layout_constraintStart_toStartOf="parent"
             app:layout_constraintTop_toTopOf="parent" />
+
+        <eu.pkgsoftware.babybuddywidgets.widgets.HorizontalDecIncEditor
+            android:id="@+id/amountNumberPicker"
+            android:layout_width="0dp"
+            android:layout_height="wrap_content"
+            android:layout_marginEnd="8dp"
+            android:layout_marginStart="8dp"
+            android:layout_marginTop="8dp"
+            android:visibility="visible"
+            app:layout_constraintEnd_toEndOf="parent"
+            app:layout_constraintStart_toStartOf="parent"
+            app:layout_constraintTop_toBottomOf="@+id/amountText" />
     </androidx.constraintlayout.widget.ConstraintLayout>
 </androidx.constraintlayout.widget.ConstraintLayout>
