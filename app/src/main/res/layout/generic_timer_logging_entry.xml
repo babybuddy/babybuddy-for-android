@@ -3,12 +3,13 @@
     xmlns:app="http://schemas.android.com/apk/res-auto"
     xmlns:tools="http://schemas.android.com/tools"
     android:layout_width="match_parent"
-    android:layout_height="match_parent">
+    android:layout_height="wrap_content">
 
     <EditText
         android:id="@+id/noteEditor"
-        android:layout_width="match_parent"
+        android:layout_width="0dp"
         android:layout_height="wrap_content"
+        android:layout_marginStart="8dp"
         android:layout_weight="1"
         android:gravity="top|left"
         android:hint="@string/activity_notes_hint"
@@ -17,120 +18,108 @@
         android:minLines="1"
         android:selectAllOnFocus="false"
         android:singleLine="false"
-        app:layout_constraintTop_toBottomOf="@+id/additional_controls"
-        tools:layout_editor_absoluteX="32dp" />
-
-    <androidx.constraintlayout.widget.ConstraintLayout
-        android:id="@+id/constraintLayout2"
-        android:layout_width="match_parent"
-        android:layout_height="wrap_content"
         app:layout_constraintEnd_toEndOf="parent"
+        app:layout_constraintHorizontal_bias="0.0"
+        app:layout_constraintStart_toEndOf="@+id/icons"
+        app:layout_constraintTop_toBottomOf="@+id/currentTimerTime" />
+
+    <ImageButton
+        android:id="@+id/sendButton"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_margin="4dp"
+        android:layout_weight="0"
+        android:visibility="visible"
+        app:layout_constraintStart_toStartOf="@+id/noteEditor"
+        app:layout_constraintTop_toBottomOf="@+id/noteEditor"
+        app:srcCompat="@android:drawable/ic_menu_save" />
+
+    <LinearLayout
+        android:id="@+id/icons"
+        android:layout_width="wrap_content"
+        android:layout_height="0dp"
+        android:layout_marginBottom="8dp"
+        android:layout_marginTop="8dp"
+        android:minHeight="48dp"
+        android:orientation="vertical"
+        app:layout_constraintBottom_toBottomOf="parent"
+        app:layout_constraintHeight_min="48dp"
         app:layout_constraintStart_toStartOf="parent"
         app:layout_constraintTop_toTopOf="parent">
 
-        <LinearLayout
-            android:id="@+id/icons"
-            android:layout_width="wrap_content"
-            android:layout_height="wrap_content"
-            android:layout_marginBottom="8dp"
-            android:layout_marginTop="8dp"
-            android:orientation="vertical"
-            app:layout_constraintBottom_toBottomOf="parent"
-            app:layout_constraintStart_toStartOf="parent"
-            app:layout_constraintTop_toTopOf="parent">
+        <FrameLayout
+            android:id="@+id/feedingIcon"
+            android:layout_width="48dp"
+            android:layout_height="match_parent"
+            android:layout_weight="1"
+            android:background="@color/feeding_enabled"
+            android:padding="8dp">
 
-            <FrameLayout
-                android:id="@+id/feedingIcon"
-                android:layout_width="48dp"
-                android:layout_height="48dp"
-                android:background="@color/feeding_enabled"
-                android:padding="8dp">
+            <ImageView
+                android:layout_width="match_parent"
+                android:layout_height="match_parent"
+                android:scaleType="fitCenter"
+                app:srcCompat="@drawable/pkg_bottle" />
 
-                <ImageView
-                    android:layout_width="32dp"
-                    android:layout_height="32dp"
-                    app:srcCompat="@drawable/pkg_bottle" />
+        </FrameLayout>
 
-            </FrameLayout>
+        <FrameLayout
+            android:id="@+id/sleepIcon"
+            android:layout_width="48dp"
+            android:layout_height="match_parent"
+            android:layout_weight="1"
+            android:background="@color/sleep_enabled"
+            android:padding="8dp">
 
-            <FrameLayout
-                android:id="@+id/sleepIcon"
-                android:layout_width="48dp"
-                android:layout_height="48dp"
-                android:background="@color/sleep_enabled"
-                android:padding="8dp">
+            <ImageView
+                android:layout_width="match_parent"
+                android:layout_height="match_parent"
+                app:srcCompat="@drawable/pkg_sleep" />
 
-                <ImageView
-                    android:layout_width="32dp"
-                    android:layout_height="32dp"
-                    app:srcCompat="@drawable/pkg_sleep" />
+        </FrameLayout>
 
-            </FrameLayout>
+        <FrameLayout
+            android:id="@+id/tummyTimeIcon"
+            android:layout_width="48dp"
+            android:layout_height="match_parent"
+            android:layout_weight="1"
+            android:background="@color/tummy_time_enabled"
+            android:padding="8dp">
 
-            <FrameLayout
-                android:id="@+id/tummyTimeIcon"
-                android:layout_width="48dp"
-                android:layout_height="48dp"
-                android:background="@color/tummy_time_enabled"
-                android:padding="8dp">
+            <ImageView
+                android:layout_width="match_parent"
+                android:layout_height="match_parent"
+                app:srcCompat="@drawable/pkg_crawl" />
 
-                <ImageView
-                    android:layout_width="32dp"
-                    android:layout_height="32dp"
-                    app:srcCompat="@drawable/pkg_crawl" />
+        </FrameLayout>
 
-            </FrameLayout>
+        <FrameLayout
+            android:id="@+id/pumpingIcon"
+            android:layout_width="48dp"
+            android:layout_height="match_parent"
+            android:layout_weight="1"
+            android:background="@color/pumping_enabled"
+            android:padding="8dp">
 
-            <FrameLayout
-                android:id="@+id/pumpingIcon"
-                android:layout_width="48dp"
-                android:layout_height="48dp"
-                android:background="@color/pumping_enabled"
-                android:padding="8dp">
+            <ImageView
+                android:layout_width="match_parent"
+                android:layout_height="match_parent"
+                app:srcCompat="@drawable/pkg_pumping" />
 
-                <ImageView
-                    android:layout_width="32dp"
-                    android:layout_height="32dp"
-                    app:srcCompat="@drawable/pkg_pumping" />
-
-            </FrameLayout>
-        </LinearLayout>
-
-        <ImageButton
-            android:id="@+id/sendButton"
-            android:layout_width="wrap_content"
-            android:layout_height="wrap_content"
-            android:layout_margin="4dp"
-            android:layout_marginBottom="8dp"
-            android:layout_marginTop="8dp"
-            android:layout_weight="0"
-            android:visibility="visible"
-            app:layout_constraintBottom_toBottomOf="parent"
-            app:layout_constraintEnd_toEndOf="parent"
-            app:layout_constraintTop_toTopOf="parent"
-            app:srcCompat="@android:drawable/ic_menu_save" />
-
-        <TextView
-            android:id="@+id/currentTimerTime"
-            android:layout_width="wrap_content"
-            android:layout_height="wrap_content"
-            android:layout_marginEnd="16dp"
-            android:layout_weight="0"
-            android:text="1:10:00"
-            android:textAppearance="@style/TextAppearance.AppCompat.Body1"
-            app:layout_constraintBottom_toBottomOf="@+id/sendButton"
-            app:layout_constraintEnd_toStartOf="@+id/sendButton"
-            app:layout_constraintTop_toTopOf="@+id/sendButton" />
-    </androidx.constraintlayout.widget.ConstraintLayout>
-
-    <LinearLayout
-        android:id="@+id/additional_controls"
-        android:layout_width="0dp"
-        android:layout_height="wrap_content"
-        android:orientation="vertical"
-        app:layout_constraintEnd_toEndOf="parent"
-        app:layout_constraintStart_toStartOf="parent"
-        app:layout_constraintTop_toBottomOf="@id/constraintLayout2">
+        </FrameLayout>
     </LinearLayout>
+
+    <TextView
+        android:id="@+id/currentTimerTime"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_marginEnd="24dp"
+        android:layout_marginTop="8dp"
+        android:layout_weight="0"
+        android:text="1:10:00"
+        android:textAppearance="@style/TextAppearance.AppCompat.Body1"
+        app:layout_constraintEnd_toEndOf="parent"
+        app:layout_constraintTop_toTopOf="parent" />
+
 
 </androidx.constraintlayout.widget.ConstraintLayout>

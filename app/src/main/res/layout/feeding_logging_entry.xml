@@ -10,10 +10,11 @@
         android:id="@+id/sleepIcon"
         android:layout_width="48dp"
         android:layout_height="0dp"
-        android:layout_margin="8dp"
         android:background="@color/feeding_enabled"
+        android:minHeight="48dp"
         android:padding="8dp"
         app:layout_constraintBottom_toBottomOf="parent"
+        app:layout_constraintHeight_min="48dp"
         app:layout_constraintStart_toStartOf="parent"
         app:layout_constraintTop_toTopOf="parent">
 
@@ -59,7 +60,7 @@
             android:minLines="1"
             android:selectAllOnFocus="false"
             android:singleLine="false"
-            app:layout_constraintTop_toBottomOf="@+id/sendButton" />
+            app:layout_constraintTop_toBottomOf="@+id/feedingTypeGroup" />
 
 
         <ImageButton
@@ -70,7 +71,7 @@
             android:layout_weight="0"
             android:visibility="visible"
             app:layout_constraintStart_toStartOf="parent"
-            app:layout_constraintTop_toBottomOf="@+id/feedingTypeGroup"
+            app:layout_constraintTop_toBottomOf="@+id/noteEditor"
             app:srcCompat="@android:drawable/ic_menu_save" />
 
         <LinearLayout

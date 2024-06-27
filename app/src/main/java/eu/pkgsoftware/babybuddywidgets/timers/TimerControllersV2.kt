@@ -305,7 +305,7 @@ class DiaperLoggingController(val fragment: BaseFragment, childId: Int) : Loggin
         saveButton.visibility = if (wetLogic.state || solidLogic.state) {
             View.VISIBLE
         } else {
-            View.INVISIBLE
+            View.GONE
         }
     }
 
@@ -387,7 +387,7 @@ class NotesLoggingController(val fragment: BaseFragment, childId: Int) : Logging
         saveButton.visibility = if (noteEditor.text.isNotEmpty()) {
             View.VISIBLE
         } else {
-            View.INVISIBLE
+            View.GONE
         }
     }
 }
