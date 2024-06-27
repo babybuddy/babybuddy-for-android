@@ -18,6 +18,10 @@ class EndAwareContinuousListIntegrator : ContinuousListIntegrator() {
         super.clear()
     }
 
+    fun getItemsCount(className: String): Int {
+        return itemCounts[className] ?: 0
+    }
+
     fun computeValidCount(): Int {
         val allItems = super.items
         val itemsByClass = mutableMapOf<String, MutableList<ContinuousListItem>>()

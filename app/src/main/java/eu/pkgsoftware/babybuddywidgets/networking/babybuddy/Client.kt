@@ -1,5 +1,8 @@
 package eu.pkgsoftware.babybuddywidgets.networking.babybuddy
 
+import com.fasterxml.jackson.databind.JsonNode
+import com.fasterxml.jackson.databind.node.ObjectNode
+import com.fasterxml.jackson.module.kotlin.jacksonObjectMapper
 import eu.pkgsoftware.babybuddywidgets.debugging.GlobalDebugObject
 import eu.pkgsoftware.babybuddywidgets.networking.RequestCodeFailure
 import eu.pkgsoftware.babybuddywidgets.networking.ServerAccessProviderInterface
@@ -16,9 +19,12 @@ import kotlinx.coroutines.withContext
 import okhttp3.Interceptor
 import okhttp3.OkHttpClient
 import okhttp3.Response
+import okio.Buffer
+import okio.BufferedSink
 import retrofit2.Call
 import retrofit2.Retrofit
 import retrofit2.converter.jackson.JacksonConverterFactory
+import java.io.ByteArrayOutputStream
 import java.net.MalformedURLException
 import java.net.URL
 import kotlin.random.Random
@@ -28,7 +34,9 @@ import kotlin.reflect.KTypeProjection
 import kotlin.reflect.KVariance
 import kotlin.reflect.full.createType
 import kotlin.reflect.full.findAnnotation
+import kotlin.reflect.full.findParameterByName
 import kotlin.reflect.full.functions
+import kotlin.reflect.full.valueParameters
 import kotlin.reflect.jvm.javaMethod
 
 fun genRequestId(): String {
@@ -45,6 +53,25 @@ class AuthInterceptor(private val authToken: String) : Interceptor {
     }
 }
 
+class DebugNetworkInterceptor : Interceptor {
+    override fun intercept(chain: Interceptor.Chain): Response {
+        val request = chain.request()
+        val response = chain.proceed(request)
+
+        val buf = Buffer();
+        request.body()?.writeTo(buf) ?: buf.writeUtf8("null");
+        val bodyStream = ByteArrayOutputStream(10000)
+        buf.copyTo(bodyStream)
+
+        GlobalDebugObject.log(
+            "Raw request: ${request.url()} - " +
+            "Request body: ${bodyStream} - " +
+            "Response: ${response.message()}"
+        )
+        return response
+    }
+}
+
 class InvalidBody() : Exception("Invalid body")
 
 data class PaginatedResult<T> (
@@ -56,6 +83,7 @@ data class PaginatedResult<T> (
 class Client(val credStore: ServerAccessProviderInterface) {
     val httpClient = OkHttpClient.Builder()
         .addInterceptor(AuthInterceptor("Token " + credStore.appToken))
+        .addInterceptor(DebugNetworkInterceptor())
         .build()
 
     val retrofit = Retrofit.Builder()
@@ -196,5 +224,50 @@ class Client(val credStore: ServerAccessProviderInterface) {
             }
         }
         return selected
+    }
+
+    suspend fun <T : TimeEntry> createEntry(itemClass: KClass<T>, item: T): T {
+        val REQID = genRequestId()
+        val klass = item.javaClass.kotlin
+
+        val desiredArgumentType = JsonNode::class.createType()
+        val desiredReturnType = Call::class.createType(
+            arguments = listOf(
+                KTypeProjection(
+                    KVariance.INVARIANT,
+                    itemClass.createType()
+                )
+            )
+        )
+        var selected: KFunction<*>? = null
+        for (func in ApiInterface::class.functions) {
+            if (desiredArgumentType == func.findParameterByName("data")?.type) {
+                if (desiredReturnType == func.returnType) {
+                    selected = func
+                }
+            }
+        }
+
+        if (selected == null) {
+            throw IncorrectApiConfiguration(
+                "${REQID} V2Client::createEntry setter for ${klass.qualifiedName} is missing"
+            )
+        }
+
+        val mapper = jacksonObjectMapper()
+        val node = mapper.valueToTree<ObjectNode>(item)
+        node.remove("id")
+
+        GlobalDebugObject.log("${REQID} V2Client::createEntry ${klass.simpleName}")
+        return withContext(Dispatchers.IO) {
+            try {
+                val call: Call<T> = selected.javaMethod!!.invoke(api, node) as Call<T>
+                return@withContext executeCall(call)
+            }
+            catch (e: Exception) {
+                GlobalDebugObject.log("${REQID} V2Client::createEntry ${klass.simpleName} !exception! ${e.message}")
+                throw e
+            }
+        }
     }
 }

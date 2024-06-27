@@ -5,7 +5,7 @@ import android.util.Log
 class GlobalDebugObject {
     companion object {
         @JvmStatic
-        val ENABLED = false
+        val ENABLED = true
         @JvmStatic
         val DO_PRINT = true
         @JvmStatic

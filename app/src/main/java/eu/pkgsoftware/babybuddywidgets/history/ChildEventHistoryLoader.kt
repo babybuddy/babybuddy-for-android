@@ -140,7 +140,7 @@ class ChildEventHistoryLoader(
     private fun timeEntryToContinuousListItem(e: TimeEntry): ContinuousListItem {
         val result = ContinuousListItem(
             -e.start.time,
-            e.type,
+            e.appType,
             e.id.toString(),
         )
         timeEntryLookup[result] = e
@@ -246,7 +246,6 @@ class ChildEventHistoryLoader(
                     override val position: PointF? get() {
                         val r = Rect()
                         container.getGlobalVisibleRect(r)
-                        println(r)
                         if (r.isEmpty) return null
                         return PointF((r.left + r.right) / 2f, r.top.toFloat())
                     }
@@ -265,6 +264,21 @@ class ChildEventHistoryLoader(
         timeEntryLookup.clear()
         queryOffsets.clear()
         tutorialMessageAdded = false
+    }
+
+    fun addEntryToTop(entry: TimeEntry) {
+        val cls = entry::class
+        val activityName = classActivityName(cls)
+
+        val currentList = listIntegrator.items.filter { it.className == activityName }.toMutableList()
+        currentList.add(0, timeEntryToContinuousListItem(entry))
+
+        listIntegrator.updateItemsWithCount(
+            0, currentList.size, activityName, currentList.toTypedArray()
+        )
+        fragment.mainActivity.scope.launch {
+            deferredUpdate()
+        }
     }
 
     fun updateTop() {

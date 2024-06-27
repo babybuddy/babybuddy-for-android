@@ -6,6 +6,8 @@ import kotlin.coroutines.resume
 import kotlin.coroutines.resumeWithException
 import kotlin.coroutines.suspendCoroutine
 
+class EmptyException() : Exception()
+
 class AsyncPromiseFailure(val value: Any) : Exception()
 
 class AsyncPromise() {

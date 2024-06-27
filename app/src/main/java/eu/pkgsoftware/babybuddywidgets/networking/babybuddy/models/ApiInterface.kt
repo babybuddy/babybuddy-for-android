@@ -1,8 +1,14 @@
 package eu.pkgsoftware.babybuddywidgets.networking.babybuddy.models
 
+import com.fasterxml.jackson.databind.JsonNode
+import com.fasterxml.jackson.module.kotlin.jacksonObjectMapper
 import retrofit2.Call
+import retrofit2.http.Body
 import retrofit2.http.DELETE
 import retrofit2.http.GET
+import retrofit2.http.Header
+import retrofit2.http.Headers
+import retrofit2.http.POST
 import retrofit2.http.Path
 import retrofit2.http.Query
 import retrofit2.http.QueryMap
@@ -114,4 +120,24 @@ interface ApiInterface {
         @Path(value = "type", encoded = true) apiPath: String,
         @Path(value = "id", encoded = true) id: Int,
     ): Call<Any>
+
+    @POST("changes/")
+    @Headers("Content-Type: application/json")
+    fun sendChangeEntry(@Body data: JsonNode): Call<ChangeEntry>
+
+    @POST("sleep/")
+    @Headers("Content-Type: application/json")
+    fun sendSleepEntry(@Body data: JsonNode): Call<SleepEntry>
+
+    @POST("tummy-times/")
+    @Headers("Content-Type: application/json")
+    fun sendTummyTimeEntry(@Body data: JsonNode): Call<TummyTimeEntry>
+
+    @POST("notes/")
+    @Headers("Content-Type: application/json")
+    fun sendNoteEntry(@Body data: JsonNode): Call<NoteEntry>
+
+    @POST("feedings/")
+    @Headers("Content-Type: application/json")
+    fun sendFeedingEntry(@Body data: JsonNode): Call<FeedingEntry>
 }

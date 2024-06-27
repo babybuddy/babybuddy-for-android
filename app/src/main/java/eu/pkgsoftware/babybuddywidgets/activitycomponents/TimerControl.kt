@@ -5,14 +5,12 @@ import eu.pkgsoftware.babybuddywidgets.MainActivity
 import eu.pkgsoftware.babybuddywidgets.R
 import eu.pkgsoftware.babybuddywidgets.networking.BabyBuddyClient.RequestCallback
 import eu.pkgsoftware.babybuddywidgets.networking.BabyBuddyClient.Timer
-import eu.pkgsoftware.babybuddywidgets.timers.StoreActivityRouter
 import eu.pkgsoftware.babybuddywidgets.timers.TimerControlInterface
 import eu.pkgsoftware.babybuddywidgets.timers.TimersUpdatedCallback
 import eu.pkgsoftware.babybuddywidgets.timers.TranslatedException
 import eu.pkgsoftware.babybuddywidgets.utils.Promise
 
 class TimerControl(val mainActivity: MainActivity, val childId: Int) : TimerControlInterface {
-    private val storeActivityRouter = StoreActivityRouter(mainActivity)
     private val client = mainActivity.client
 
     var updateTimersCallback: TimersUpdatedCallback? = null
@@ -72,25 +70,14 @@ class TimerControl(val mainActivity: MainActivity, val childId: Int) : TimerCont
         })
     }
 
-    override fun storeActivity(
-        timer: Timer,
-        activity: String,
-        notes: String,
-        cb: Promise<Boolean, Exception>
-    ) {
-        storeActivityRouter.store(activity, notes, timer, object : Promise<Boolean, Exception> {
-            override fun succeeded(aBoolean: Boolean) {
-                cb.succeeded(aBoolean)
-            }
-
-            override fun failed(e: Exception) {
-                cb.failed(e)
-            }
-        })
-    }
-
     override fun registerTimersUpdatedCallback(callback: TimersUpdatedCallback) {
         updateTimersCallback = callback
+    }
+
+    override fun unregisterTimersUpdatedCallback(callback: TimersUpdatedCallback) {
+        if (updateTimersCallback == callback) {
+            updateTimersCallback = null
+        }
     }
 
     override fun getNotes(timer: Timer): CredStore.Notes {

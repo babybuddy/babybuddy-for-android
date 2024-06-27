@@ -29,10 +29,9 @@ import kotlin.coroutines.suspendCoroutine
 interface StoreFunction<X> : BabyBuddyClient.RequestCallback<X> {
     fun store(timer: BabyBuddyClient.Timer, callback: BabyBuddyClient.RequestCallback<X>)
     fun name(): String
-    fun timerStopped()
+    fun stopTimer(timer: BabyBuddyClient.Timer)
     fun cancel()
 }
-
 
 enum class ConflictResolutionOptions {
     CANCEL, RESOLVE, STOP_TIMER
@@ -49,6 +48,20 @@ class MainActivity : AppCompatActivity() {
 
     val scope = MainScope()
     val inputEventListeners = mutableListOf<InputEventListener>()
+
+    internal var internalStorage: ActivityStore? = null
+    val storage: ActivityStore
+        get() {
+            internalStorage.let {
+                if (it == null) {
+                    val newStorage = ActivityStore(this)
+                    internalStorage = newStorage
+                    return newStorage
+                } else {
+                    return it
+                }
+            }
+        }
 
     internal var internalCredStore: CredStore? = null
     val credStore: CredStore
@@ -301,7 +314,7 @@ class MainActivity : AppCompatActivity() {
                 progressDialog.show()
                 if (resolution == ConflictResolutionOptions.STOP_TIMER) {
                     progressDialog.cancel()
-                    storeInterface.timerStopped()
+                    storeInterface.stopTimer(timer)
                 } else if (resolution == ConflictResolutionOptions.RESOLVE) {
                     var retries = 3
                     while (retries > 0) {
@@ -322,7 +335,6 @@ class MainActivity : AppCompatActivity() {
                     storeInterface.cancel()
                 }
             } catch (e: Exception) {
-                e.printStackTrace()
                 storeInterface.error(e)
             } finally {
                 progressDialog.cancel()
