@@ -140,4 +140,8 @@ interface ApiInterface {
     @POST("feedings/")
     @Headers("Content-Type: application/json")
     fun sendFeedingEntry(@Body data: JsonNode): Call<FeedingEntry>
+
+    @POST("pumping/")
+    @Headers("Content-Type: application/json")
+    fun sendPumpingEntry(@Body data: JsonNode): Call<PumpingEntry>
 }

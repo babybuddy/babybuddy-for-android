@@ -18,12 +18,26 @@ class HorizontalDecIncEditor : LinearLayout {
         }
         set(value) {
             val v = value?.let {
-                if (it < 0) null else it
+                if (it < 0) {
+                    if (allowNull) {
+                        return@let null
+                    }
+                    return@let 0.0
+                }
+                it
             }
             if (v == null) {
                 binding.numberEditor.setText("")
             } else {
                 binding.numberEditor.setText(v.toString())
+            }
+        }
+
+    var allowNull: Boolean = true
+        set(value) {
+            field = value
+            if (!value && this.value == null) {
+                this.value = 0.0
             }
         }
 

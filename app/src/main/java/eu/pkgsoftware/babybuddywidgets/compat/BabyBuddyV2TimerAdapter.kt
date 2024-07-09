@@ -15,7 +15,9 @@ import java.util.Locale
 data class WrappedTimer(val mappedActivityIndex: Int, val timer: Timer) {
 }
 
-val IMPLEMENTED_ACTIVITIES = listOf(ACTIVITIES.FEEDING, ACTIVITIES.SLEEP, ACTIVITIES.TUMMY_TIME)
+val IMPLEMENTED_ACTIVITIES = listOf(
+    ACTIVITIES.FEEDING, ACTIVITIES.SLEEP, ACTIVITIES.TUMMY_TIME, ACTIVITIES.PUMPING
+)
 
 class BabyBuddyV2TimerAdapter(
     val childId: Int,

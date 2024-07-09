@@ -1,7 +1,6 @@
 package eu.pkgsoftware.babybuddywidgets.timers
 
 import eu.pkgsoftware.babybuddywidgets.CredStore.Notes
-import eu.pkgsoftware.babybuddywidgets.networking.BabyBuddyClient
 import eu.pkgsoftware.babybuddywidgets.utils.Promise
 import eu.pkgsoftware.babybuddywidgets.networking.BabyBuddyClient.Timer
 

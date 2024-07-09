@@ -113,17 +113,17 @@ data class FeedingEntry(
 data class PumpingEntry(
     @JsonProperty("id", required = true) override val id: Int,
     @JsonProperty("child", required = true) override val childId: Int,
-    @JsonProperty("start", required = false) @JsonDeserialize(using = DateTimeDeserializer::class) val _start: Date?,
-    @JsonProperty("end", required = false) @JsonDeserialize(using = DateTimeDeserializer::class) val _end: Date?,
-    @JsonProperty("notes", required = false) val _notes: String?,
+    @JsonSetter("start") @JsonDeserialize(using = DateTimeDeserializer::class) val _start: Date?,
+    @JsonSetter("end") @JsonDeserialize(using = DateTimeDeserializer::class) val _end: Date?,
+    @JsonSetter("notes") val _notes: String?,
     @JsonProperty("amount", required = true) val amount: Double,
-    @JsonProperty("time", required = false) @JsonDeserialize(using = DateTimeDeserializer::class) private val _legacyTime: Date?
+    @JsonSetter("time") @JsonDeserialize(using = DateTimeDeserializer::class) private val _legacyTime: Date?
 ) : TimeEntry {
     override @JsonIgnore val appType: String = ACTIVITIES.PUMPING
     override @JsonIgnore val appTypeId: Int = ACTIVITIES.index(appType)
-    override val start: Date = _start ?: _legacyTime!!
-    override val end: Date = _end ?: _legacyTime!!
-    override val notes: String = _notes ?: ""
+    override @get:JsonGetter("start") @JsonSerialize(using = DateTimeSerializer::class) val start: Date = _start ?: _legacyTime!!
+    override @get:JsonGetter("end") @JsonSerialize(using = DateTimeSerializer::class) val end: Date = _end ?: _legacyTime!!
+    override @get:JsonGetter("notes") val notes: String = _notes ?: ""
 }
 
 @UIPath("changes")

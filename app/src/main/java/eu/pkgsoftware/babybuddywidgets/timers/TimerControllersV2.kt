@@ -27,6 +27,7 @@ import eu.pkgsoftware.babybuddywidgets.databinding.DiaperLoggingEntryBinding
 import eu.pkgsoftware.babybuddywidgets.databinding.FeedingLoggingEntryBinding
 import eu.pkgsoftware.babybuddywidgets.databinding.GenericTimerLoggingEntryBinding
 import eu.pkgsoftware.babybuddywidgets.databinding.NoteLoggingEntryBinding
+import eu.pkgsoftware.babybuddywidgets.databinding.PumpingLoggingEntryBinding
 import eu.pkgsoftware.babybuddywidgets.login.Utils
 import eu.pkgsoftware.babybuddywidgets.networking.BabyBuddyClient
 import eu.pkgsoftware.babybuddywidgets.networking.BabyBuddyClient.Timer
@@ -34,6 +35,7 @@ import eu.pkgsoftware.babybuddywidgets.networking.RequestCodeFailure
 import eu.pkgsoftware.babybuddywidgets.networking.babybuddy.models.ChangeEntry
 import eu.pkgsoftware.babybuddywidgets.networking.babybuddy.models.FeedingEntry
 import eu.pkgsoftware.babybuddywidgets.networking.babybuddy.models.NoteEntry
+import eu.pkgsoftware.babybuddywidgets.networking.babybuddy.models.PumpingEntry
 import eu.pkgsoftware.babybuddywidgets.networking.babybuddy.models.SleepEntry
 import eu.pkgsoftware.babybuddywidgets.networking.babybuddy.models.TimeEntry
 import eu.pkgsoftware.babybuddywidgets.networking.babybuddy.models.TummyTimeEntry
@@ -42,6 +44,8 @@ import eu.pkgsoftware.babybuddywidgets.networking.babybuddy.nowServer
 import eu.pkgsoftware.babybuddywidgets.utils.AsyncPromise
 import eu.pkgsoftware.babybuddywidgets.utils.AsyncPromiseFailure
 import eu.pkgsoftware.babybuddywidgets.utils.Promise
+import eu.pkgsoftware.babybuddywidgets.widgets.HorizontalDecIncEditor
+import eu.pkgsoftware.babybuddywidgets.widgets.HorizontalNumberPicker
 import eu.pkgsoftware.babybuddywidgets.widgets.SwitchButtonLogic
 import kotlinx.coroutines.Runnable
 import kotlinx.coroutines.launch
@@ -693,6 +697,70 @@ class FeedingLoggingController(
 }
 
 @JsonIgnoreProperties(ignoreUnknown = true)
+data class PumpingRecord(
+    @JsonProperty("amount") val amount: Double,
+    @JsonProperty("note") val note: String,
+)
+
+class PumpingLoggingController(
+    fragment: BaseFragment,
+    childId: Int,
+    timerControl: TimerControlInterface
+) : GenericLoggingController(fragment, childId, timerControl, TummyTimeEntry::class) {
+    val pumpingBinding = PumpingLoggingEntryBinding.inflate(fragment.layoutInflater)
+
+    override val uiCurrentTimerTime = pumpingBinding.currentTimerTime
+    override val uiNoteEditor = pumpingBinding.noteEditor
+    override val saveButton: ImageButton = pumpingBinding.sendButton
+    override val controlsView: View = pumpingBinding.root
+
+    val amountNumberPicker: HorizontalDecIncEditor = pumpingBinding.amountNumberPicker
+
+    override fun postInit() {
+        super.postInit()
+
+        amountNumberPicker.allowNull = false
+        amountNumberPicker.value = 0.0
+
+        fragment.mainActivity.storage.child<PumpingRecord>(childId, "pumping")?.let {
+            amountNumberPicker.value = it.amount
+            uiNoteEditor.setText(it.note)
+        }
+
+        updateVisuals()
+    }
+
+    override fun storeStateForSuspend() {
+        val pr = PumpingRecord(
+            pumpingBinding.amountNumberPicker.value?.toDouble() ?: 0.0,
+            pumpingBinding.noteEditor.text.toString()
+        )
+        fragment.mainActivity.storage.child(childId, "pumping", pr)
+    }
+
+    override fun reset() {
+        pumpingBinding.amountNumberPicker.value = null
+        pumpingBinding.noteEditor.setText("")
+        storeStateForSuspend()
+    }
+
+    override suspend fun createEntry(timer: Timer): TimeEntry {
+        return fragment.mainActivity.client.v2client.createEntry(
+            PumpingEntry::class,
+            PumpingEntry(
+                id = 0,
+                childId = childId,
+                _start = timer.start,
+                _end = nowServer(),
+                amount = amountNumberPicker.value!!.toDouble(),
+                _notes = uiNoteEditor.text.toString(),
+                _legacyTime = timer.start
+            )
+        )
+    }
+}
+
+@JsonIgnoreProperties(ignoreUnknown = true)
 data class LoggingButtonControllerStoreState(
     @JsonProperty("open_state") val openState: Array<String>,
 )
@@ -735,6 +803,9 @@ class LoggingButtonController(
             fragment, child.id, timerControl
         ),
         BabyBuddyClient.ACTIVITIES.FEEDING to FeedingLoggingController(
+            fragment, child.id, timerControl
+        ),
+        BabyBuddyClient.ACTIVITIES.PUMPING to PumpingLoggingController(
             fragment, child.id, timerControl
         ),
     )
