@@ -17,12 +17,13 @@ class HorizontalDecIncEditor : LinearLayout {
             return binding.numberEditor.text.toString().toDoubleOrNull()
         }
         set(value) {
-            val v = value?.let {
-                if (it < 0) {
+            val v = value.let {
+                if ((it == null) || (it < 0.0)) {
                     if (allowNull) {
                         return@let null
+                    } else {
+                        return@let 0.0
                     }
-                    return@let 0.0
                 }
                 it
             }

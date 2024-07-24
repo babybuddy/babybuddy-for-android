@@ -706,7 +706,7 @@ class PumpingLoggingController(
     fragment: BaseFragment,
     childId: Int,
     timerControl: TimerControlInterface
-) : GenericLoggingController(fragment, childId, timerControl, TummyTimeEntry::class) {
+) : GenericLoggingController(fragment, childId, timerControl, PumpingEntry::class) {
     val pumpingBinding = PumpingLoggingEntryBinding.inflate(fragment.layoutInflater)
 
     override val uiCurrentTimerTime = pumpingBinding.currentTimerTime
@@ -723,7 +723,7 @@ class PumpingLoggingController(
         amountNumberPicker.value = 0.0
 
         fragment.mainActivity.storage.child<PumpingRecord>(childId, "pumping")?.let {
-            amountNumberPicker.value = it.amount
+            amountNumberPicker.value = it.amount ?: 0.0
             uiNoteEditor.setText(it.note)
         }
 
