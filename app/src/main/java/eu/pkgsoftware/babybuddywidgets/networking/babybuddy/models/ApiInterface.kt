@@ -20,7 +20,7 @@ interface ApiInterface {
     fun getProfile(): Call<Profile>
 
     @ChildKey("id")
-    @GET("children")
+    @GET("children/")
     fun getChildEntries(
         @Query("offset") offset: Int,
         @Query("limit") limit: Int,
@@ -28,7 +28,7 @@ interface ApiInterface {
     ): Call<PaginatedEntries<Child>>
 
     @ChildKey("child")
-    @GET("sleep")
+    @GET("sleep/")
     fun getSleepEntries(
         @Query("offset") offset: Int,
         @Query("limit") limit: Int,
@@ -36,7 +36,7 @@ interface ApiInterface {
     ): Call<PaginatedEntries<SleepEntry>>
 
     @ChildKey("child")
-    @GET("feedings")
+    @GET("feedings/")
     fun getFeedingEntries(
         @Query("offset") offset: Int,
         @Query("limit") limit: Int,
@@ -44,7 +44,7 @@ interface ApiInterface {
     ): Call<PaginatedEntries<FeedingEntry>>
 
     @ChildKey("child")
-    @GET("tummy-times")
+    @GET("tummy-times/")
     fun getTummyTimeEntries(
         @Query("offset") offset: Int,
         @Query("limit") limit: Int,
@@ -52,7 +52,7 @@ interface ApiInterface {
     ): Call<PaginatedEntries<TummyTimeEntry>>
 
     @ChildKey("child")
-    @GET("pumping")
+    @GET("pumping/")
     fun getPumpingEntries(
         @Query("offset") offset: Int,
         @Query("limit") limit: Int,
@@ -60,7 +60,7 @@ interface ApiInterface {
     ): Call<PaginatedEntries<PumpingEntry>>
 
     @ChildKey("child")
-    @GET("changes")
+    @GET("changes/")
     fun getChangeEntries(
         @Query("offset") offset: Int,
         @Query("limit") limit: Int,
@@ -68,7 +68,7 @@ interface ApiInterface {
     ): Call<PaginatedEntries<ChangeEntry>>
 
     @ChildKey("child")
-    @GET("notes")
+    @GET("notes/")
     fun getNoteEntries(
         @Query("offset") offset: Int,
         @Query("limit") limit: Int,
@@ -76,7 +76,7 @@ interface ApiInterface {
     ): Call<PaginatedEntries<NoteEntry>>
 
     @ChildKey("child")
-    @GET("temperature")
+    @GET("temperature/")
     fun getTemperatureEnties(
         @Query("offset") offset: Int,
         @Query("limit") limit: Int,
@@ -84,7 +84,7 @@ interface ApiInterface {
     ): Call<PaginatedEntries<TemperatureEntry>>
 
     @ChildKey("child")
-    @GET("weight")
+    @GET("weight/")
     fun getWeightEntries(
         @Query("offset") offset: Int,
         @Query("limit") limit: Int,
@@ -92,7 +92,7 @@ interface ApiInterface {
     ): Call<PaginatedEntries<WeightEntry>>
 
     @ChildKey("child")
-    @GET("height")
+    @GET("height/")
     fun getHeightEntries(
         @Query("offset") offset: Int,
         @Query("limit") limit: Int,
@@ -100,7 +100,7 @@ interface ApiInterface {
     ): Call<PaginatedEntries<HeightEntry>>
 
     @ChildKey("child")
-    @GET("head-circumference")
+    @GET("head-circumference/")
     fun getHeadCircumferenceEntries(
         @Query("offset") offset: Int,
         @Query("limit") limit: Int,
@@ -108,7 +108,7 @@ interface ApiInterface {
     ): Call<PaginatedEntries<HeadCircumferenceEntry>>
 
     @ChildKey("child")
-    @GET("bmi")
+    @GET("bmi/")
     fun getBmiEntries(
         @Query("offset") offset: Int,
         @Query("limit") limit: Int,

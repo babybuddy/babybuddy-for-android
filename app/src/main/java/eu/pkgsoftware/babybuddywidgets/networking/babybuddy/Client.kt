@@ -43,11 +43,15 @@ fun genRequestId(): String {
     return Random.nextInt(0xFFFFFF + 1).toString(16).padStart(6, '0')
 }
 
-class AuthInterceptor(private val authToken: String) : Interceptor {
+class AuthInterceptor(
+    private val authToken: String,
+    private val cookies: Map<String, String>
+) : Interceptor {
     override fun intercept(chain: Interceptor.Chain): Response {
         val originalRequest = chain.request()
         val requestWithAuth = originalRequest.newBuilder()
             .header("Authorization", authToken)
+            .header("Cookie", cookies.map { "${it.key}=${it.value}" }.joinToString("; "))
             .build()
         return chain.proceed(requestWithAuth)
     }
@@ -58,6 +62,10 @@ class DebugNetworkInterceptor : Interceptor {
         val request = chain.request()
         val response = chain.proceed(request)
 
+        val cookie = request.header("Cookie")?.let {
+            "Cookie: $it"
+        } ?: "No cookies"
+
         val buf = Buffer();
         request.body()?.writeTo(buf) ?: buf.writeUtf8("null");
         val bodyStream = ByteArrayOutputStream(10000)
@@ -66,7 +74,8 @@ class DebugNetworkInterceptor : Interceptor {
         GlobalDebugObject.log(
             "Raw request: ${request.url()} - " +
             "Request body: ${bodyStream} - " +
-            "Response: ${response.message()}"
+            "Response: ${response.message()} - " +
+            cookie
         )
         return response
     }
@@ -82,7 +91,7 @@ data class PaginatedResult<T> (
 
 class Client(val credStore: ServerAccessProviderInterface) {
     val httpClient = OkHttpClient.Builder()
-        .addInterceptor(AuthInterceptor("Token " + credStore.appToken))
+        .addInterceptor(AuthInterceptor("Token " + credStore.appToken, credStore.authCookies))
         .addInterceptor(DebugNetworkInterceptor())
         .build()
 
