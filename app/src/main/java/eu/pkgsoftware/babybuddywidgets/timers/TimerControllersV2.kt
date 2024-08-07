@@ -43,6 +43,7 @@ import eu.pkgsoftware.babybuddywidgets.networking.babybuddy.models.classActivity
 import eu.pkgsoftware.babybuddywidgets.networking.babybuddy.nowServer
 import eu.pkgsoftware.babybuddywidgets.utils.AsyncPromise
 import eu.pkgsoftware.babybuddywidgets.utils.AsyncPromiseFailure
+import eu.pkgsoftware.babybuddywidgets.utils.ConcurrentEventBlocker
 import eu.pkgsoftware.babybuddywidgets.utils.Promise
 import eu.pkgsoftware.babybuddywidgets.widgets.HorizontalDecIncEditor
 import eu.pkgsoftware.babybuddywidgets.widgets.HorizontalNumberPicker
@@ -812,7 +813,7 @@ class LoggingButtonController(
 
     private var timerHandler: Handler? = Handler(fragment.mainActivity.mainLooper)
     private var cachedTimers = emptyArray<Timer>()
-    private var runningTimerMods = 0
+    private val timerModificationsBlocker = ConcurrentEventBlocker()
 
     init {
         loggingControllers.forEach { (activity, controller) ->
@@ -820,6 +821,7 @@ class LoggingButtonController(
 
             logicMap[activity]?.addStateListener { state, userInduced ->
                 fragment.mainActivity.scope.launch {
+                    timerModificationsBlocker.wait()
                     if (state) {
                         startTimerFromSwitch(controller, userInduced, activity)
                     } else {
@@ -829,6 +831,7 @@ class LoggingButtonController(
             }
             controller.saveButton.setOnClickListener {
                 fragment.mainActivity.scope.launch {
+                    timerModificationsBlocker.wait()
                     runSave(activity, controller)
                 }
             }
@@ -858,19 +861,24 @@ class LoggingButtonController(
         controlsInterface.insertControls(controller.controlsView)
         if (userInduced && (controller is TimerBase)) {
             cachedTimers.firstOrNull { it.name == activity }?.let {
-                runningTimerMods += 1
-                timerControl.startTimer(
-                    it,
-                    object : Promise<Timer, TranslatedException> {
-                        override fun succeeded(t: Timer) {
-                            runningTimerMods -= 1
+                fragment.mainActivity.scope.launch {
+                    try {
+                        timerModificationsBlocker.register {
+                            AsyncPromise.call<Timer, TranslatedException> { promise ->
+                                timerControl.startTimer(it, promise)
+                            }
                         }
-
-                        override fun failed(f: TranslatedException?) {
-                            runningTimerMods -= 1
-                            newTimerListLoaded(cachedTimers)
+                    }
+                    catch (e: AsyncPromiseFailure) {
+                        (e.value as? TranslatedException)?.let {
+                            fragment.showError(
+                                true,
+                                R.string.activity_store_failure_message,
+                                it.message
+                            )
                         }
-                    })
+                    }
+                }
             }
         }
     }
@@ -882,56 +890,61 @@ class LoggingButtonController(
     ) {
         val timer = cachedTimers.firstOrNull { it.name == activity }
         if (AsyncPromise.call<Boolean, TranslatedException> { promise ->
-            var defaultSucceed = true
-            timer?.let { timer ->
-                if (timer.active && userInduced) {
-                    val timeMs = nowServer().time - timer.start.time
-                    if (timeMs > 10000) {
-                        defaultSucceed = false;
+                var defaultSucceed = true
+                timer?.let { timer ->
+                    if (timer.active && userInduced) {
+                        val timeMs = nowServer().time - timer.start.time
+                        if (timeMs > 10000) {
+                            defaultSucceed = false;
 
-                        val message = Phrase.from(
-                            fragment.requireContext(),
-                            R.string.cancel_timer_warning_message
-                        )
-                            .put("activity", fragment.translateActivityName(activity))
-                            .format().toString()
+                            val message = Phrase.from(
+                                fragment.requireContext(),
+                                R.string.cancel_timer_warning_message
+                            )
+                                .put("activity", fragment.translateActivityName(activity))
+                                .format().toString()
 
-                        fragment.showQuestion(
-                            true,
-                            fragment.getString(R.string.cancel_timer_warning_title),
-                            message,
-                            fragment.getString(R.string.cancel_timer_warning_stop),
-                            fragment.getString(R.string.cancel_timer_warning_keep),
-                            object : DialogCallback {
-                                override fun call(b: Boolean) {
-                                    promise.succeeded(b)
+                            fragment.showQuestion(
+                                true,
+                                fragment.getString(R.string.cancel_timer_warning_title),
+                                message,
+                                fragment.getString(R.string.cancel_timer_warning_stop),
+                                fragment.getString(R.string.cancel_timer_warning_keep),
+                                object : DialogCallback {
+                                    override fun call(b: Boolean) {
+                                        promise.succeeded(b)
+                                    }
                                 }
-                            }
-                        );
+                            );
+                        }
                     }
                 }
-            }
-            if (defaultSucceed) {
-                promise.succeeded(true)
-            }
-        }) {
+                if (defaultSucceed) {
+                    promise.succeeded(true)
+                }
+            }) {
             controlsInterface.removeControls(controller.controlsView)
             if (userInduced && (controller is TimerBase)) {
                 controller.updateTimer(null)
                 timer?.let {
-                    runningTimerMods += 1
-                    timerControl.stopTimer(
-                        it,
-                        object : Promise<Any, TranslatedException> {
-                            override fun succeeded(s: Any?) {
-                                runningTimerMods -= 1
+                    fragment.mainActivity.scope.launch {
+                        try {
+                            timerModificationsBlocker.register {
+                                AsyncPromise.call<Any, TranslatedException> { promise ->
+                                    timerControl.stopTimer(it, promise)
+                                }
                             }
-
-                            override fun failed(f: TranslatedException?) {
-                                runningTimerMods -= 1
-                                newTimerListLoaded(cachedTimers)
+                        }
+                        catch (e: AsyncPromiseFailure) {
+                            (e.value as? TranslatedException)?.let {
+                                fragment.showError(
+                                    true,
+                                    R.string.activity_store_failure_message,
+                                    it.message
+                                )
                             }
-                        })
+                        }
+                    }
                 }
             }
         }
@@ -1011,7 +1024,7 @@ class LoggingButtonController(
 
     override fun newTimerListLoaded(timers: Array<Timer>) {
         cachedTimers = timers;
-        if (runningTimerMods > 0) return
+        if (timerModificationsBlocker.isBlocked) return
 
         val toDisable =
             loggingControllers.filter { it.value is TimerBase }.map { it.key }.toMutableList()
