@@ -864,9 +864,10 @@ class LoggingButtonController(
                 fragment.mainActivity.scope.launch {
                     try {
                         timerModificationsBlocker.register {
-                            AsyncPromise.call<Timer, TranslatedException> { promise ->
+                            val newTimer = AsyncPromise.call<Timer, TranslatedException> { promise ->
                                 timerControl.startTimer(it, promise)
                             }
+                            controller.updateTimer(newTimer)
                         }
                     }
                     catch (e: AsyncPromiseFailure) {
@@ -888,60 +889,61 @@ class LoggingButtonController(
         userInduced: Boolean,
         activity: String
     ) {
-        val timer = cachedTimers.firstOrNull { it.name == activity }
-        if (AsyncPromise.call<Boolean, TranslatedException> { promise ->
-                var defaultSucceed = true
-                timer?.let { timer ->
-                    if (timer.active && userInduced) {
-                        val timeMs = nowServer().time - timer.start.time
-                        if (timeMs > 10000) {
-                            defaultSucceed = false;
+        timerModificationsBlocker.register {
+            val timer = cachedTimers.firstOrNull { it.name == activity }
+            if (AsyncPromise.call<Boolean, TranslatedException> { promise ->
+                    var defaultSucceed = true
+                    timer?.let { timer ->
+                        if (timer.active && userInduced) {
+                            val timeMs = nowServer().time - timer.start.time
+                            if (timeMs > 10000) {
+                                defaultSucceed = false;
 
-                            val message = Phrase.from(
-                                fragment.requireContext(),
-                                R.string.cancel_timer_warning_message
-                            )
-                                .put("activity", fragment.translateActivityName(activity))
-                                .format().toString()
+                                val message = Phrase.from(
+                                    fragment.requireContext(),
+                                    R.string.cancel_timer_warning_message
+                                )
+                                    .put("activity", fragment.translateActivityName(activity))
+                                    .format().toString()
 
-                            fragment.showQuestion(
-                                true,
-                                fragment.getString(R.string.cancel_timer_warning_title),
-                                message,
-                                fragment.getString(R.string.cancel_timer_warning_stop),
-                                fragment.getString(R.string.cancel_timer_warning_keep),
-                                object : DialogCallback {
-                                    override fun call(b: Boolean) {
-                                        promise.succeeded(b)
+                                fragment.showQuestion(
+                                    true,
+                                    fragment.getString(R.string.cancel_timer_warning_title),
+                                    message,
+                                    fragment.getString(R.string.cancel_timer_warning_stop),
+                                    fragment.getString(R.string.cancel_timer_warning_keep),
+                                    object : DialogCallback {
+                                        override fun call(b: Boolean) {
+                                            promise.succeeded(b)
+                                        }
                                     }
-                                }
-                            );
+                                );
+                            }
                         }
                     }
-                }
-                if (defaultSucceed) {
-                    promise.succeeded(true)
-                }
-            }) {
-            controlsInterface.removeControls(controller.controlsView)
-            if (userInduced && (controller is TimerBase)) {
-                controller.updateTimer(null)
-                timer?.let {
-                    fragment.mainActivity.scope.launch {
-                        try {
-                            timerModificationsBlocker.register {
+                    if (defaultSucceed) {
+                        promise.succeeded(true)
+                    }
+                }) {
+                controlsInterface.removeControls(controller.controlsView)
+                if (userInduced && (controller is TimerBase)) {
+                    timer?.let {
+                        fragment.mainActivity.scope.launch {
+                            try {
+                                controller.updateTimer(null)
                                 AsyncPromise.call<Any, TranslatedException> { promise ->
                                     timerControl.stopTimer(it, promise)
                                 }
+                                controller.updateTimer(null)
                             }
-                        }
-                        catch (e: AsyncPromiseFailure) {
-                            (e.value as? TranslatedException)?.let {
-                                fragment.showError(
-                                    true,
-                                    R.string.activity_store_failure_message,
-                                    it.message
-                                )
+                            catch (e: AsyncPromiseFailure) {
+                                (e.value as? TranslatedException)?.let {
+                                    fragment.showError(
+                                        true,
+                                        R.string.activity_store_failure_message,
+                                        it.message
+                                    )
+                                }
                             }
                         }
                     }
@@ -960,36 +962,39 @@ class LoggingButtonController(
     }
 
     suspend fun runSave(activity: String, controller: LoggingControls) {
-        try {
-            logicMap[activity]?.state = false
-            val te = controller.save()
-            controller.reset()
-            storeStateForSuspend()
-            controlsInterface.updateTimeline(te)
-        }
-        catch (e: RequestCodeFailure) {
-            fragment.showError(
-                true,
-                R.string.activity_store_failure_message,
-                Phrase.from(
-                    fragment.requireContext(),
-                    R.string.activity_store_failure_server_error
-                )
-                    .put(
-                        "message",
-                        fragment.getString(R.string.activity_store_failure_server_error_general)
+        timerModificationsBlocker.wait()
+        timerModificationsBlocker.register {
+            try {
+                logicMap[activity]?.state = false
+                val te = controller.save()
+                controller.reset()
+                storeStateForSuspend()
+                controlsInterface.updateTimeline(te)
+            }
+            catch (e: RequestCodeFailure) {
+                fragment.showError(
+                    true,
+                    R.string.activity_store_failure_message,
+                    Phrase.from(
+                        fragment.requireContext(),
+                        R.string.activity_store_failure_server_error
                     )
-                    .put("server_message", e.jsonErrorMessages().joinToString(", "))
-                    .format().toString()
+                        .put(
+                            "message",
+                            fragment.getString(R.string.activity_store_failure_server_error_general)
+                        )
+                        .put("server_message", e.jsonErrorMessages().joinToString(", "))
+                        .format().toString()
 
-            )
-        }
-        catch (e: IOException) {
-            fragment.showError(
-                true,
-                R.string.activity_store_failure_message,
-                R.string.activity_store_failure_server_error_generic_ioerror
-            )
+                )
+            }
+            catch (e: IOException) {
+                fragment.showError(
+                    true,
+                    R.string.activity_store_failure_message,
+                    R.string.activity_store_failure_server_error_generic_ioerror
+                )
+            }
         }
     }
 
