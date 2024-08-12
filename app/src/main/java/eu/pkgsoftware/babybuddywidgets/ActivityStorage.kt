@@ -3,13 +3,13 @@ package eu.pkgsoftware.babybuddywidgets
 import android.content.Context
 import android.database.sqlite.SQLiteDatabase
 import android.database.sqlite.SQLiteOpenHelper
-import com.fasterxml.jackson.databind.ObjectMapper
 import com.fasterxml.jackson.module.kotlin.jacksonObjectMapper
 import eu.pkgsoftware.babybuddywidgets.debugging.GlobalDebugObject
 import java.io.IOException
 
 class ActivityDatabaseV1(context: Context) : SQLiteOpenHelper(
-    context, "store", null, 1) {
+    context, "store", null, 1
+) {
     override fun onCreate(db: SQLiteDatabase) {
         db.execSQL("create table global_kv (key_name text primary key, value text)")
         db.execSQL("create table login_kv (key_name text primary key, value text)")
@@ -85,6 +85,13 @@ class ActivityStore(context: Context) {
     }
 
     fun close() {
+        database.close()
         openHelper.close()
+    }
+
+    fun deleteAllData() {
+        database.delete("global_kv", "1", arrayOf())
+        database.delete("login_kv", "1", arrayOf())
+        database.delete("child_kv", "1", arrayOf())
     }
 }
