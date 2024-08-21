@@ -83,12 +83,16 @@ class TimelineEntry(private val fragment: BaseFragment, private var _entry: Time
     }
 
     private fun defaultPhraseFields(phrase: Phrase): Phrase {
+        val start_time = TIME_FORMAT.format(entry!!.start)
+        val end_time = TIME_FORMAT.format(entry!!.end)
+        val opt_time_range = if (start_time == end_time) start_time else "$start_time - $end_time"
         return phrase
             .putOptional("type", entry!!.appType)
             .putOptional("start_date", DATE_FORMAT.format(entry!!.start))
             .putOptional("start_time", TIME_FORMAT.format(entry!!.start))
             .putOptional("end_date", DATE_FORMAT.format(entry!!.end))
             .putOptional("end_time", TIME_FORMAT.format(entry!!.end))
+            .putOptional("opt_time_range", opt_time_range)
             .putOptional("notes", entry!!.notes.trim { it <= ' ' })
     }
 
@@ -96,7 +100,7 @@ class TimelineEntry(private val fragment: BaseFragment, private var _entry: Time
         hideAllSubviews()
         binding.viewGroup.getChildAt(0).visibility = View.VISIBLE
         val message = defaultPhraseFields(
-            Phrase.from("{type}\n{start_date}  {start_time} - {end_time}")
+            Phrase.from("{type}\n{start_date}  {opt_time_range}")
         ).format().toString()
         binding.defaultContent.text = message
     }
@@ -105,7 +109,7 @@ class TimelineEntry(private val fragment: BaseFragment, private var _entry: Time
         hideAllSubviews()
         binding.tummyTimeView.visibility = View.VISIBLE
         val message = defaultPhraseFields(
-            Phrase.from("{start_date}  {start_time} - {end_time}\n{notes}")
+            Phrase.from("{start_date}  {opt_time_range}\n{notes}")
         ).format().toString().trim { it <= ' ' }
         binding.tummytimeMilestoneText.text = message
     }
@@ -127,7 +131,7 @@ class TimelineEntry(private val fragment: BaseFragment, private var _entry: Time
         hideAllSubviews()
         binding.sleepView.visibility = View.VISIBLE
         val message = defaultPhraseFields(
-            Phrase.from("{start_date}  {start_time} - {end_time}\n{notes}")
+            Phrase.from("{start_date}  {opt_time_range}\n{notes}")
         ).format().toString().trim { it <= ' ' }
         binding.sleepText.text = message.trim { it <= ' ' }
     }
@@ -145,7 +149,7 @@ class TimelineEntry(private val fragment: BaseFragment, private var _entry: Time
         hideAllSubviews()
         binding.pumpingTimeView.visibility = View.VISIBLE
         val message = defaultPhraseFields(
-            Phrase.from("{start_date}  {start_time} - {end_time}\n{notes}")
+            Phrase.from("{start_date}  {opt_time_range}\n{notes}")
         ).format().toString().trim { it <= ' ' }
         binding.pumpingTimeNotes.text = message.trim { it <= ' ' }
     }
@@ -182,7 +186,7 @@ class TimelineEntry(private val fragment: BaseFragment, private var _entry: Time
             else -> binding.solidFoodImage.visibility = View.VISIBLE
         }
         val message = defaultPhraseFields(
-            Phrase.from("{start_date}  {start_time} - {end_time}\n{notes}")
+            Phrase.from("{start_date}  {opt_time_range}\n{notes}")
         ).format().toString().trim { it <= ' ' }
         binding.feedingText.text = message.trim { it <= ' ' }
     }
