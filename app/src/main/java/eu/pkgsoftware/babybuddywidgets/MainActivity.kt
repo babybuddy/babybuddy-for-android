@@ -262,7 +262,11 @@ class MainActivity : AppCompatActivity() {
             val endTime = timer.computeCurrentServerEndTime(client)
             for (c in conflicts) {
                 val values = BabyBuddyClient.QueryValues()
-                values.add("start", timer.start)
+                if (c.start < timer.start) {
+                    values.add("start", c.start)
+                } else {
+                    values.add("start", timer.start)
+                }
                 values.add("end", timer.start)
                 try {
                     patchEntry(c, values)
