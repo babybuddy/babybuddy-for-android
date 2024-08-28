@@ -2,7 +2,7 @@
 
 ## Login
 
-![](screenshots/help_login_page.png)
+![](direct/help_login_page.png)
 
 There are two options for connecting to your Babybuddy server:
 Enter your Babybuddy server URL, username, and password. Then press
@@ -40,56 +40,46 @@ will need to use the QR-code login option to login to such a server.
 
 ## Overview
 
-![](screenshots/help_overview.png)
+![](screenshots/help_overview_2.png)
 
 After logging in, you find buttons for logging activities in the upper part of the screen
 and a history of recently logged activities in the lower part of the screen.
 If you log activities for multiple children, you can swipe horizontally to switch between children.
 
-# Using Timers
+# Using Timer Logging
 
 ## Using Timers
 
 ![](direct/help_play_button_highlight.png)
 
-Press the "play"-button to start a timer for the listed activity.
+To start a timer, press any of the timer-event buttons in the upper part of the
+application. This will start a timer.
 
 ## Using Timers
 
-![](direct/help_notes_button_highlight.png)
+![](screenshots/help_timer_interface.png)
 
-While the timer is running, you can add notes by pressing the "notes" buttons.
+Starting a time will open an interface related to the timer that was just
+started. Fill in all the information you want to log. Once all required fields
+are entered a save-button will appear.
 
 ## Using Timers
 
 ![](direct/help_save_button_highlight.png)
 
-To stop the timer and store the activity, press the "save" button.
+Once the save-field appears, the timer can be stopped by pressing the 
+save-button. You can also click the timer-button top-row again to cancel a timer
+instead of saving it.
 
-## Feedings
+# Using Event Logging
 
-![](screenshots/help_feeding_form.png)
+## Logging Diapers and Notes
 
-Saving a feeding will trigger a second form, where the feeding type (e.g., solid food) and
-method must be entered before the feeding can be stored.
+![](screenshots/help_diaper_logging.png)
 
-## Other timers
-
-![](screenshots/help_timers_default.png)
-
-In a previous version of Babybuddy for Android, the app listed an arbitrary
-number of timers. Now, by default, only timers for the events that can be tracked
-by the app are visible. This was changed to achieve compatibility with
-Baby Buddy version 2.0.
-
-# Logging Diapers
-
-## Logging Diapers
-
-![](direct/help_save_diaper_highlight.png)
-
-The top controls allow logging of diaper changes. Select the type of diaper and press the
-"save" button to log the activity. You can optionally add notes.
+In addition to timer events the top-row allows logging of non-timer events, like
+diaper changes and generic notes. The controls function the same way as for the
+timer logging, but without a timer.
 
 # Event history
 
