@@ -2,7 +2,7 @@
 
 ## Login
 
-![](screenshots/help_login_page.png)
+![](direct/help_login_page.png)
 
 Er zijn twee opties om verbinding te maken met uw Babybuddy-server:
 Voer de URL, gebruikersnaam en wachtwoord van uw Babybuddy-server in. Druk vervolgens op
@@ -40,56 +40,47 @@ zult de QR-code inlogoptie moeten gebruiken om in te loggen op zo'n server.
 
 ## Overzicht
 
-![](screenshots/help_overview.png)
-
+![](screenshots/help_overview_2.png)
 
 Na het inloggen vindt u knoppen voor het registreren van activiteiten in het bovenste deel van het scherm
 en een geschiedenis van recent geregistreerde activiteiten in het onderste deel van het scherm.
 Als u activiteiten logt voor meerdere kinderen, kunt u horizontaal swipen om tussen kinderen te wisselen.
 
-# Using Timers
+# Timers loggen
 
-## Using Timers
+## Timers gebruiken
 
 ![](direct/help_play_button_highlight.png)
 
-Druk op de "afspeelen"-knop om een timer te starten voor de vermelde activiteit.
+Om een timer te starten, drukt u op een van de timer-knoppen in 
+het bovenste gedeelte van de applicatie. Dit zal een timer starten.
 
-## Using Timers
+## Timers gebruiken
 
-![](direct/help_notes_button_highlight.png)
+![](screenshots/help_timer_interface.png)
 
-Terwijl de timer loopt, kunt u notities toevoegen door op de "notities"-knoppen te drukken.
+Het starten van een timer opent een interface gerelateerd aan de zojuist 
+gestarte timer. Vul alle informatie in die u wilt loggen. Zodra alle vereiste 
+velden zijn ingevuld, verschijnt er een opslaan-knop.
 
 ## Using Timers
 
 ![](direct/help_save_button_highlight.png)
 
-Om de timer te stoppen en de activiteit op te slaan, drukt u op de knop "opslaan".
+Zodra de opslaan-knop verschijnt, kan de timer worden gestopt door op de 
+opslaan-knop te drukken. U kunt ook nogmaals op de timer-knop in de bovenste 
+rij klikken om een timer te annuleren in plaats van deze op te slaan.
 
-## Feedings
+# Gebeurtenis loggen
 
-![](screenshots/help_feeding_form.png)
+## Verschoningen en notities registreren
 
-Het opslaan van een voeding toont een tweede formulier, waar het type voeding (bijvoorbeeld vast voedsel) en de methode ingevoerd moeten worden voordat de voeding kan worden opgeslagen.
+![](screenshots/help_diaper_logging.png)
 
-## Other timers
-
-![](screenshots/help_timers_default.png)
-
-In een eerdere versie van Babybuddy voor Android toonde de app een willekeurig
-aantal timers. Nu zijn standaard alleen timers voor de gebeurtenissen die kunnen worden gevolgd
-door de app zichtbaar. Dit is veranderd om compatibiliteit te bereiken met
-Baby Buddy versie 2.0.
-
-# Verschoningen registreren
-
-## Verschoningen registreren
-
-![](direct/help_save_diaper_highlight.png)
-
-De bovenste bedieningselementen maken het mogelijk om verschoningen te registreren. Selecteer het type luier en druk op de
-"opslaan"-knop om de activiteit te registreren. U kunt optioneel notities toevoegen.
+Naast timer-gebeurtenissen biedt de bovenste rij ook de mogelijkheid om 
+niet-timer-gebeurtenissen te loggen, zoals verschoningen en algemene notities.
+De bedieningselementen werken op dezelfde manier als voor het timer-loggen, 
+maar zonder een timer.
 
 # Activiteitgeschiedenis
 
