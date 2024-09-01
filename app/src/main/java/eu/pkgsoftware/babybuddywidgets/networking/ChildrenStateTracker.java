@@ -265,6 +265,10 @@ public class ChildrenStateTracker {
             return closed || ChildrenStateTracker.this.closed;
         }
 
+        public ChildrenStateTracker getTracker() {
+            return ChildrenStateTracker.this;
+        }
+
         private void update() {
             if (isClosed()) {
                 return;

@@ -84,6 +84,10 @@ public class BabyLayoutHolder extends RecyclerView.ViewHolder implements TimerCo
     }
 
     public void updateChild(BabyBuddyClient.Child c, ChildrenStateTracker stateTracker) {
+        if (childObserver != null && child == c && stateTracker == childObserver.getTracker()) {
+            return;
+        }
+
         clear();
         this.child = c;
 
