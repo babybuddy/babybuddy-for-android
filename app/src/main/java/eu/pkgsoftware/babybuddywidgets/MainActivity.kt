@@ -184,11 +184,11 @@ class MainActivity : AppCompatActivity() {
         return super.dispatchTouchEvent(ev)
     }
 
-    override fun dispatchKeyEvent(ev: KeyEvent?): Boolean {
-        ev?.let {
+    override fun dispatchKeyEvent(event: KeyEvent): Boolean {
+        event?.let {
             invokeInputEventListeners(it)
         }
-        return super.dispatchKeyEvent(ev)
+        return super.dispatchKeyEvent(event)
     }
 
     fun <X> storeActivity(
