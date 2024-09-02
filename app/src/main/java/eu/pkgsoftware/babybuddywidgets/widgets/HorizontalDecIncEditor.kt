@@ -71,9 +71,11 @@ class HorizontalDecIncEditor : LinearLayout {
 
         binding.decButton.setOnClickListener {
             value = (value ?: 0.0) - incrementValue
+            binding.numberEditor.selectAll()
         }
         binding.incButton.setOnClickListener {
             value = (value ?: 0.0) + incrementValue
+            binding.numberEditor.selectAll()
         }
     }
 }
