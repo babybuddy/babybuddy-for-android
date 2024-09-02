@@ -61,7 +61,7 @@
             android:layout_weight="0"
             android:visibility="visible"
             app:layout_constraintBottom_toBottomOf="parent"
-            app:layout_constraintStart_toStartOf="parent"
+            app:layout_constraintEnd_toEndOf="parent"
             app:layout_constraintTop_toBottomOf="@+id/noteEditor"
             app:srcCompat="@android:drawable/ic_menu_save"
             tools:visibility="visible" />
