@@ -368,6 +368,7 @@ class MainActivity : AppCompatActivity() {
 
     fun logout() {
         credStore.clearLoginData()
+        timerControls.clear()
         internalClient = null
         // Storage gets cleaned in the resume function of the login fragment
         // because otherwise the cleanup functions of the LoggedIn fragment
