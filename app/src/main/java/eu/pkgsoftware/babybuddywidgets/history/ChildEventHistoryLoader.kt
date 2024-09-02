@@ -49,7 +49,7 @@ class ChildEventHistoryLoader(
     private val progressBar: ProgressBar,
     private val errorPill: ShowErrorPill,
 ) {
-    val HISTORY_ITEM_COUNT = 50
+    val HISTORY_ITEM_COUNT = 150 / IMPLEMENTED_EVENT_CLASSES.size
     val POLL_INTERVAL = 5000
 
     private val activityCollectionGate = IMPLEMENTED_EVENT_CLASSES.toMutableList()
