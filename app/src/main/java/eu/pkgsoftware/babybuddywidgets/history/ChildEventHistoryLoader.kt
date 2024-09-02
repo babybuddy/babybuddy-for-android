@@ -14,6 +14,7 @@ import eu.pkgsoftware.babybuddywidgets.logic.EndAwareContinuousListIntegrator
 import eu.pkgsoftware.babybuddywidgets.networking.RequestCodeFailure
 import eu.pkgsoftware.babybuddywidgets.networking.babybuddy.ConnectingDialogInterface
 import eu.pkgsoftware.babybuddywidgets.networking.babybuddy.InterruptedException
+import eu.pkgsoftware.babybuddywidgets.networking.babybuddy.PaginatedResult
 import eu.pkgsoftware.babybuddywidgets.networking.babybuddy.exponentialBackoff
 import eu.pkgsoftware.babybuddywidgets.networking.babybuddy.models.ChangeEntry
 import eu.pkgsoftware.babybuddywidgets.networking.babybuddy.models.SleepEntry
@@ -97,8 +98,12 @@ class ChildEventHistoryLoader(
                         val activityName = classActivityName(it)
                         try {
                             val conInterface = BackoffConnectionInterface(activityName)
+                            val mainActivity = fragment.mainActivity
                             val r = exponentialBackoff(conInterface) {
-                                fragment.mainActivity.client.v2client.getEntries(
+                                if (fragment.isDetached) {
+                                    throw InterruptedException()
+                                }
+                                mainActivity.client.v2client.getEntries(
                                     it,
                                     offset = queryOffsets.getOrDefault(it, 0),
                                     limit = HISTORY_ITEM_COUNT,
