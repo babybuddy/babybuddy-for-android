@@ -6,49 +6,44 @@ import com.squareup.phrase.Phrase;
 
 import org.jetbrains.annotations.NotNull;
 
+import java.util.ArrayList;
+import java.util.List;
+
 import androidx.annotation.NonNull;
 import androidx.annotation.Nullable;
-import androidx.fragment.app.Fragment;
 import androidx.recyclerview.widget.GridLayoutManager;
 import androidx.recyclerview.widget.RecyclerView;
 import eu.pkgsoftware.babybuddywidgets.activitycomponents.TimerControl;
+import eu.pkgsoftware.babybuddywidgets.timers.FragmentCallbacks;
+import eu.pkgsoftware.babybuddywidgets.timers.LoggingButtonController;
 import eu.pkgsoftware.babybuddywidgets.databinding.BabyManagerBinding;
-import eu.pkgsoftware.babybuddywidgets.databinding.NotesEditorBinding;
 import eu.pkgsoftware.babybuddywidgets.history.ChildEventHistoryLoader;
-import eu.pkgsoftware.babybuddywidgets.history.ShowErrorPill;
 import eu.pkgsoftware.babybuddywidgets.networking.BabyBuddyClient;
 import eu.pkgsoftware.babybuddywidgets.networking.ChildrenStateTracker;
-import eu.pkgsoftware.babybuddywidgets.timers.EmptyTimerListProvider;
-import eu.pkgsoftware.babybuddywidgets.timers.StoreActivityRouter;
+import eu.pkgsoftware.babybuddywidgets.networking.babybuddy.models.TimeEntry;
 import eu.pkgsoftware.babybuddywidgets.timers.TimerControlInterface;
-import eu.pkgsoftware.babybuddywidgets.timers.TimerListProvider;
 import eu.pkgsoftware.babybuddywidgets.timers.TimersUpdatedCallback;
 import eu.pkgsoftware.babybuddywidgets.timers.TranslatedException;
 import eu.pkgsoftware.babybuddywidgets.utils.Promise;
-import eu.pkgsoftware.babybuddywidgets.widgets.SwitchButtonLogic;
 
 public class BabyLayoutHolder extends RecyclerView.ViewHolder implements TimerControlInterface {
     private final BabyManagerBinding binding;
     private final BaseFragment baseFragment;
     private final BabyBuddyClient client;
-    private TimerListProvider timerListProvider = null;
+
 
     private BabyBuddyClient.Child child = null;
 
-    private boolean changeWet = false;
-    private boolean changeSolid = false;
-
-    private NotesEditorLogic notesEditor;
-    private SwitchButtonLogic notesSwitch;
     private ChildEventHistoryLoader childHistoryLoader = null;
 
     private ChildrenStateTracker.ChildObserver childObserver = null;
-    private StoreActivityRouter storeActivityRouter;
 
     private BabyBuddyClient.Timer[] cachedTimers = null;
-    private TimersUpdatedCallback updateTimersCallback = null;
+    private List<TimersUpdatedCallback> updateTimersCallbacks = new ArrayList<>(10);
 
     private int pendingTimerModificationCalls = 0;
+
+    private LoggingButtonController loggingButtonController = null;
 
     public BabyLayoutHolder(BaseFragment fragment, BabyManagerBinding bmb) {
         super(bmb.getRoot());
@@ -56,40 +51,6 @@ public class BabyLayoutHolder extends RecyclerView.ViewHolder implements TimerCo
 
         baseFragment = fragment;
         client = fragment.getMainActivity().getClient();
-
-        storeActivityRouter = new StoreActivityRouter(baseFragment.getMainActivity());
-
-        GridLayoutManager l = new GridLayoutManager(binding.timersList.getContext(), 1);
-        binding.timersList.setLayoutManager(l);
-
-        View.OnClickListener invertSolid = view -> {
-            changeSolid = !changeSolid;
-            updateDiaperBar();
-        };
-        binding.solidEnabledButton.setOnClickListener(invertSolid);
-        binding.solidDisabledButton.setOnClickListener(invertSolid);
-
-        View.OnClickListener invertWet = view -> {
-            changeWet = !changeWet;
-            updateDiaperBar();
-        };
-        binding.wetEnabledButton.setOnClickListener(invertWet);
-        binding.wetDisabledButton.setOnClickListener(invertWet);
-        binding.sendChangeButton.setOnClickListener(view -> storeDiaperChange());
-
-        notesSwitch = new SwitchButtonLogic(
-            binding.addNoteButton,
-            binding.removeNoteButton,
-            false
-        );
-
-        NotesEditorBinding notesEditorBinding = NotesEditorBinding.inflate(
-            fragment.getMainActivity().getLayoutInflater()
-        );
-        binding.diaperNotesSlot.addView(notesEditorBinding.getRoot());
-
-        notesEditor = new NotesEditorLogic(notesEditorBinding, false);
-        notesSwitch.addStateListener((b, userInduced) -> notesEditor.setVisible(b));
 
         binding.mainScrollView.setOnScrollChangeListener((v, scrollX, scrollY, oldScrollX, oldScrollY) -> {
             if (childHistoryLoader != null) {
@@ -100,46 +61,6 @@ public class BabyLayoutHolder extends RecyclerView.ViewHolder implements TimerCo
 
     public BabyBuddyClient.Child getChild() {
         return child;
-    }
-
-    private void resetDiaperUi() {
-        changeSolid = false;
-        changeWet = false;
-        updateDiaperBar();
-    }
-
-    private void updateDiaperBar() {
-        binding.sendChangeButton.setVisibility((changeSolid || changeWet) ? View.VISIBLE : View.INVISIBLE);
-        binding.solidEnabledButton.setVisibility(changeSolid ? View.VISIBLE : View.GONE);
-        binding.solidDisabledButton.setVisibility(!changeSolid ? View.VISIBLE : View.GONE);
-        binding.wetEnabledButton.setVisibility(changeWet ? View.VISIBLE : View.GONE);
-        binding.wetDisabledButton.setVisibility(!changeWet ? View.VISIBLE : View.GONE);
-    }
-
-    private void storeDiaperChange() {
-        client.createChangeRecord(child, changeWet, changeSolid, notesEditor.getText(),
-            new BabyBuddyClient.RequestCallback<Boolean>() {
-                @Override
-                public void error(@NonNull Exception error) {
-                    baseFragment.showError(
-                        true,
-                        "Failed to save",
-                        "Diaper change not saved"
-                    );
-                }
-
-                @Override
-                public void response(Boolean response) {
-                    notesEditor.clearText();
-                    notesSwitch.setState(false);
-                    if (childHistoryLoader != null) {
-                        childHistoryLoader.forceRefresh();
-                    }
-                }
-            }
-        );
-
-        resetDiaperUi();
     }
 
     private void requeueImmediateTimerListRefresh() {
@@ -160,16 +81,15 @@ public class BabyLayoutHolder extends RecyclerView.ViewHolder implements TimerCo
             childHistoryLoader.close();
         }
         childHistoryLoader = null;
-        binding.timersList.setAdapter(new EmptyTimerListProvider());
     }
 
     public void updateChild(BabyBuddyClient.Child c, ChildrenStateTracker stateTracker) {
+        if (childObserver != null && child == c && stateTracker == childObserver.getTracker()) {
+            return;
+        }
+
         clear();
         this.child = c;
-        notesEditor.setNotes(new CredStoreNotes(
-            "diaper_" + c.slug, baseFragment.getMainActivity().getCredStore()
-        ));
-        notesSwitch.setState(notesEditor.isVisible());
 
         if (child != null) {
             if (stateTracker == null) {
@@ -194,8 +114,40 @@ public class BabyLayoutHolder extends RecyclerView.ViewHolder implements TimerCo
                 }
 
             );
-            timerListProvider = new TimerListProvider(baseFragment, this);
-            binding.timersList.setAdapter(timerListProvider);
+
+            loggingButtonController = new LoggingButtonController(
+                baseFragment,
+                binding,
+                new FragmentCallbacks() {
+                    @Override
+                    public void insertControls(@NonNull View view) {
+                        if (view.getParent() != null) {
+                            return;
+                        }
+                        binding.loggingEditors.addView(view);
+                    }
+
+                    @Override
+                    public void removeControls(@NonNull View view) {
+                        if (view.getParent() == null) {
+                            return;
+                        }
+                        binding.loggingEditors.removeView(view);
+                    }
+
+                    @Override
+                    public void updateTimeline(@Nullable TimeEntry newEntry) {
+                        if (childHistoryLoader != null) {
+                            if (newEntry != null) {
+                                childHistoryLoader.addEntryToTop(newEntry);
+                            }
+                            childHistoryLoader.forceRefresh();
+                        }
+                    }
+                },
+                child,
+                this
+            );
         }
     }
 
@@ -223,9 +175,11 @@ public class BabyLayoutHolder extends RecyclerView.ViewHolder implements TimerCo
     }
 
     public void onViewDeselected() {
+        if (loggingButtonController != null) {
+            loggingButtonController.storeStateForSuspend();
+        }
         resetChildObserver();
         resetChildHistoryLoader();
-        resetDiaperUi();
     }
 
     private void resetChildObserver() {
@@ -236,16 +190,19 @@ public class BabyLayoutHolder extends RecyclerView.ViewHolder implements TimerCo
     }
 
     public void clear() {
+        if (loggingButtonController != null) {
+            loggingButtonController.storeStateForSuspend();
+            loggingButtonController.destroy();
+            loggingButtonController = null;
+        }
         resetChildObserver();
         resetChildHistoryLoader();
-        resetDiaperUi();
         child = null;
         cachedTimers = null;
     }
 
     public void close() {
         clear();
-        timerListProvider.close();
     }
 
     private class UpdateBufferingPromise<A, B> implements Promise<A, B> {
@@ -291,32 +248,28 @@ public class BabyLayoutHolder extends RecyclerView.ViewHolder implements TimerCo
     }
 
     @Override
-    public void storeActivity(
-        @NotNull BabyBuddyClient.Timer timer,
-        @NonNull String activity,
-        @NonNull String notes,
-        @NonNull Promise<Boolean, Exception> cb
-    ) {
-        baseFragment.getMainActivity().getChildTimerControl(child).storeActivity(
-            timer,
-            activity,
-            notes,
-            new UpdateBufferingPromise<>(cb) {
-                @Override
-                public void succeeded(Boolean aBoolean) {
-                    super.succeeded(aBoolean);
-                    if (childHistoryLoader != null) {
-                        childHistoryLoader.forceRefresh();
-                    }
+    public void registerTimersUpdatedCallback(@NonNull TimersUpdatedCallback callback) {
+        if (updateTimersCallbacks.contains(callback)) {
+            return;
+        }
+        updateTimersCallbacks.add(callback);
+
+        baseFragment.getMainActivity().getChildTimerControl(child).registerTimersUpdatedCallback(
+            timers -> {
+                for (TimersUpdatedCallback c : updateTimersCallbacks) {
+                    c.newTimerListLoaded(timers);
                 }
             }
         );
+        callTimerUpdateCallback();
     }
 
     @Override
-    public void registerTimersUpdatedCallback(@NonNull TimersUpdatedCallback callback) {
-        baseFragment.getMainActivity().getChildTimerControl(child).registerTimersUpdatedCallback(callback);
-        callTimerUpdateCallback();
+    public void unregisterTimersUpdatedCallback(@NonNull TimersUpdatedCallback callback) {
+        if (!updateTimersCallbacks.contains(callback)) {
+            return;
+        }
+        updateTimersCallbacks.remove(callback);
     }
 
     private void callTimerUpdateCallback() {

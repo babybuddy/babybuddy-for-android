@@ -2,144 +2,221 @@
 <androidx.constraintlayout.widget.ConstraintLayout xmlns:android="http://schemas.android.com/apk/res/android"
     xmlns:app="http://schemas.android.com/apk/res-auto"
     xmlns:tools="http://schemas.android.com/tools"
-    android:id="@+id/relativeLayout"
     android:layout_width="match_parent"
     android:layout_height="match_parent"
     android:padding="16dp">
-
-    <LinearLayout
-        android:id="@+id/changeButtons"
-        android:layout_width="match_parent"
-        android:layout_height="wrap_content"
-        android:gravity="center"
-        android:orientation="horizontal"
-        app:layout_constraintEnd_toEndOf="parent"
-        app:layout_constraintStart_toStartOf="parent"
-        app:layout_constraintTop_toTopOf="parent">
-
-        <TextView
-            android:id="@+id/textView"
-            android:layout_width="wrap_content"
-            android:layout_height="wrap_content"
-            android:layout_marginEnd="24dp"
-            android:layout_weight="0"
-            android:text="@string/diaper_title"
-            android:textAppearance="@style/TextAppearance.AppCompat.Large" />
-
-        <LinearLayout
-            android:layout_width="wrap_content"
-            android:layout_height="match_parent"
-            android:layout_weight="1"
-            android:orientation="horizontal"></LinearLayout>
-
-        <ImageButton
-            android:id="@+id/wetDisabledButton"
-            android:layout_width="64dp"
-            android:layout_height="64dp"
-            android:layout_weight="0"
-            android:scaleType="fitCenter"
-            android:src="@drawable/pkg_not_wet"
-            android:tint="?android:attr/textColorSecondary"
-            android:tintMode="src_in" />
-
-        <ImageButton
-            android:id="@+id/wetEnabledButton"
-            android:layout_width="64dp"
-            android:layout_height="64dp"
-            android:layout_weight="0"
-            android:backgroundTint="#80FF80"
-            android:scaleType="fitCenter"
-            android:src="@drawable/pkg_wet"
-            android:tint="@color/fixed_color_button_text_color"
-            android:tintMode="src_in"
-            android:visibility="gone" />
-
-        <ImageButton
-            android:id="@+id/solidDisabledButton"
-            android:layout_width="64dp"
-            android:layout_height="64dp"
-            android:layout_weight="0"
-            android:scaleType="fitCenter"
-            android:src="@drawable/pkg_no_poop"
-            android:tint="?android:attr/textColorSecondary"
-            android:tintMode="src_in" />
-
-        <ImageButton
-            android:id="@+id/solidEnabledButton"
-            android:layout_width="64dp"
-            android:layout_height="64dp"
-            android:layout_weight="0"
-            android:backgroundTint="#80FF80"
-            android:scaleType="fitCenter"
-            android:src="@drawable/pkg_poop"
-            android:tint="@color/fixed_color_button_text_color"
-            android:tintMode="src_in"
-            android:visibility="gone" />
-
-        <ImageButton
-            android:id="@+id/removeNoteButton"
-            android:layout_width="48dp"
-            android:layout_height="48dp"
-            android:layout_margin="4dp"
-            android:layout_weight="0"
-            android:backgroundTint="#80FF80"
-            android:src="@drawable/pkg_notes"
-            android:tint="@color/fixed_color_button_text_color"
-            android:tintMode="src_in"
-            android:visibility="gone" />
-
-        <ImageButton
-            android:id="@+id/addNoteButton"
-            android:layout_width="48dp"
-            android:layout_height="48dp"
-            android:layout_margin="4dp"
-            android:layout_weight="0"
-            android:src="@drawable/pkg_no_notes"
-            android:tint="?android:attr/textColorSecondary"
-            android:tintMode="src_in"
-            android:visibility="visible" />
-
-        <ImageButton
-            android:id="@+id/sendChangeButton"
-            android:layout_width="wrap_content"
-            android:layout_height="wrap_content"
-            android:layout_margin="4dp"
-            android:layout_weight="0"
-            android:visibility="visible"
-            app:layout_constraintBottom_toBottomOf="parent"
-            app:layout_constraintEnd_toEndOf="parent"
-            app:layout_constraintTop_toTopOf="parent"
-            app:srcCompat="@android:drawable/ic_menu_save" />
-
-    </LinearLayout>
-
-    <LinearLayout
-        android:id="@+id/diaperNotesSlot"
-        android:layout_width="match_parent"
-        android:layout_height="wrap_content"
-        android:orientation="horizontal"
-        app:layout_constraintStart_toStartOf="parent"
-        app:layout_constraintTop_toBottomOf="@id/changeButtons" />
 
     <ScrollView
         android:id="@+id/mainScrollView"
         android:layout_width="match_parent"
         android:layout_height="0dp"
-        android:layout_marginTop="8dp"
         app:layout_constraintBottom_toBottomOf="parent"
         app:layout_constraintLeft_toLeftOf="parent"
         app:layout_constraintRight_toRightOf="parent"
-        app:layout_constraintTop_toBottomOf="@id/diaperNotesSlot">
+        app:layout_constraintTop_toTopOf="parent">
 
         <LinearLayout
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
             android:orientation="vertical">
 
-            <androidx.recyclerview.widget.RecyclerView
-                android:id="@+id/timersList"
+            <eu.pkgsoftware.babybuddywidgets.widgets.AutoHGrid
+                android:id="@+id/newTimerButtons"
                 android:layout_width="match_parent"
-                android:layout_height="wrap_content"></androidx.recyclerview.widget.RecyclerView>
+                android:layout_height="wrap_content"
+                app:equalizeRowWidths="true"
+                app:layout_constraintEnd_toEndOf="parent"
+                app:layout_constraintStart_toStartOf="parent"
+                app:layout_constraintTop_toTopOf="parent">
+
+                <ImageButton
+                    android:id="@+id/feedingDisabledButton"
+                    android:layout_width="64dp"
+                    android:layout_height="64dp"
+                    android:layout_weight="0"
+                    android:backgroundTint="@color/timer_button_disabled"
+                    android:scaleType="fitCenter"
+                    android:src="@drawable/pkg_bottle"
+                    android:tintMode="src_in"
+                    android:visibility="gone"
+                    app:tint="@color/fixed_color_button_text_color" />
+
+                <ImageButton
+                    android:id="@+id/feedingEnabledButton"
+                    android:layout_width="64dp"
+                    android:layout_height="64dp"
+                    android:layout_weight="0"
+                    android:backgroundTint="@color/feeding_enabled"
+                    android:scaleType="fitCenter"
+                    android:src="@drawable/pkg_bottle"
+                    android:tintMode="src_in"
+                    android:visibility="visible"
+                    app:tint="@color/fixed_color_button_text_color" />
+
+                <ImageButton
+                    android:id="@+id/diaperDisabledButton"
+                    android:layout_width="64dp"
+                    android:layout_height="64dp"
+                    android:layout_weight="0"
+                    android:backgroundTint="@color/timer_button_disabled"
+                    android:scaleType="fitCenter"
+                    android:src="@drawable/pkg_diaper"
+                    android:tintMode="src_in"
+                    android:visibility="gone"
+                    app:tint="@color/fixed_color_button_text_color" />
+
+                <ImageButton
+                    android:id="@+id/diaperEnabledButton"
+                    android:layout_width="64dp"
+                    android:layout_height="64dp"
+                    android:layout_weight="0"
+                    android:backgroundTint="@color/diaper_enabled"
+                    android:scaleType="fitCenter"
+                    android:src="@drawable/pkg_diaper"
+                    android:tintMode="src_in"
+                    android:visibility="visible"
+                    app:tint="@color/fixed_color_button_text_color" />
+
+                <ImageButton
+                    android:id="@+id/sleepDisabledButton"
+                    android:layout_width="64dp"
+                    android:layout_height="64dp"
+                    android:layout_weight="0"
+                    android:backgroundTint="@color/timer_button_disabled"
+                    android:scaleType="fitCenter"
+                    android:src="@drawable/pkg_sleep"
+                    android:tintMode="src_in"
+                    android:visibility="gone"
+                    app:tint="@color/fixed_color_button_text_color" />
+
+                <ImageButton
+                    android:id="@+id/sleepEnabledButton"
+                    android:layout_width="64dp"
+                    android:layout_height="64dp"
+                    android:layout_weight="0"
+                    android:backgroundTint="@color/sleep_enabled"
+                    android:scaleType="fitCenter"
+                    android:src="@drawable/pkg_sleep"
+                    android:tintMode="src_in"
+                    android:visibility="visible"
+                    app:tint="@color/fixed_color_button_text_color" />
+
+                <ImageButton
+                    android:id="@+id/notesDisabledButton"
+                    android:layout_width="64dp"
+                    android:layout_height="64dp"
+                    android:layout_weight="0"
+                    android:backgroundTint="@color/timer_button_disabled"
+                    android:scaleType="fitCenter"
+                    android:src="@drawable/pkg_notes"
+                    android:tintMode="src_in"
+                    android:visibility="gone"
+                    app:tint="@color/fixed_color_button_text_color" />
+
+                <ImageButton
+                    android:id="@+id/notesEnabledButton"
+                    android:layout_width="64dp"
+                    android:layout_height="64dp"
+                    android:layout_weight="0"
+                    android:backgroundTint="@color/notes_enabled"
+                    android:scaleType="fitCenter"
+                    android:src="@drawable/pkg_notes"
+                    android:tintMode="src_in"
+                    android:visibility="visible"
+                    app:tint="@color/fixed_color_button_text_color" />
+
+                <ImageButton
+                    android:id="@+id/pumpingDisabledButton"
+                    android:layout_width="64dp"
+                    android:layout_height="64dp"
+                    android:layout_weight="0"
+                    android:backgroundTint="@color/timer_button_disabled"
+                    android:scaleType="fitCenter"
+                    android:src="@drawable/pkg_pumping"
+                    android:tintMode="src_in"
+                    android:visibility="gone"
+                    app:tint="@color/fixed_color_button_text_color" />
+
+                <ImageButton
+                    android:id="@+id/pumpingEnabledButton"
+                    android:layout_width="64dp"
+                    android:layout_height="64dp"
+                    android:layout_weight="0"
+                    android:backgroundTint="@color/pumping_enabled"
+                    android:scaleType="fitCenter"
+                    android:src="@drawable/pkg_pumping"
+                    android:tintMode="src_in"
+                    android:visibility="visible"
+                    app:tint="@color/fixed_color_button_text_color" />
+
+                <ImageButton
+                    android:id="@+id/tummyTimeDisabledButton"
+                    android:layout_width="64dp"
+                    android:layout_height="64dp"
+                    android:layout_weight="0"
+                    android:backgroundTint="@color/timer_button_disabled"
+                    android:scaleType="fitCenter"
+                    android:src="@drawable/pkg_crawl"
+                    android:tintMode="src_in"
+                    android:visibility="gone"
+                    app:tint="@color/fixed_color_button_text_color" />
+
+                <ImageButton
+                    android:id="@+id/tummyTimeEnabledButton"
+                    android:layout_width="64dp"
+                    android:layout_height="64dp"
+                    android:layout_weight="0"
+                    android:backgroundTint="@color/tummy_time_enabled"
+                    android:scaleType="fitCenter"
+                    android:src="@drawable/pkg_crawl"
+                    android:tintMode="src_in"
+                    android:visibility="visible"
+                    app:tint="@color/fixed_color_button_text_color" />
+            </eu.pkgsoftware.babybuddywidgets.widgets.AutoHGrid>
+
+            <LinearLayout
+                android:id="@+id/loggingEditors"
+                android:layout_width="match_parent"
+                android:layout_height="match_parent"
+                android:orientation="vertical">
+
+            </LinearLayout>
+
+            <LinearLayout
+                android:layout_width="match_parent"
+                android:layout_height="match_parent"
+                android:layout_marginBottom="4dp"
+                android:layout_marginTop="16dp"
+                android:gravity="center"
+                android:orientation="horizontal">
+
+                <FrameLayout
+                    android:id="@+id/leftTimelineTitleLine"
+                    style="@style/SeparatorLine"
+                    android:layout_width="wrap_content"
+                    android:layout_height="4dp"
+                    android:layout_margin="10dp"
+                    android:layout_weight="1">
+
+                </FrameLayout>
+
+                <TextView
+                    android:id="@+id/timelineTitle"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:layout_weight="0"
+                    android:text="Timeline" />
+
+                <FrameLayout
+                    android:id="@+id/rightTimelineTitleLine"
+                    style="@style/SeparatorLine"
+                    android:layout_width="wrap_content"
+                    android:layout_height="4dp"
+                    android:layout_margin="10dp"
+                    android:layout_weight="1">
+
+                </FrameLayout>
+            </LinearLayout>
 
             <LinearLayout
                 android:id="@+id/innerTimeline"

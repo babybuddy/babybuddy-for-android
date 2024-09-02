@@ -26,18 +26,11 @@
         android:label="@string/logged_in_label"
         tools:layout="@layout/logged_in_fragment" >
         <action
-            android:id="@+id/action_loggedInFragment2_to_feedingFragment"
-            app:destination="@id/feedingFragment" />
-        <action
             android:id="@+id/logoutOperation"
             app:destination="@id/LoginFragment"
             app:popUpTo="@id/loggedInFragment2"
             app:popUpToInclusive="true" />
     </fragment>
-    <fragment
-        android:id="@+id/feedingFragment"
-        android:name="eu.pkgsoftware.babybuddywidgets.FeedingFragment"
-        android:label="FeedingFragment" />
     <fragment
         android:id="@+id/aboutFragment"
         android:name="eu.pkgsoftware.babybuddywidgets.AboutFragment"

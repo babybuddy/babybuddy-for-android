@@ -29,10 +29,9 @@ import kotlin.coroutines.suspendCoroutine
 interface StoreFunction<X> : BabyBuddyClient.RequestCallback<X> {
     fun store(timer: BabyBuddyClient.Timer, callback: BabyBuddyClient.RequestCallback<X>)
     fun name(): String
-    fun timerStopped()
+    fun stopTimer(timer: BabyBuddyClient.Timer)
     fun cancel()
 }
-
 
 enum class ConflictResolutionOptions {
     CANCEL, RESOLVE, STOP_TIMER
@@ -49,6 +48,20 @@ class MainActivity : AppCompatActivity() {
 
     val scope = MainScope()
     val inputEventListeners = mutableListOf<InputEventListener>()
+
+    internal var internalStorage: ActivityStore? = null
+    val storage: ActivityStore
+        get() {
+            internalStorage.let {
+                if (it == null) {
+                    val newStorage = ActivityStore(this)
+                    internalStorage = newStorage
+                    return newStorage
+                } else {
+                    return it
+                }
+            }
+        }
 
     internal var internalCredStore: CredStore? = null
     val credStore: CredStore
@@ -171,11 +184,11 @@ class MainActivity : AppCompatActivity() {
         return super.dispatchTouchEvent(ev)
     }
 
-    override fun dispatchKeyEvent(ev: KeyEvent?): Boolean {
-        ev?.let {
+    override fun dispatchKeyEvent(event: KeyEvent): Boolean {
+        event?.let {
             invokeInputEventListeners(it)
         }
-        return super.dispatchKeyEvent(ev)
+        return super.dispatchKeyEvent(event)
     }
 
     fun <X> storeActivity(
@@ -249,7 +262,11 @@ class MainActivity : AppCompatActivity() {
             val endTime = timer.computeCurrentServerEndTime(client)
             for (c in conflicts) {
                 val values = BabyBuddyClient.QueryValues()
-                values.add("start", timer.start)
+                if (c.start < timer.start) {
+                    values.add("start", c.start)
+                } else {
+                    values.add("start", timer.start)
+                }
                 values.add("end", timer.start)
                 try {
                     patchEntry(c, values)
@@ -301,7 +318,7 @@ class MainActivity : AppCompatActivity() {
                 progressDialog.show()
                 if (resolution == ConflictResolutionOptions.STOP_TIMER) {
                     progressDialog.cancel()
-                    storeInterface.timerStopped()
+                    storeInterface.stopTimer(timer)
                 } else if (resolution == ConflictResolutionOptions.RESOLVE) {
                     var retries = 3
                     while (retries > 0) {
@@ -322,7 +339,6 @@ class MainActivity : AppCompatActivity() {
                     storeInterface.cancel()
                 }
             } catch (e: Exception) {
-                e.printStackTrace()
                 storeInterface.error(e)
             } finally {
                 progressDialog.cancel()
@@ -352,6 +368,10 @@ class MainActivity : AppCompatActivity() {
 
     fun logout() {
         credStore.clearLoginData()
+        timerControls.clear()
         internalClient = null
+        // Storage gets cleaned in the resume function of the login fragment
+        // because otherwise the cleanup functions of the LoggedIn fragment
+        // will repopulate the storage with the old data that should be deleted
     }
 }

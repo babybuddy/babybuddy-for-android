@@ -15,7 +15,9 @@ import java.util.Locale
 data class WrappedTimer(val mappedActivityIndex: Int, val timer: Timer) {
 }
 
-val IMPLEMENTED_ACTIVITIES = listOf(ACTIVITIES.FEEDING, ACTIVITIES.SLEEP, ACTIVITIES.TUMMY_TIME)
+val IMPLEMENTED_ACTIVITIES = listOf(
+    ACTIVITIES.FEEDING, ACTIVITIES.SLEEP, ACTIVITIES.TUMMY_TIME, ACTIVITIES.PUMPING
+)
 
 class BabyBuddyV2TimerAdapter(
     val childId: Int,
@@ -236,22 +238,15 @@ class BabyBuddyV2TimerAdapter(
         }
     }
 
-    override fun storeActivity(
-        timer: Timer,
-        activity: String,
-        notes: String,
-        cb: Promise<Boolean, Exception>
-    ) {
-        virtualToActualTimer(timer)?.let {
-            wrap.storeActivity(it, activity, notes, cb)
-        } ?: {
-            cb.failed(java.lang.Exception("Timer ${timer.name} does not exist"))
-        }
-    }
-
     override fun registerTimersUpdatedCallback(callback: TimersUpdatedCallback) {
         timersCallback = callback
         triggerTimerCallback()
+    }
+
+    override fun unregisterTimersUpdatedCallback(callback: TimersUpdatedCallback) {
+        if (timersCallback == callback) {
+            timersCallback = null
+        }
     }
 
     override fun getNotes(timer: Timer): CredStore.Notes {

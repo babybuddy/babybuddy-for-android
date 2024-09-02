@@ -43,4 +43,8 @@
     <style name="TutorialArrow">
         <item name="android:backgroundTint">@color/dark_tutorial_highlight</item>
     </style>
+
+    <style name="SeparatorLine">
+        <item name="android:background">@color/semi_transparent_dark_background</item>
+    </style>
 </resources>

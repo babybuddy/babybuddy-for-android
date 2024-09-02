@@ -40,7 +40,6 @@ import eu.pkgsoftware.babybuddywidgets.networking.babybuddy.Client;
 
 public class BabyBuddyClient extends StreamReader {
     public static final String DATE_FORMAT_STRING = "yyyy-MM-dd'T'HH:mm:ssX";
-    public static final String DATE_QUERY_FORMAT_STRING = "yyyy-MM-dd'T'HH:mm:ss";
 
     public static class ACTIVITIES {
         public static final String SLEEP = "sleep";
@@ -123,7 +122,7 @@ public class BabyBuddyClient extends StreamReader {
         if (date == null) {
             return null;
         }
-        final SimpleDateFormat sdf = new SimpleDateFormat(DATE_QUERY_FORMAT_STRING, Locale.ENGLISH);
+        final SimpleDateFormat sdf = new SimpleDateFormat(DATE_FORMAT_STRING, Locale.ENGLISH);
         sdf.setTimeZone(TimeZone.getTimeZone("UTC"));
         return sdf.format(date);
     }

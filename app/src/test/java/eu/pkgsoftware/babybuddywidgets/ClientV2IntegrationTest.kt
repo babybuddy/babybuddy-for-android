@@ -64,6 +64,10 @@ class ClientV2IntegrationTest {
         override fun getServerUrl(): String {
             return _serverUrl
         }
+
+        override fun getAuthCookies(): Map<String, String> {
+            return mapOf()
+        }
     }
 
     suspend fun runObtainListsTest() {

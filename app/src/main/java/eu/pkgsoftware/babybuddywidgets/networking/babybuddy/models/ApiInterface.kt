@@ -1,8 +1,14 @@
 package eu.pkgsoftware.babybuddywidgets.networking.babybuddy.models
 
+import com.fasterxml.jackson.databind.JsonNode
+import com.fasterxml.jackson.module.kotlin.jacksonObjectMapper
 import retrofit2.Call
+import retrofit2.http.Body
 import retrofit2.http.DELETE
 import retrofit2.http.GET
+import retrofit2.http.Header
+import retrofit2.http.Headers
+import retrofit2.http.POST
 import retrofit2.http.Path
 import retrofit2.http.Query
 import retrofit2.http.QueryMap
@@ -14,7 +20,7 @@ interface ApiInterface {
     fun getProfile(): Call<Profile>
 
     @ChildKey("id")
-    @GET("children")
+    @GET("children/")
     fun getChildEntries(
         @Query("offset") offset: Int,
         @Query("limit") limit: Int,
@@ -22,7 +28,7 @@ interface ApiInterface {
     ): Call<PaginatedEntries<Child>>
 
     @ChildKey("child")
-    @GET("sleep")
+    @GET("sleep/")
     fun getSleepEntries(
         @Query("offset") offset: Int,
         @Query("limit") limit: Int,
@@ -30,7 +36,7 @@ interface ApiInterface {
     ): Call<PaginatedEntries<SleepEntry>>
 
     @ChildKey("child")
-    @GET("feedings")
+    @GET("feedings/")
     fun getFeedingEntries(
         @Query("offset") offset: Int,
         @Query("limit") limit: Int,
@@ -38,7 +44,7 @@ interface ApiInterface {
     ): Call<PaginatedEntries<FeedingEntry>>
 
     @ChildKey("child")
-    @GET("tummy-times")
+    @GET("tummy-times/")
     fun getTummyTimeEntries(
         @Query("offset") offset: Int,
         @Query("limit") limit: Int,
@@ -46,7 +52,7 @@ interface ApiInterface {
     ): Call<PaginatedEntries<TummyTimeEntry>>
 
     @ChildKey("child")
-    @GET("pumping")
+    @GET("pumping/")
     fun getPumpingEntries(
         @Query("offset") offset: Int,
         @Query("limit") limit: Int,
@@ -54,7 +60,7 @@ interface ApiInterface {
     ): Call<PaginatedEntries<PumpingEntry>>
 
     @ChildKey("child")
-    @GET("changes")
+    @GET("changes/")
     fun getChangeEntries(
         @Query("offset") offset: Int,
         @Query("limit") limit: Int,
@@ -62,7 +68,7 @@ interface ApiInterface {
     ): Call<PaginatedEntries<ChangeEntry>>
 
     @ChildKey("child")
-    @GET("notes")
+    @GET("notes/")
     fun getNoteEntries(
         @Query("offset") offset: Int,
         @Query("limit") limit: Int,
@@ -70,7 +76,7 @@ interface ApiInterface {
     ): Call<PaginatedEntries<NoteEntry>>
 
     @ChildKey("child")
-    @GET("temperature")
+    @GET("temperature/")
     fun getTemperatureEnties(
         @Query("offset") offset: Int,
         @Query("limit") limit: Int,
@@ -78,7 +84,7 @@ interface ApiInterface {
     ): Call<PaginatedEntries<TemperatureEntry>>
 
     @ChildKey("child")
-    @GET("weight")
+    @GET("weight/")
     fun getWeightEntries(
         @Query("offset") offset: Int,
         @Query("limit") limit: Int,
@@ -86,7 +92,7 @@ interface ApiInterface {
     ): Call<PaginatedEntries<WeightEntry>>
 
     @ChildKey("child")
-    @GET("height")
+    @GET("height/")
     fun getHeightEntries(
         @Query("offset") offset: Int,
         @Query("limit") limit: Int,
@@ -94,7 +100,7 @@ interface ApiInterface {
     ): Call<PaginatedEntries<HeightEntry>>
 
     @ChildKey("child")
-    @GET("head-circumference")
+    @GET("head-circumference/")
     fun getHeadCircumferenceEntries(
         @Query("offset") offset: Int,
         @Query("limit") limit: Int,
@@ -102,7 +108,7 @@ interface ApiInterface {
     ): Call<PaginatedEntries<HeadCircumferenceEntry>>
 
     @ChildKey("child")
-    @GET("bmi")
+    @GET("bmi/")
     fun getBmiEntries(
         @Query("offset") offset: Int,
         @Query("limit") limit: Int,
@@ -114,4 +120,28 @@ interface ApiInterface {
         @Path(value = "type", encoded = true) apiPath: String,
         @Path(value = "id", encoded = true) id: Int,
     ): Call<Any>
+
+    @POST("changes/")
+    @Headers("Content-Type: application/json")
+    fun sendChangeEntry(@Body data: JsonNode): Call<ChangeEntry>
+
+    @POST("sleep/")
+    @Headers("Content-Type: application/json")
+    fun sendSleepEntry(@Body data: JsonNode): Call<SleepEntry>
+
+    @POST("tummy-times/")
+    @Headers("Content-Type: application/json")
+    fun sendTummyTimeEntry(@Body data: JsonNode): Call<TummyTimeEntry>
+
+    @POST("notes/")
+    @Headers("Content-Type: application/json")
+    fun sendNoteEntry(@Body data: JsonNode): Call<NoteEntry>
+
+    @POST("feedings/")
+    @Headers("Content-Type: application/json")
+    fun sendFeedingEntry(@Body data: JsonNode): Call<FeedingEntry>
+
+    @POST("pumping/")
+    @Headers("Content-Type: application/json")
+    fun sendPumpingEntry(@Body data: JsonNode): Call<PumpingEntry>
 }

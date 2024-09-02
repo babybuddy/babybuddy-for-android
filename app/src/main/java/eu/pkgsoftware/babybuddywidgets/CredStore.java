@@ -319,7 +319,7 @@ public class CredStore extends CredStoreEncryptionEngine implements ServerAccess
         return !CURRENT_VERSION.equals(storedVersion);
     }
 
-    public Map<String, String> getAuthCookies() {
+    public @NotNull Map<String, String> getAuthCookies() {
         String encodedMap = decryptMessage(encryptedCookies);
         if (encodedMap == null) {
             return new HashMap<>();

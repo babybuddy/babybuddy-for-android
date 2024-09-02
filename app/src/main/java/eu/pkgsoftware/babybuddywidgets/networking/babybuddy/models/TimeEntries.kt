@@ -1,12 +1,17 @@
 package eu.pkgsoftware.babybuddywidgets.networking.babybuddy.models
 
+import com.fasterxml.jackson.annotation.JsonGetter
+import com.fasterxml.jackson.annotation.JsonIgnore
 import com.fasterxml.jackson.annotation.JsonIgnoreProperties
 import com.fasterxml.jackson.annotation.JsonProperty
+import com.fasterxml.jackson.annotation.JsonSetter
 import com.fasterxml.jackson.databind.annotation.JsonDeserialize
+import com.fasterxml.jackson.databind.annotation.JsonSerialize
 import eu.pkgsoftware.babybuddywidgets.networking.BabyBuddyClient.ACTIVITIES
 import eu.pkgsoftware.babybuddywidgets.networking.BabyBuddyClient.EVENTS
-import eu.pkgsoftware.babybuddywidgets.networking.babybuddy.DateTimeDeserializer
-import eu.pkgsoftware.babybuddywidgets.networking.babybuddy.DateOnlyDeserializer
+import eu.pkgsoftware.babybuddywidgets.DateTimeDeserializer
+import eu.pkgsoftware.babybuddywidgets.DateOnlyDeserializer
+import eu.pkgsoftware.babybuddywidgets.DateTimeSerializer
 import java.util.Date
 import kotlin.reflect.KClass
 import kotlin.reflect.full.findAnnotations
@@ -16,8 +21,8 @@ annotation class APIPath(val path: String)
 annotation class UIPath(val path: String)
 
 interface TimeEntry {
-    val type: String
-    val typeId: Int
+    val appType: String
+    val appTypeId: Int
     val id: Int
     val childId: Int
     val start: Date
@@ -33,13 +38,19 @@ interface TimeEntry {
 data class SleepEntry(
     @JsonProperty("id", required = true) override val id: Int,
     @JsonProperty("child", required = true) override val childId: Int,
-    @JsonProperty("start", required = true) @JsonDeserialize(using = DateTimeDeserializer::class) override val start: Date,
-    @JsonProperty("end", required = true) @JsonDeserialize(using = DateTimeDeserializer::class) override val end: Date,
-    @JsonProperty("notes", required = false) val _notes: String?,
+    @JsonDeserialize(using = DateTimeDeserializer::class)
+    @JsonSerialize(using = DateTimeSerializer::class)
+    @JsonProperty("start", required = true)
+    override val start: Date,
+    @JsonDeserialize(using = DateTimeDeserializer::class)
+    @JsonSerialize(using = DateTimeSerializer::class)
+    @JsonProperty("end", required = true)
+    override val end: Date,
+    @JsonSetter("notes") val _notes: String?,
 ) : TimeEntry {
-    override val type: String = ACTIVITIES.SLEEP
-    override val typeId: Int = ACTIVITIES.index(type)
-    override val notes: String = _notes ?: ""
+    override @JsonIgnore val appType: String = ACTIVITIES.SLEEP
+    override @JsonIgnore val appTypeId: Int = ACTIVITIES.index(appType)
+    override @get:JsonGetter("notes") val notes: String = _notes ?: ""
 }
 
 @UIPath("tummy-time")
@@ -49,13 +60,22 @@ data class SleepEntry(
 data class TummyTimeEntry(
     @JsonProperty("id", required = true) override val id: Int,
     @JsonProperty("child", required = true) override val childId: Int,
-    @JsonProperty("start", required = true) @JsonDeserialize(using = DateTimeDeserializer::class) override val start: Date,
-    @JsonProperty("end", required = true) @JsonDeserialize(using = DateTimeDeserializer::class) override val end: Date,
-    @JsonProperty("milestone", required = false) val _notes: String?,
+
+    @JsonDeserialize(using = DateTimeDeserializer::class)
+    @JsonSerialize(using = DateTimeSerializer::class)
+    @JsonProperty("start", required = true)
+    override val start: Date,
+
+    @JsonDeserialize(using = DateTimeDeserializer::class)
+    @JsonSerialize(using = DateTimeSerializer::class)
+    @JsonProperty("end", required = true)
+    override val end: Date,
+
+    @JsonSetter("milestone") val _notes: String?,
 ) : TimeEntry {
-    override val type: String = ACTIVITIES.TUMMY_TIME
-    override val typeId: Int = ACTIVITIES.index(type)
-    override val notes: String = _notes ?: ""
+    override @JsonIgnore val appType: String = ACTIVITIES.TUMMY_TIME
+    override @JsonIgnore val appTypeId: Int = ACTIVITIES.index(appType)
+    override @get:JsonGetter("milestone") val notes: String = _notes ?: ""
 }
 
 @UIPath("feedings")
@@ -65,16 +85,25 @@ data class TummyTimeEntry(
 data class FeedingEntry(
     @JsonProperty("id", required = true) override val id: Int,
     @JsonProperty("child", required = true) override val childId: Int,
-    @JsonProperty("start", required = true) @JsonDeserialize(using = DateTimeDeserializer::class) override val start: Date,
-    @JsonProperty("end", required = true) @JsonDeserialize(using = DateTimeDeserializer::class) override val end: Date,
-    @JsonProperty("notes", required = false) val _notes: String?,
+
+    @JsonDeserialize(using = DateTimeDeserializer::class)
+    @JsonSerialize(using = DateTimeSerializer::class)
+    @JsonProperty("start", required = true)
+    override val start: Date,
+
+    @JsonDeserialize(using = DateTimeDeserializer::class)
+    @JsonSerialize(using = DateTimeSerializer::class)
+    @JsonProperty("end", required = true)
+    override val end: Date,
+
+    @JsonSetter("notes") val _notes: String?,
     @JsonProperty("type", required = true) val feedingType: String,
     @JsonProperty("method", required = true) val feedingMethod: String,
-    @JsonProperty("amount", required = true) val amount: Double,
+    @JsonProperty("amount", required = true) val amount: Double?,
 ) : TimeEntry {
-    override val type: String = ACTIVITIES.FEEDING
-    override val typeId: Int = ACTIVITIES.index(type)
-    override val notes: String = _notes ?: ""
+    override @JsonIgnore val appType: String = ACTIVITIES.FEEDING
+    override @JsonIgnore val appTypeId: Int = ACTIVITIES.index(appType)
+    override @get:JsonGetter("notes") val notes: String = _notes ?: ""
 }
 
 @UIPath("pumping")
@@ -84,17 +113,17 @@ data class FeedingEntry(
 data class PumpingEntry(
     @JsonProperty("id", required = true) override val id: Int,
     @JsonProperty("child", required = true) override val childId: Int,
-    @JsonProperty("start", required = false) @JsonDeserialize(using = DateTimeDeserializer::class) val _start: Date?,
-    @JsonProperty("end", required = false) @JsonDeserialize(using = DateTimeDeserializer::class) val _end: Date?,
-    @JsonProperty("notes", required = false) val _notes: String?,
+    @JsonSetter("start") @JsonDeserialize(using = DateTimeDeserializer::class) val _start: Date?,
+    @JsonSetter("end") @JsonDeserialize(using = DateTimeDeserializer::class) val _end: Date?,
+    @JsonSetter("notes") val _notes: String?,
     @JsonProperty("amount", required = true) val amount: Double,
-    @JsonProperty("time", required = false) @JsonDeserialize(using = DateTimeDeserializer::class) private val _legacyTime: Date?
+    @JsonSetter("time") @JsonDeserialize(using = DateTimeDeserializer::class) private val _legacyTime: Date?
 ) : TimeEntry {
-    override val type: String = ACTIVITIES.PUMPING
-    override val typeId: Int = ACTIVITIES.index(type)
-    override val start: Date = _start ?: _legacyTime!!
-    override val end: Date = _end ?: _legacyTime!!
-    override val notes: String = _notes ?: ""
+    override @JsonIgnore val appType: String = ACTIVITIES.PUMPING
+    override @JsonIgnore val appTypeId: Int = ACTIVITIES.index(appType)
+    override @get:JsonGetter("start") @JsonSerialize(using = DateTimeSerializer::class) val start: Date = _start ?: _legacyTime!!
+    override @get:JsonGetter("end") @JsonSerialize(using = DateTimeSerializer::class) val end: Date = _end ?: _legacyTime!!
+    override @get:JsonGetter("notes") val notes: String = _notes ?: ""
 }
 
 @UIPath("changes")
@@ -102,19 +131,27 @@ data class PumpingEntry(
 @ActivityName(EVENTS.CHANGE)
 @JsonIgnoreProperties(ignoreUnknown = true)
 data class ChangeEntry(
-    @JsonProperty("id", required = true) override val id: Int,
-    @JsonProperty("child", required = true) override val childId: Int,
-    @JsonProperty("time", required = true) @JsonDeserialize(using = DateTimeDeserializer::class) override val start: Date,
-    @JsonProperty("notes", required = false) val _notes: String?,
+    @JsonProperty("id", required = true)
+    override val id: Int,
+
+    @JsonProperty("child", required = true)
+    override val childId: Int,
+
+    @JsonProperty("time", required = true)
+    @JsonDeserialize(using = DateTimeDeserializer::class)
+    @JsonSerialize(using = DateTimeSerializer::class)
+    override val start: Date,
+
+    @JsonSetter("notes") val _notes: String?,
     @JsonProperty("wet", required = true) val wet: Boolean,
     @JsonProperty("solid", required = true) val solid: Boolean,
     @JsonProperty("color", required = true) val color: String,
     @JsonProperty("amount", required = true) val amount: Double?,
 ) : TimeEntry {
-    override val type: String = EVENTS.CHANGE
-    override val typeId: Int = EVENTS.index(type)
+    override @JsonIgnore val appType: String = EVENTS.CHANGE
+    override @JsonIgnore val appTypeId: Int = EVENTS.index(appType)
     override val end: Date = start
-    override val notes: String = _notes ?: ""
+    override @get:JsonGetter("notes") val notes: String = _notes ?: ""
 }
 
 @UIPath("notes")
@@ -122,13 +159,21 @@ data class ChangeEntry(
 @ActivityName(EVENTS.NOTE)
 @JsonIgnoreProperties(ignoreUnknown = true)
 data class NoteEntry(
-    @JsonProperty("id", required = true) override val id: Int,
-    @JsonProperty("child", required = true) override val childId: Int,
-    @JsonProperty("time", required = true) @JsonDeserialize(using = DateTimeDeserializer::class) override val start: Date,
+    @JsonProperty("id", required = true)
+    override val id: Int,
+
+    @JsonProperty("child", required = true)
+    override val childId: Int,
+
+    @JsonProperty("time", required = true)
+    @JsonDeserialize(using = DateTimeDeserializer::class)
+    @JsonSerialize(using = DateTimeSerializer::class)
+    override val start: Date,
+
     @JsonProperty("note", required = false) val _notes: String?,
 ) : TimeEntry {
-    override val type: String = EVENTS.NOTE
-    override val typeId: Int = EVENTS.index(type)
+    override @JsonIgnore val appType: String = EVENTS.NOTE
+    override @JsonIgnore val appTypeId: Int = EVENTS.index(appType)
     override val end: Date = start
     override val notes: String = _notes ?: ""
 }
@@ -144,8 +189,8 @@ data class BmiEntry(
     @JsonProperty("notes", required = false) val _notes: String?,
     @JsonProperty("bmi", required = true) val bmi: Double,
 ) : TimeEntry {
-    override val type: String = EVENTS.BMI
-    override val typeId: Int = EVENTS.index(type)
+    override @JsonIgnore val appType: String = EVENTS.BMI
+    override @JsonIgnore val appTypeId: Int = EVENTS.index(appType)
     override val end: Date = start
     override val notes: String = _notes ?: ""
 }
@@ -161,8 +206,8 @@ data class TemperatureEntry(
     @JsonProperty("notes", required = false) val _notes: String?,
     @JsonProperty("temperature", required = true) val temperature: Double,
 ) : TimeEntry {
-    override val type: String = EVENTS.TEMPERATURE
-    override val typeId: Int = EVENTS.index(type)
+    override @JsonIgnore val appType: String = EVENTS.TEMPERATURE
+    override @JsonIgnore val appTypeId: Int = EVENTS.index(appType)
     override val end: Date = start
     override val notes: String = _notes ?: ""
 }
@@ -178,8 +223,8 @@ data class WeightEntry(
     @JsonProperty("notes", required = false) val _notes: String?,
     @JsonProperty("weight", required = true) val weight: Double,
 ) : TimeEntry {
-    override val type: String = EVENTS.WEIGHT
-    override val typeId: Int = EVENTS.index(type)
+    override @JsonIgnore val appType: String = EVENTS.WEIGHT
+    override @JsonIgnore val appTypeId: Int = EVENTS.index(appType)
     override val end: Date = start
     override val notes: String = _notes ?: ""
 }
@@ -195,8 +240,8 @@ data class HeightEntry(
     @JsonProperty("notes", required = false) val _notes: String?,
     @JsonProperty("height", required = true) val height: Double,
 ) : TimeEntry {
-    override val type: String = EVENTS.HEIGHT
-    override val typeId: Int = EVENTS.index(type)
+    override @JsonIgnore val appType: String = EVENTS.HEIGHT
+    override @JsonIgnore val appTypeId: Int = EVENTS.index(appType)
     override val end: Date = start
     override val notes: String = _notes ?: ""
 }
@@ -212,8 +257,8 @@ data class HeadCircumferenceEntry(
     @JsonProperty("notes", required = false) val _notes: String?,
     @JsonProperty("head_circumference", required = true) val head_circumference: Double,
 ) : TimeEntry {
-    override val type: String = EVENTS.HEAD_CIRCUMFERENCE
-    override val typeId: Int = EVENTS.index(type)
+    override @JsonIgnore val appType: String = EVENTS.HEAD_CIRCUMFERENCE
+    override @JsonIgnore val appTypeId: Int = EVENTS.index(appType)
     override val end: Date = start
     override val notes: String = _notes ?: ""
 }

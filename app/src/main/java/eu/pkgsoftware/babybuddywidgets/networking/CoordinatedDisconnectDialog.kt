@@ -4,11 +4,12 @@ import android.app.ProgressDialog
 import android.content.DialogInterface
 import androidx.fragment.app.Fragment
 import androidx.navigation.Navigation.findNavController
+import eu.pkgsoftware.babybuddywidgets.BaseFragment
 import eu.pkgsoftware.babybuddywidgets.CredStore
 import eu.pkgsoftware.babybuddywidgets.R
 import eu.pkgsoftware.babybuddywidgets.networking.babybuddy.ConnectingDialogInterface
 
-class CoordinatedDisconnectDialog(val fragment: Fragment, val credStore: CredStore) {
+class CoordinatedDisconnectDialog(val fragment: BaseFragment, val credStore: CredStore) {
     private val dialog = ProgressDialog(fragment.requireContext())
     private var uniqueCounter = 1
     private val progressTrackers = mutableMapOf<String, Long>()
@@ -21,7 +22,7 @@ class CoordinatedDisconnectDialog(val fragment: Fragment, val credStore: CredSto
             ProgressDialog.BUTTON_NEGATIVE,
             fragment.resources.getString(R.string.disconnect_dialog_logout)
         ) { dialogInterface: DialogInterface, i: Int ->
-            credStore.clearLoginData()
+            fragment.mainActivity.logout()
             findNavController(fragment.requireView()).navigate(R.id.logoutOperation)
         }
     }

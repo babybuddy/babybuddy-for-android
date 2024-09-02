@@ -14,6 +14,7 @@ import eu.pkgsoftware.babybuddywidgets.logic.EndAwareContinuousListIntegrator
 import eu.pkgsoftware.babybuddywidgets.networking.RequestCodeFailure
 import eu.pkgsoftware.babybuddywidgets.networking.babybuddy.ConnectingDialogInterface
 import eu.pkgsoftware.babybuddywidgets.networking.babybuddy.InterruptedException
+import eu.pkgsoftware.babybuddywidgets.networking.babybuddy.PaginatedResult
 import eu.pkgsoftware.babybuddywidgets.networking.babybuddy.exponentialBackoff
 import eu.pkgsoftware.babybuddywidgets.networking.babybuddy.models.ChangeEntry
 import eu.pkgsoftware.babybuddywidgets.networking.babybuddy.models.SleepEntry
@@ -49,7 +50,7 @@ class ChildEventHistoryLoader(
     private val progressBar: ProgressBar,
     private val errorPill: ShowErrorPill,
 ) {
-    val HISTORY_ITEM_COUNT = 50
+    val HISTORY_ITEM_COUNT = 150 / IMPLEMENTED_EVENT_CLASSES.size
     val POLL_INTERVAL = 5000
 
     private val activityCollectionGate = IMPLEMENTED_EVENT_CLASSES.toMutableList()
@@ -97,8 +98,12 @@ class ChildEventHistoryLoader(
                         val activityName = classActivityName(it)
                         try {
                             val conInterface = BackoffConnectionInterface(activityName)
+                            val mainActivity = fragment.mainActivity
                             val r = exponentialBackoff(conInterface) {
-                                fragment.mainActivity.client.v2client.getEntries(
+                                if (fragment.isDetached) {
+                                    throw InterruptedException()
+                                }
+                                mainActivity.client.v2client.getEntries(
                                     it,
                                     offset = queryOffsets.getOrDefault(it, 0),
                                     limit = HISTORY_ITEM_COUNT,
@@ -140,7 +145,7 @@ class ChildEventHistoryLoader(
     private fun timeEntryToContinuousListItem(e: TimeEntry): ContinuousListItem {
         val result = ContinuousListItem(
             -e.start.time,
-            e.type,
+            e.appType,
             e.id.toString(),
         )
         timeEntryLookup[result] = e
@@ -246,7 +251,6 @@ class ChildEventHistoryLoader(
                     override val position: PointF? get() {
                         val r = Rect()
                         container.getGlobalVisibleRect(r)
-                        println(r)
                         if (r.isEmpty) return null
                         return PointF((r.left + r.right) / 2f, r.top.toFloat())
                     }
@@ -265,6 +269,21 @@ class ChildEventHistoryLoader(
         timeEntryLookup.clear()
         queryOffsets.clear()
         tutorialMessageAdded = false
+    }
+
+    fun addEntryToTop(entry: TimeEntry) {
+        val cls = entry::class
+        val activityName = classActivityName(cls)
+
+        val currentList = listIntegrator.items.filter { it.className == activityName }.toMutableList()
+        currentList.add(0, timeEntryToContinuousListItem(entry))
+
+        listIntegrator.updateItemsWithCount(
+            0, currentList.size, activityName, currentList.toTypedArray()
+        )
+        fragment.mainActivity.scope.launch {
+            deferredUpdate()
+        }
     }
 
     fun updateTop() {
