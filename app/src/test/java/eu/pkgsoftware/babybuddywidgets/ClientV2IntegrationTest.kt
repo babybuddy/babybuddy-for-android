@@ -15,6 +15,7 @@ import eu.pkgsoftware.babybuddywidgets.networking.babybuddy.models.SleepEntry
 import eu.pkgsoftware.babybuddywidgets.networking.babybuddy.models.TemperatureEntry
 import eu.pkgsoftware.babybuddywidgets.networking.babybuddy.models.TummyTimeEntry
 import eu.pkgsoftware.babybuddywidgets.networking.babybuddy.models.WeightEntry
+import kotlinx.coroutines.ExperimentalCoroutinesApi
 import kotlinx.coroutines.test.runTest
 import org.junit.Assert
 import org.junit.Test
@@ -132,6 +133,7 @@ class ClientV2IntegrationTest {
         Assert.assertTrue(headCircEntires.entries.size > 0)
     }
 
+    @OptIn(ExperimentalCoroutinesApi::class)
     @Test
     fun testObtainLists() = runTest {
         for (server in serverUrlArray) {
