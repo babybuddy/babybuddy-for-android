@@ -16,10 +16,15 @@ interface ConnectingDialogInterface {
 
 class InterruptedException : Exception("Exponential backoff interrupted")
 
-suspend fun <T : Any> exponentialBackoff(conInterface: ConnectingDialogInterface, block: suspend () -> T): T {
+suspend fun <T : Any> exponentialBackoff(
+    conInterface: ConnectingDialogInterface,
+    forceRetry400: Int = 0,
+    block: suspend () -> T,
+): T {
     val totalWaitTimeStart = System.currentTimeMillis()
     var currentRetryDelay = INITIAL_RETRY_INTERVAL
     var showingConnecting = false
+    var forceRetry400Counter = 0
     try {
         while (true) {
             var error: Exception? = null
@@ -27,8 +32,13 @@ suspend fun <T : Any> exponentialBackoff(conInterface: ConnectingDialogInterface
                 return block.invoke()
             }
             catch (e: RequestCodeFailure) {
+                println("XXX ${forceRetry400Counter} < ${forceRetry400}")
                 if ((e.code >= 400) and (e.code < 500)) {
-                    throw e
+                    if (forceRetry400Counter < forceRetry400) {
+                        forceRetry400Counter++
+                    } else {
+                        throw e
+                    }
                 }
                 error = e
             }

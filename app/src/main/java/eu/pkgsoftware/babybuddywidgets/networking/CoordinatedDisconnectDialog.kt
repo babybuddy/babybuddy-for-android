@@ -35,6 +35,8 @@ class CoordinatedDisconnectDialog(val fragment: BaseFragment, val credStore: Cre
             return progressTrackers.values.max()
         }
 
+    var timeoutGracePeriod = 1000L
+
     private inner class ConnectingDialogInterfaceImpl : ConnectingDialogInterface {
         val key = "interface-${uniqueCounter}"
 
@@ -62,7 +64,7 @@ class CoordinatedDisconnectDialog(val fragment: BaseFragment, val credStore: Cre
     }
 
     private fun updateDialog() {
-        if (timeout > 0) {
+        if (timeout > timeoutGracePeriod) {
             dialog.show()
         } else {
             dialog.hide()

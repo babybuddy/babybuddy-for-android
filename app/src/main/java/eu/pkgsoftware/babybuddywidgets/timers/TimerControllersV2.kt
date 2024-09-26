@@ -32,6 +32,8 @@ import eu.pkgsoftware.babybuddywidgets.login.Utils
 import eu.pkgsoftware.babybuddywidgets.networking.BabyBuddyClient
 import eu.pkgsoftware.babybuddywidgets.networking.BabyBuddyClient.Timer
 import eu.pkgsoftware.babybuddywidgets.networking.RequestCodeFailure
+import eu.pkgsoftware.babybuddywidgets.networking.babybuddy.exponentialBackoff
+import eu.pkgsoftware.babybuddywidgets.networking.babybuddy.maxDate
 import eu.pkgsoftware.babybuddywidgets.networking.babybuddy.models.ChangeEntry
 import eu.pkgsoftware.babybuddywidgets.networking.babybuddy.models.FeedingEntry
 import eu.pkgsoftware.babybuddywidgets.networking.babybuddy.models.NoteEntry
@@ -46,7 +48,6 @@ import eu.pkgsoftware.babybuddywidgets.utils.AsyncPromiseFailure
 import eu.pkgsoftware.babybuddywidgets.utils.ConcurrentEventBlocker
 import eu.pkgsoftware.babybuddywidgets.utils.Promise
 import eu.pkgsoftware.babybuddywidgets.widgets.HorizontalDecIncEditor
-import eu.pkgsoftware.babybuddywidgets.widgets.HorizontalNumberPicker
 import eu.pkgsoftware.babybuddywidgets.widgets.SwitchButtonLogic
 import kotlinx.coroutines.Runnable
 import kotlinx.coroutines.launch
@@ -409,7 +410,7 @@ class SleepLoggingController(
                 id = 0,
                 childId = childId,
                 start = timer.start,
-                end = nowServer(),
+                end = maxDate(timer.start, nowServer()),
                 _notes = bindings.noteEditor.text.toString()
             )
         )
@@ -428,7 +429,7 @@ class TummyTimeLoggingController(
                 id = 0,
                 childId = childId,
                 start = timer.start,
-                end = nowServer(),
+                end = maxDate(timer.start, nowServer()),
                 _notes = bindings.noteEditor.text.toString()
             )
         )
@@ -594,7 +595,7 @@ class FeedingLoggingController(
                 id = 0,
                 childId = childId,
                 start = timer.start,
-                end = nowServer(),
+                end = maxDate(timer.start, nowServer()),
                 feedingType = selectedType!!,
                 feedingMethod = selectedMethod!!,
                 amount = feedingBinding.amountNumberPicker.value?.toDouble(),
@@ -752,7 +753,7 @@ class PumpingLoggingController(
                 id = 0,
                 childId = childId,
                 _start = timer.start,
-                _end = nowServer(),
+                _end = maxDate(timer.start, nowServer()),
                 amount = amountNumberPicker.value!!.toDouble(),
                 _notes = uiNoteEditor.text.toString(),
                 _legacyTime = timer.start
@@ -965,11 +966,16 @@ class LoggingButtonController(
         timerModificationsBlocker.wait()
         timerModificationsBlocker.register {
             try {
-                logicMap[activity]?.state = false
-                val te = controller.save()
-                controller.reset()
-                storeStateForSuspend()
-                controlsInterface.updateTimeline(te)
+                // Note: exponentialBackoff does not work right now because controller.save()
+                // calls MainActivity.storeActivity() which does not throw exceptions but
+                // uses a callback to signal success or failure.
+                exponentialBackoff(fragment.disconnectDialog.getInterface(), forceRetry400 = 5) {
+                    logicMap[activity]?.state = false
+                    val te = controller.save()
+                    controller.reset()
+                    storeStateForSuspend()
+                    controlsInterface.updateTimeline(te)
+                }
             }
             catch (e: RequestCodeFailure) {
                 fragment.showError(

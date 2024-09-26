@@ -5,7 +5,7 @@ import java.text.SimpleDateFormat
 import java.util.Date
 import java.util.Locale
 
-var SystemServerTimeOffset = -1000L
+var SystemServerTimeOffsetTracker = ServerTimeOffsetTracker()
 
 val DATE_TIME_FORMAT_STRING = "yyyy-MM-dd'T'HH:mm:ssX"
 val DATE_ONLY_FORMAT_STRING = "yyyy-MM-dd"
@@ -32,13 +32,17 @@ fun formatDate(d: Date, format: String): String {
 }
 
 fun clientToServerTime(d: Date): Date {
-    return Date(d.time + SystemServerTimeOffset)
+    return Date(SystemServerTimeOffsetTracker.localToSafeServerTime(d.time))
 }
 
 fun serverTimeToClientTime(d: Date): Date {
-    return Date(d.time - SystemServerTimeOffset)
+    return Date(SystemServerTimeOffsetTracker.serverToLocalTime(d.time))
 }
 
 fun nowServer(): Date {
     return clientToServerTime(Date())
+}
+
+fun maxDate(d1: Date, d2: Date): Date {
+    return if (d1.after(d2)) d1 else d2
 }
