@@ -12,7 +12,6 @@ import java.io.IOException;
 import java.io.InputStream;
 import java.io.OutputStream;
 import java.io.UnsupportedEncodingException;
-import java.lang.reflect.Array;
 import java.net.HttpURLConnection;
 import java.net.MalformedURLException;
 import java.net.URL;
@@ -30,7 +29,6 @@ import java.util.Map;
 import java.util.Objects;
 import java.util.Random;
 import java.util.TimeZone;
-import java.util.Timer;
 
 import androidx.annotation.NonNull;
 import eu.pkgsoftware.babybuddywidgets.Constants;
@@ -400,9 +398,6 @@ public class BabyBuddyClient extends StreamReader {
         void response(R response);
     }
 
-    private final SimpleDateFormat SERVER_DATE_FORMAT = new SimpleDateFormat(
-        "EEE, d MMM yyyy HH:mm:ss z", Locale.ENGLISH
-    );
 
     private Handler syncMessage;
     private CredStore credStore;
@@ -418,7 +413,7 @@ public class BabyBuddyClient extends StreamReader {
             return; // Chicken out, no dateString found, let's hope everything works!
         }
         try {
-            Date serverTime = SERVER_DATE_FORMAT.parse(dateString);
+            Date serverTime = Constants.SERVER_DATE_FORMAT.parse(dateString);
             Date now = new Date(System.currentTimeMillis());
 
             serverDateOffset = serverTime.getTime() - now.getTime() - 100; // 100 ms offset
@@ -759,10 +754,6 @@ public class BabyBuddyClient extends StreamReader {
                 callback.response(new GenericSubsetResponseHeader<>(offset, totalCount, result));
             }
         });
-    }
-
-    private interface WrapTimelineEntry<TE extends TimeEntry> {
-        TE wrap(JSONObject json) throws ParseException, JSONException;
     }
 
     public void updateTimelineEntry(

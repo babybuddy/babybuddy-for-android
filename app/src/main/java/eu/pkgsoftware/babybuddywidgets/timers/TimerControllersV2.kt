@@ -32,6 +32,10 @@ import eu.pkgsoftware.babybuddywidgets.login.Utils
 import eu.pkgsoftware.babybuddywidgets.networking.BabyBuddyClient
 import eu.pkgsoftware.babybuddywidgets.networking.BabyBuddyClient.Timer
 import eu.pkgsoftware.babybuddywidgets.networking.RequestCodeFailure
+import eu.pkgsoftware.babybuddywidgets.networking.babybuddy.exponentialBackoff
+import eu.pkgsoftware.babybuddywidgets.networking.babybuddy.maxDate
+import eu.pkgsoftware.babybuddywidgets.networking.babybuddy.minData
+import eu.pkgsoftware.babybuddywidgets.networking.babybuddy.minDate
 import eu.pkgsoftware.babybuddywidgets.networking.babybuddy.models.ChangeEntry
 import eu.pkgsoftware.babybuddywidgets.networking.babybuddy.models.FeedingEntry
 import eu.pkgsoftware.babybuddywidgets.networking.babybuddy.models.NoteEntry
@@ -409,7 +413,7 @@ class SleepLoggingController(
                 id = 0,
                 childId = childId,
                 start = timer.start,
-                end = nowServer(),
+                end = maxDate(timer.start, nowServer()),
                 _notes = bindings.noteEditor.text.toString()
             )
         )
@@ -428,7 +432,7 @@ class TummyTimeLoggingController(
                 id = 0,
                 childId = childId,
                 start = timer.start,
-                end = nowServer(),
+                end = maxDate(timer.start, nowServer()),
                 _notes = bindings.noteEditor.text.toString()
             )
         )
@@ -594,7 +598,7 @@ class FeedingLoggingController(
                 id = 0,
                 childId = childId,
                 start = timer.start,
-                end = nowServer(),
+                end = maxDate(timer.start, nowServer()),
                 feedingType = selectedType!!,
                 feedingMethod = selectedMethod!!,
                 amount = feedingBinding.amountNumberPicker.value?.toDouble(),
@@ -752,7 +756,7 @@ class PumpingLoggingController(
                 id = 0,
                 childId = childId,
                 _start = timer.start,
-                _end = nowServer(),
+                _end = maxDate(timer.start, nowServer()),
                 amount = amountNumberPicker.value!!.toDouble(),
                 _notes = uiNoteEditor.text.toString(),
                 _legacyTime = timer.start
@@ -964,36 +968,38 @@ class LoggingButtonController(
     suspend fun runSave(activity: String, controller: LoggingControls) {
         timerModificationsBlocker.wait()
         timerModificationsBlocker.register {
-            try {
-                logicMap[activity]?.state = false
-                val te = controller.save()
-                controller.reset()
-                storeStateForSuspend()
-                controlsInterface.updateTimeline(te)
-            }
-            catch (e: RequestCodeFailure) {
-                fragment.showError(
-                    true,
-                    R.string.activity_store_failure_message,
-                    Phrase.from(
-                        fragment.requireContext(),
-                        R.string.activity_store_failure_server_error
-                    )
-                        .put(
-                            "message",
-                            fragment.getString(R.string.activity_store_failure_server_error_general)
+            exponentialBackoff(fragment.disconnectDialog.getInterface()) {
+                try {
+                    logicMap[activity]?.state = false
+                    val te = controller.save()
+                    controller.reset()
+                    storeStateForSuspend()
+                    controlsInterface.updateTimeline(te)
+                }
+                catch (e: RequestCodeFailure) {
+                    fragment.showError(
+                        true,
+                        R.string.activity_store_failure_message,
+                        Phrase.from(
+                            fragment.requireContext(),
+                            R.string.activity_store_failure_server_error
                         )
-                        .put("server_message", e.jsonErrorMessages().joinToString(", "))
-                        .format().toString()
+                            .put(
+                                "message",
+                                fragment.getString(R.string.activity_store_failure_server_error_general)
+                            )
+                            .put("server_message", e.jsonErrorMessages().joinToString(", "))
+                            .format().toString()
 
-                )
-            }
-            catch (e: IOException) {
-                fragment.showError(
-                    true,
-                    R.string.activity_store_failure_message,
-                    R.string.activity_store_failure_server_error_generic_ioerror
-                )
+                    )
+                }
+                catch (e: IOException) {
+                    fragment.showError(
+                        true,
+                        R.string.activity_store_failure_message,
+                        R.string.activity_store_failure_server_error_generic_ioerror
+                    )
+                }
             }
         }
     }

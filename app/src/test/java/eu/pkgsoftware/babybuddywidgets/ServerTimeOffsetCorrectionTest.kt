@@ -1,11 +1,10 @@
 package eu.pkgsoftware.babybuddywidgets
 
-import eu.pkgsoftware.babybuddywidgets.networking.ServerTimeOffsetTracker
 import org.junit.Assert
 import org.junit.Test
 import java.util.Date
 
-class TestableServerTimeOffsetTracker : ServerTimeOffsetTracker() {
+class TestableServerTimeOffsetTracker : eu.pkgsoftware.babybuddywidgets.networking.babybuddy.ServerTimeOffsetTracker() {
     var testTime = 0L
 
     override fun currentTimeMillis(): Long {
@@ -33,7 +32,7 @@ class ServerTimeOffsetCorrectionTest {
         tracker.updateServerTime(headerFromMillis(-2000))
 
         Assert.assertEquals(-1000, tracker.measuredOffset)
-        Assert.assertEquals(8000, tracker.localToServerTime(10000))
+        Assert.assertEquals(8000, tracker.localToSafeServerTime(10000))
     }
 
     @Test
@@ -51,7 +50,7 @@ class ServerTimeOffsetCorrectionTest {
         tracker.updateServerTime(headerFromMillis(2000))
 
         Assert.assertEquals(1000, tracker.measuredOffset)
-        Assert.assertEquals(10000, tracker.localToServerTime(10000))
+        Assert.assertEquals(10000, tracker.localToSafeServerTime(10000))
     }
 
     @Test
@@ -62,6 +61,6 @@ class ServerTimeOffsetCorrectionTest {
         }
 
         Assert.assertEquals(-5000, tracker.measuredOffset)
-        Assert.assertEquals(4000, tracker.localToServerTime(10000))
+        Assert.assertEquals(4000, tracker.localToSafeServerTime(10000))
     }
 }

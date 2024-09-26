@@ -20,7 +20,6 @@ import okhttp3.Interceptor
 import okhttp3.OkHttpClient
 import okhttp3.Response
 import okio.Buffer
-import okio.BufferedSink
 import retrofit2.Call
 import retrofit2.Retrofit
 import retrofit2.converter.jackson.JacksonConverterFactory
@@ -36,7 +35,6 @@ import kotlin.reflect.full.createType
 import kotlin.reflect.full.findAnnotation
 import kotlin.reflect.full.findParameterByName
 import kotlin.reflect.full.functions
-import kotlin.reflect.full.valueParameters
 import kotlin.reflect.jvm.javaMethod
 
 fun genRequestId(): String {
@@ -81,6 +79,16 @@ class DebugNetworkInterceptor : Interceptor {
     }
 }
 
+class ServerTimeOffsetInterceptor(val tracker: ServerTimeOffsetTracker) : Interceptor {
+    override fun intercept(chain: Interceptor.Chain): Response {
+        val response = chain.proceed(chain.request())
+        response.header("Date")?.let { serverTime ->
+            tracker.updateServerTime(serverTime)
+        }
+        return response
+    }
+}
+
 class InvalidBody() : Exception("Invalid body")
 
 data class PaginatedResult<T> (
@@ -91,6 +99,7 @@ data class PaginatedResult<T> (
 
 class Client(val credStore: ServerAccessProviderInterface) {
     val httpClient = OkHttpClient.Builder()
+        .addInterceptor(ServerTimeOffsetInterceptor(SystemServerTimeOffsetTracker))
         .addInterceptor(AuthInterceptor("Token " + credStore.appToken, credStore.authCookies))
         .addInterceptor(DebugNetworkInterceptor())
         .build()

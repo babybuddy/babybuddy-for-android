@@ -1,6 +1,12 @@
 package eu.pkgsoftware.babybuddywidgets
 
+import java.text.SimpleDateFormat
+import java.util.Locale
+
 object Constants {
+    @JvmField
+    val SERVER_DATE_FORMAT = SimpleDateFormat("EEE, d MMM yyyy HH:mm:ss z", Locale.ENGLISH)
+
     enum class FeedingTypeEnum(@JvmField var value: Int, @JvmField var post_name: String) {
         BREAST_MILK(0, "breast milk"),
         FORMULA(1, "formula"),

@@ -1,4 +1,4 @@
-package eu.pkgsoftware.babybuddywidgets.networking
+package eu.pkgsoftware.babybuddywidgets.networking.babybuddy
 
 import eu.pkgsoftware.babybuddywidgets.Constants
 
@@ -25,7 +25,7 @@ open class ServerTimeOffsetTracker(initialOffsets: Sequence<Long> = sequenceOf()
 
     fun addOffsets(offsets: Sequence<Long>) {
         _offsets.addAll(offsets)
-        while (_offsets.size > MAX_OFFSETS) {
+        while (_offsets.size > eu.pkgsoftware.babybuddywidgets.networking.babybuddy.MAX_OFFSETS) {
             _offsets.removeAt(0)
         }
     }
@@ -44,12 +44,16 @@ open class ServerTimeOffsetTracker(initialOffsets: Sequence<Long> = sequenceOf()
         addOffsets(sequenceOf(newOffset))
     }
 
-    fun localToServerTime(millis: Long): Long {
+    fun localToSafeServerTime(millis: Long): Long {
         val mOffset = measuredOffset
         val nowOffset = millis - currentTimeMillis()
         if (nowOffset < mOffset - 1000) {
             return millis
         }
         return millis + mOffset - 1000
+    }
+
+    fun serverToLocalTime(millis: Long): Long {
+        return millis - measuredOffset
     }
 }
