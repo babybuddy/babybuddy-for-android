@@ -34,8 +34,6 @@ import eu.pkgsoftware.babybuddywidgets.networking.BabyBuddyClient.Timer
 import eu.pkgsoftware.babybuddywidgets.networking.RequestCodeFailure
 import eu.pkgsoftware.babybuddywidgets.networking.babybuddy.exponentialBackoff
 import eu.pkgsoftware.babybuddywidgets.networking.babybuddy.maxDate
-import eu.pkgsoftware.babybuddywidgets.networking.babybuddy.minData
-import eu.pkgsoftware.babybuddywidgets.networking.babybuddy.minDate
 import eu.pkgsoftware.babybuddywidgets.networking.babybuddy.models.ChangeEntry
 import eu.pkgsoftware.babybuddywidgets.networking.babybuddy.models.FeedingEntry
 import eu.pkgsoftware.babybuddywidgets.networking.babybuddy.models.NoteEntry
@@ -50,7 +48,6 @@ import eu.pkgsoftware.babybuddywidgets.utils.AsyncPromiseFailure
 import eu.pkgsoftware.babybuddywidgets.utils.ConcurrentEventBlocker
 import eu.pkgsoftware.babybuddywidgets.utils.Promise
 import eu.pkgsoftware.babybuddywidgets.widgets.HorizontalDecIncEditor
-import eu.pkgsoftware.babybuddywidgets.widgets.HorizontalNumberPicker
 import eu.pkgsoftware.babybuddywidgets.widgets.SwitchButtonLogic
 import kotlinx.coroutines.Runnable
 import kotlinx.coroutines.launch
@@ -968,38 +965,41 @@ class LoggingButtonController(
     suspend fun runSave(activity: String, controller: LoggingControls) {
         timerModificationsBlocker.wait()
         timerModificationsBlocker.register {
-            exponentialBackoff(fragment.disconnectDialog.getInterface()) {
-                try {
+            try {
+                // Note: exponentialBackoff does not work right now because controller.save()
+                // calls MainActivity.storeActivity() which does not throw exceptions but
+                // uses a callback to signal success or failure.
+                exponentialBackoff(fragment.disconnectDialog.getInterface(), forceRetry400 = 5) {
                     logicMap[activity]?.state = false
                     val te = controller.save()
                     controller.reset()
                     storeStateForSuspend()
                     controlsInterface.updateTimeline(te)
                 }
-                catch (e: RequestCodeFailure) {
-                    fragment.showError(
-                        true,
-                        R.string.activity_store_failure_message,
-                        Phrase.from(
-                            fragment.requireContext(),
-                            R.string.activity_store_failure_server_error
+            }
+            catch (e: RequestCodeFailure) {
+                fragment.showError(
+                    true,
+                    R.string.activity_store_failure_message,
+                    Phrase.from(
+                        fragment.requireContext(),
+                        R.string.activity_store_failure_server_error
+                    )
+                        .put(
+                            "message",
+                            fragment.getString(R.string.activity_store_failure_server_error_general)
                         )
-                            .put(
-                                "message",
-                                fragment.getString(R.string.activity_store_failure_server_error_general)
-                            )
-                            .put("server_message", e.jsonErrorMessages().joinToString(", "))
-                            .format().toString()
+                        .put("server_message", e.jsonErrorMessages().joinToString(", "))
+                        .format().toString()
 
-                    )
-                }
-                catch (e: IOException) {
-                    fragment.showError(
-                        true,
-                        R.string.activity_store_failure_message,
-                        R.string.activity_store_failure_server_error_generic_ioerror
-                    )
-                }
+                )
+            }
+            catch (e: IOException) {
+                fragment.showError(
+                    true,
+                    R.string.activity_store_failure_message,
+                    R.string.activity_store_failure_server_error_generic_ioerror
+                )
             }
         }
     }
