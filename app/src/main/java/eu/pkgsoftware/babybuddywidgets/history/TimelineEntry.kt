@@ -14,6 +14,7 @@ import eu.pkgsoftware.babybuddywidgets.networking.RequestCodeFailure
 import eu.pkgsoftware.babybuddywidgets.networking.babybuddy.models.ChangeEntry
 import eu.pkgsoftware.babybuddywidgets.networking.babybuddy.models.FeedingEntry
 import eu.pkgsoftware.babybuddywidgets.networking.babybuddy.models.TimeEntry
+import eu.pkgsoftware.babybuddywidgets.networking.babybuddy.serverTimeToClientTime
 import kotlinx.coroutines.launch
 import java.io.IOException
 import java.net.MalformedURLException
@@ -83,15 +84,19 @@ class TimelineEntry(private val fragment: BaseFragment, private var _entry: Time
     }
 
     private fun defaultPhraseFields(phrase: Phrase): Phrase {
-        val start_time = TIME_FORMAT.format(entry!!.start)
-        val end_time = TIME_FORMAT.format(entry!!.end)
+        val local_start_time = serverTimeToClientTime(entry!!.start)
+        val local_end_time = serverTimeToClientTime(entry!!.end)
+
+        val start_time = TIME_FORMAT.format(local_start_time)
+        val end_time = TIME_FORMAT.format(local_end_time)
         val opt_time_range = if (start_time == end_time) start_time else "$start_time - $end_time"
+
         return phrase
             .putOptional("type", entry!!.appType)
-            .putOptional("start_date", DATE_FORMAT.format(entry!!.start))
-            .putOptional("start_time", TIME_FORMAT.format(entry!!.start))
-            .putOptional("end_date", DATE_FORMAT.format(entry!!.end))
-            .putOptional("end_time", TIME_FORMAT.format(entry!!.end))
+            .putOptional("start_date", DATE_FORMAT.format(local_start_time))
+            .putOptional("start_time", TIME_FORMAT.format(local_start_time))
+            .putOptional("end_date", DATE_FORMAT.format(local_end_time))
+            .putOptional("end_time", TIME_FORMAT.format(local_end_time))
             .putOptional("opt_time_range", opt_time_range)
             .putOptional("notes", entry!!.notes.trim { it <= ' ' })
     }

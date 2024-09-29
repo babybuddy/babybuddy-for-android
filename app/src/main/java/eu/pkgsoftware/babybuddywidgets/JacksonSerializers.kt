@@ -18,7 +18,7 @@ class DateTimeDeserializer : StdDeserializer<Date>(Date::class.java) {
     override fun deserialize(p: JsonParser, ctxt: DeserializationContext?): Date {
         p.text?.let {
             parseNullOrDate(it, DATE_TIME_FORMAT_STRING)?.let {
-                return serverTimeToClientTime(it)
+                return it
             }
         }
         throw IOException("Invalid date string ${p.text}")
@@ -40,7 +40,7 @@ class AnyDateTimeDeserializer : StdDeserializer<Date>(Date::class.java) {
     override fun deserialize(p: JsonParser, ctxt: DeserializationContext?): Date {
         p.text?.let {
             parseNullOrDate(it, DATE_TIME_FORMAT_STRING)?.let {
-                return serverTimeToClientTime(it)
+                return it
             }
             parseNullOrDate(it, DATE_ONLY_FORMAT_STRING)?.let {
                 return it

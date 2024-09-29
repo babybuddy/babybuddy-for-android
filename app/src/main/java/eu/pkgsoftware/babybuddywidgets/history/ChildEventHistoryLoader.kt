@@ -14,7 +14,6 @@ import eu.pkgsoftware.babybuddywidgets.logic.EndAwareContinuousListIntegrator
 import eu.pkgsoftware.babybuddywidgets.networking.RequestCodeFailure
 import eu.pkgsoftware.babybuddywidgets.networking.babybuddy.ConnectingDialogInterface
 import eu.pkgsoftware.babybuddywidgets.networking.babybuddy.InterruptedException
-import eu.pkgsoftware.babybuddywidgets.networking.babybuddy.PaginatedResult
 import eu.pkgsoftware.babybuddywidgets.networking.babybuddy.exponentialBackoff
 import eu.pkgsoftware.babybuddywidgets.networking.babybuddy.models.ChangeEntry
 import eu.pkgsoftware.babybuddywidgets.networking.babybuddy.models.SleepEntry
@@ -288,17 +287,26 @@ class ChildEventHistoryLoader(
 
     fun updateTop() {
         var i = 0
+        val liItems = listIntegrator.items
         listIntegrator.top = null
         for (item in currentList) {
             if (visibilityCheck.checkPartiallyVisible(item.view)) {
-                listIntegrator.top = listIntegrator.items[i]
+                listIntegrator.top = liItems[i]
                 break
             }
             i++
         }
-
         for (cls in IMPLEMENTED_EVENT_CLASSES) {
             queryOffsets[cls] = listIntegrator.suggestClassQueryOffset(classActivityName(cls))
+        }
+        val visibleCount = listIntegrator.computeValidCount()
+        if (i >= visibleCount - 20) {
+            val numberItems = IMPLEMENTED_EVENT_CLASSES.map { listIntegrator.getItemsCount(classActivityName(it)) }.sum()
+            if (numberItems > liItems.size) {
+                if (fetchJob?.isActive != true) {
+                    forceRefresh()
+                }
+            }
         }
     }
 

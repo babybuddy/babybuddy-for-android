@@ -32,7 +32,6 @@ suspend fun <T : Any> exponentialBackoff(
                 return block.invoke()
             }
             catch (e: RequestCodeFailure) {
-                println("XXX ${forceRetry400Counter} < ${forceRetry400}")
                 if ((e.code >= 400) and (e.code < 500)) {
                     if (forceRetry400Counter < forceRetry400) {
                         forceRetry400Counter++
