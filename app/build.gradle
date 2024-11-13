@@ -71,10 +71,8 @@ task invokeMakefile(type: Exec) {
     commandLine 'make', '-C', '..', '-f', 'resources.makefile'
 }
 
-build {
-    dependsOn(generateAboutStrings)
-    dependsOn(invokeMakefile)
-}
+preBuild.dependsOn(generateAboutStrings)
+preBuild.dependsOn(invokeMakefile)
 
 android {
     compileSdk 34

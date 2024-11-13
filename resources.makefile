@@ -1,4 +1,4 @@
-.PHONY: all info refresh-flaticon-token help licenses
+.PHONY: all info help licenses
 
 SPACE := $(null) $(null)
 
@@ -8,18 +8,18 @@ FREE_IMAGES = \
 	resources/right_breast.png::pkg_breast_right \
 
 FLATICON_IMAGES = \
-	6056851?size=512::pkg_crawl::-gravity_center_-resize_90%_-extent_512x512:: \
-	768140?size=512::pkg_diaper::-gravity_center_-resize_90%_-extent_512x512:: \
-	865779?size=512::pkg_sleep::-gravity_center_-resize_90%_-extent_512x512:: \
-	5834939?size=512::pkg_bottle::-gravity_center_-resize_90%_-extent_512x512:: \
-	2128614?size=512::pkg_solid_food::-gravity_center_-resize_90%_-extent_512x512:: \
-	4063767?size=512::pkg_poop::-gravity_center_-resize_100%_-extent_512x512:: \
-	3313952?size=512::pkg_wet::-gravity_center_-resize_80%_-extent_512x512:: \
-	1001371?size=512::pkg_notes::-gravity_center_-resize_90%_-extent_512x512:: \
-	4063767?size=512::pkg_no_poop::-gravity_center_-resize_100%_-extent_512x512::resources/intermed_cross.png \
-	3313952?size=512::pkg_not_wet::-gravity_center_-resize_80%_-extent_512x512::resources/intermed_cross.png \
-	1001371?size=512::pkg_no_notes::-gravity_center_-resize_90%_-extent_512x512::resources/intermed_cross.png \
-	1848187?size=512::pkg_pumping::-gravity_center_-resize_90%_-extent_512x512:: \
+	6056851?png_size=512::pkg_crawl::-gravity_center_-resize_90%_-extent_512x512:: \
+	768140?png_size=512::pkg_diaper::-gravity_center_-resize_90%_-extent_512x512:: \
+	865779?png_size=512::pkg_sleep::-gravity_center_-resize_90%_-extent_512x512:: \
+	5834939?png_size=512::pkg_bottle::-gravity_center_-resize_90%_-extent_512x512:: \
+	2128614?png_size=512::pkg_solid_food::-gravity_center_-resize_90%_-extent_512x512:: \
+	4063767?png_size=512::pkg_poop::-gravity_center_-resize_100%_-extent_512x512:: \
+	3313952?png_size=512::pkg_wet::-gravity_center_-resize_80%_-extent_512x512:: \
+	1001371?png_size=512::pkg_notes::-gravity_center_-resize_90%_-extent_512x512:: \
+	4063767?png_size=512::pkg_no_poop::-gravity_center_-resize_100%_-extent_512x512::resources/intermed_cross.png \
+	3313952?png_size=512::pkg_not_wet::-gravity_center_-resize_80%_-extent_512x512::resources/intermed_cross.png \
+	1001371?png_size=512::pkg_no_notes::-gravity_center_-resize_90%_-extent_512x512::resources/intermed_cross.png \
+	1848187?png_size=512::pkg_pumping::-gravity_center_-resize_90%_-extent_512x512:: \
 
 # Replace again!
 # 1001371 -> 768818??size=512::pkg_notes::-gravity_center_-extent_512x512 \
@@ -122,33 +122,34 @@ $(foreach i,$(FREE_IMAGES),$(eval $(call _prepare_free_image,$(i))))
 
 # Flaticon images
 flaticon-apikey:
-	[ -e flaticon-apikey ] || ( echo "You need to create a flaticon api key first" && exit 1 )
-
-refresh-flaticon-token: flaticon-apikey
-	@bash utils/test_flaticontoken.sh ./flaticon-token && \
-	echo "Flaticon token still valid" || \
-	( \
-		curl $$CURL_ARGS -X POST -H "Accept: application/json" --data apikey=$$( cat ./flaticon-apikey ) https://api.flaticon.com/v3/app/authentication | jq -r ".data.token" > ./flaticon-token && \
-		echo Flaticon token refreshed \
-	)
+	[ -e flaticon-apikey ] || ( echo "You need to create a flaticon api key first; put it the file ./flaticon-apikey" && exit 1 )
 
 flaticon_targets_created :=
 define _flaticon_image =
 
 image_id := $$(call get_field,1,$$(subst ?,::,$$(call get_field,1,$(1))))
+query_args := $$(call get_field,2,$$(subst ?,::,$$(call get_field,1,$(1))))
 
-resources/nonfree/$$(call get_field,2,$(1)).marker: refresh-flaticon-token
+resources/nonfree/$$(call get_field,2,$(1)).marker:
 	@echo "$(1)" > "$$@.tmp"
 	@( [ -e "$$@" ] && diff "$$@" "$$@.tmp" > /dev/null ) && rm "$$@.tmp" || mv "$$@.tmp" "$$@"
 
 ifeq (,$$(findstring $$(image_id),$$(flaticon_targets_created)))
 flaticon_targets_created += $$(image_id)
 resources/nonfree/raw_$$(image_id).png:
-	curl $$$$CURL_ARGS -X GET \
+	curl $$$$CURL_ARGS \
+		-X GET \
 		-H "Accept: application/json" \
-		-H "Authorization: Bearer $$$$( cat ./flaticon-token )" \
+		--header "x-freepik-api-key: $$$$( cat ./flaticon-apikey )" \
+		--output "$$@.json" \
+		"https://api.freepik.com/v1/icons/$$(image_id)/download"
+	jq -r '.data.filename' "$$@.json" > "$$@.filename"
+	jq -r '.data.url' "$$@.json" > "$$@.url"
+	curl $$$$CURL_ARGS \
+		-X GET \
+		--header "x-freepik-api-key: $$$$( cat ./flaticon-apikey )" \
 		--output "$$@" \
-		"https://api.flaticon.com/v3/item/icon/download/$$(call get_field,1,$(1))"
+		"$$$$(cat "$$@.url")?$$(query_args)"
 endif
 
 resources/nonfree/$$(call get_field,2,$(1)).png: resources/nonfree/raw_$$(image_id).png resources/nonfree/$$(call get_field,2,$(1)).marker

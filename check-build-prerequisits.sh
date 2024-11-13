@@ -28,6 +28,11 @@ if ! pipenv --version > /dev/null 2>&1 ; then
     echo "pipenv is not installed"
     exit 1
 fi
+echo "Check if jq is installed..."
+if ! jq --version > /dev/null 2>&1 ; then
+    echo "jq is not installed"
+    exit 1
+fi
 
 echo "Check if java 18.* is installed and accessible via JAVA_HOME..."
 if [[ -z "$JAVA_HOME" ]]; then
