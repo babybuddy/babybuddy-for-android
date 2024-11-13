@@ -129,30 +129,34 @@ define _flaticon_image =
 
 image_id := $$(call get_field,1,$$(subst ?,::,$$(call get_field,1,$(1))))
 query_args := $$(call get_field,2,$$(subst ?,::,$$(call get_field,1,$(1))))
-
-resources/nonfree/$$(call get_field,2,$(1)).marker:
-	@echo "$(1)" > "$$@.tmp"
-	@( [ -e "$$@" ] && diff "$$@" "$$@.tmp" > /dev/null ) && rm "$$@.tmp" || mv "$$@.tmp" "$$@"
+out_name  := $$(call get_field,2,$(1))
 
 ifeq (,$$(findstring $$(image_id),$$(flaticon_targets_created)))
 flaticon_targets_created += $$(image_id)
-resources/nonfree/raw_$$(image_id).png:
+
+resources/nonfree/$$(image_id).marker:
+	@echo "$(1)" > "$$@.tmp"
+	@( [ -e "$$@" ] && diff "$$@" "$$@.tmp" > /dev/null ) && rm "$$@.tmp" || mv "$$@.tmp" "$$@"
+
+resources/nonfree/$$(image_id).json: resources/nonfree/$$(image_id).marker
 	curl $$$$CURL_ARGS \
 		-X GET \
 		-H "Accept: application/json" \
 		--header "x-freepik-api-key: $$$$( cat ./flaticon-apikey )" \
-		--output "$$@.json" \
-		"https://api.freepik.com/v1/icons/$$(image_id)/download"
-	jq -r '.data.filename' "$$@.json" > "$$@.filename"
-	jq -r '.data.url' "$$@.json" > "$$@.url"
+		--output "$$@" \
+		"https://api.freepik.com/v1/icons/$$$$(cat $$< | sed 's/::.*//;s/?.*//' )/download"
+
+resources/nonfree/$$(image_id).url: resources/nonfree/$$(image_id).json
+	jq -r '.data.url' "$$<" | sed -E 's/\?[^?]*$$$$//' > "$$@"
+
+resources/nonfree/raw_$$(image_id).png: resources/nonfree/$$(image_id).url
 	curl $$$$CURL_ARGS \
 		-X GET \
-		--header "x-freepik-api-key: $$$$( cat ./flaticon-apikey )" \
 		--output "$$@" \
-		"$$$$(cat "$$@.url")?$$(query_args)"
+		"$$$$(cat "$$<")?$$(query_args)"
 endif
 
-resources/nonfree/$$(call get_field,2,$(1)).png: resources/nonfree/raw_$$(image_id).png resources/nonfree/$$(call get_field,2,$(1)).marker
+resources/nonfree/$$(call get_field,2,$(1)).png: resources/nonfree/raw_$$(image_id).png
 	convert "$$<" $$(subst $$(SPACE)$$(SPACE),_,$$(subst _,$(SPACE),$$(call get_field,3,$(1)))) "$$@.tmp.png"
 	convert "$$@.tmp.png" +clone -alpha off -compose Copy__Opacity -composite -channel A -negate "$$@"
 	$$(call compose_images_command,$$@,$$(call get_field,4,$(1)))
