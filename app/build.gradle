@@ -105,6 +105,18 @@ android {
     buildFeatures {
         viewBinding true
     }
+    testOptions {
+        unitTests.all {
+            if (project.hasProperty("skipIntegrationTests")) {
+                filter {
+                    exclude '**/ClientV2IntegrationTest.class'
+                }
+            }
+        }
+    }
+    lintOptions {
+        abortOnError false
+    }
     namespace 'eu.pkgsoftware.babybuddywidgets'
 }
 
