@@ -67,12 +67,17 @@ task generateAboutStrings {
     about_strings_file_writer.close()
 }
 
-task invokeMakefile(type: Exec) {
+task invokeResourcesMakefile(type: Exec) {
     commandLine 'make', '-C', '..', '-f', 'resources.makefile'
 }
 
+task invokeHelpMakefile(type: Exec) {
+    commandLine 'make', '-C', '..', '-f', 'help.makefile'
+}
+
 preBuild.dependsOn(generateAboutStrings)
-preBuild.dependsOn(invokeMakefile)
+preBuild.dependsOn(invokeResourcesMakefile)
+preBuild.dependsOn(invokeHelpMakefile)
 
 android {
     compileSdk 34
