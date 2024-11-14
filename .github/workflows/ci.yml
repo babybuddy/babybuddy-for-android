@@ -21,7 +21,9 @@ jobs:
           sudo apt-get install -y pandoc
 
       - name: Checkout code
-        uses: actions/checkout@v2
+        uses: actions/checkout@v4.2.2
+        with:
+          submodules: true
 
       - name: Set up Python
         uses: actions/setup-python@v5.1.0
@@ -33,10 +35,23 @@ jobs:
           python -m pip install --upgrade pip
           pip install pipenv
 
-      - name: Run make command
-        run: |
-          make -f help.makefile
+      - name: Set up JDK 18
+        uses: actions/setup-java@v4.5.0
+        with:
+          java-version: '18'
+          distribution: 'temurin' # Note to self: This IS OpenJDK
+      
+      - name: Setup Android SDK
+        uses: android-actions/setup-android@v3.2.2
 
-      - name: Run check-translations.sh
+      - name: Check build prerequisites
+        run: |
+          bash check-build-prerequisites.sh
+
+      - name: Run gradle build
+        run: |
+          ./gradlew --no-daemon build
+
+      - name: Run post-build checks
         run: |
           bash tools/workflows/check-translations.sh
