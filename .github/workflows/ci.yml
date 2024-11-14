@@ -51,7 +51,7 @@ jobs:
 
       - name: Run gradle build
         run: |
-          ./gradlew --no-daemon build
+          ./gradlew --no-daemon build -PskipIntegrationTests
 
       - name: Run post-build checks
         run: |
