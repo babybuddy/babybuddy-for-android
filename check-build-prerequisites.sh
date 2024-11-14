@@ -19,13 +19,17 @@ if ! convert --version > /dev/null 2>&1 ; then
     echo "image magick is not installed"
     exit 1
 fi
-echo "Check if python3 and pipenv are installed..."
+echo "Check if python3, cython, and pipenv are installed..."
 if ! python3 --version > /dev/null 2>&1 ; then
     echo "python3 is not installed"
     exit 1
 fi
 if ! pipenv --version > /dev/null 2>&1 ; then
     echo "pipenv is not installed"
+    exit 1
+fi
+if ! cython --version > /dev/null 2>&1 ; then
+    echo "cython is not installed"
     exit 1
 fi
 echo "Check if jq is installed..."
