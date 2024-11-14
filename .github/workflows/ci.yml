@@ -48,10 +48,10 @@ jobs:
         run: |
           bash check-build-prerequisites.sh
 
-      - name: Run make command
+      - name: Run gradle build
         run: |
-          make -f help.makefile
+          ./gradlew --no-daemon build
 
-      - name: Run check-translations.sh
+      - name: Run post-build checks
         run: |
           bash tools/workflows/check-translations.sh
