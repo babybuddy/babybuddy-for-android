@@ -119,11 +119,6 @@ endef
 
 $(foreach i,$(FREE_IMAGES),$(eval $(call _prepare_free_image,$(i))))
 
-
-# Flaticon images
-flaticon-apikey:
-	[ -e flaticon-apikey ] || ( echo "You need to create a flaticon api key first; put it the file ./flaticon-apikey" && exit 1 )
-
 flaticon_targets_created :=
 define _flaticon_image =
 
@@ -138,22 +133,11 @@ resources/nonfree/$$(image_id).marker:
 	@echo "$(1)" > "$$@.tmp"
 	@( [ -e "$$@" ] && diff "$$@" "$$@.tmp" > /dev/null ) && rm "$$@.tmp" || mv "$$@.tmp" "$$@"
 
-resources/nonfree/$$(image_id).json: resources/nonfree/$$(image_id).marker
-	curl $$$$CURL_ARGS \
-		-X GET \
-		-H "Accept: application/json" \
-		--header "x-freepik-api-key: $$$$( cat ./flaticon-apikey )" \
-		--output "$$@" \
-		"https://api.freepik.com/v1/icons/$$$$(cat $$< | sed 's/::.*//;s/?.*//' )/download"
-
-resources/nonfree/$$(image_id).url: resources/nonfree/$$(image_id).json
-	jq -r '.data.url' "$$<" | sed -E 's/\?[^?]*$$$$//' > "$$@"
-
-resources/nonfree/raw_$$(image_id).png: resources/nonfree/$$(image_id).url
+resources/nonfree/raw_$$(image_id).png: resources/nonfree/$$(image_id).marker
 	curl $$$$CURL_ARGS \
 		-X GET \
 		--output "$$@" \
-		"$$$$(cat "$$<")?$$(query_args)"
+		"https://cdn-icons-png.freepik.com/$$$$( cat $$< | sed -E 's/^.*png_size=([0-9]+).*$$$$/\1/' )/$$$$( cat $$< | sed -E 's/^([0-9]+)[0-9]{3}.*$$$$/\1/' )/$$$$( cat $$< | sed -E 's/^([^?]+)::.*$$$$/\1/;s/^([^?]+)?.*$$$$/\1/' ).png"
 endif
 
 resources/nonfree/$$(call get_field,2,$(1)).png: resources/nonfree/raw_$$(image_id).png
