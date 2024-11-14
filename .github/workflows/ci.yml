@@ -44,10 +44,6 @@ jobs:
       - name: Setup Android SDK
         uses: android-actions/setup-android@v3.2.2
 
-      - name: Debug print
-        run: \
-          env
-
       - name: Check build prerequisites
         run: |
           bash check-build-prerequisites.sh
