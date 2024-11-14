@@ -33,6 +33,10 @@ jobs:
           python -m pip install --upgrade pip
           pip install pipenv
 
+      - name: Check build prerequisites
+        run: |
+          bash check-build-prerequisites.sh
+
       - name: Run make command
         run: |
           make -f help.makefile
