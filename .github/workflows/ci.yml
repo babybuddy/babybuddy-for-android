@@ -21,7 +21,9 @@ jobs:
           sudo apt-get install -y pandoc
 
       - name: Checkout code
-        uses: actions/checkout@v2
+        uses: actions/checkout@v4.2.2
+        with:
+          submodules: true
 
       - name: Set up Python
         uses: actions/setup-python@v5.1.0
@@ -41,6 +43,10 @@ jobs:
       
       - name: Setup Android SDK
         uses: android-actions/setup-android@v3.2.2
+
+      - name: Debug print
+        run: \
+          env
 
       - name: Check build prerequisites
         run: |
