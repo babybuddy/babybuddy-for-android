@@ -42,7 +42,7 @@ environment:
 - pandoc >= 3.1.1
 - Python3 >=3.8: Used for transforming and downloading resource files for the application
   - Python packages, can be installed using `pip`: pipenv, cython
-- JDK 18, the environment variable `JAVA_HOME` needs to point to the install path
+- JDK 17, the environment variable `JAVA_HOME` needs to point to the install path
 - Android SDK with Android NDK installed. The environment variable `ANDROID_HOME`
     needs to poin to the Android SDK install path
 

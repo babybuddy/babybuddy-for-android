@@ -43,7 +43,7 @@ if [[ -z "$JAVA_HOME" ]]; then
     echo "JAVA_HOME is not set"
     exit 1
 fi
-if ! "$JAVA_HOME/bin/java" -version 2>&1 | grep -q "openjdk (version )?[ \"]*17." ; then
+if ! "$JAVA_HOME/bin/java" -version 2>&1 | grep -q -E "openjdk (version )?[ \"]*17." ; then
     echo "java 17 is not installed"
     exit 1
 fi
