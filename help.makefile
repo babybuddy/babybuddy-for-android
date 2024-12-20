@@ -21,14 +21,14 @@ stringsxml: $(xml_files)
 
 app/src/main/res/values/help_strings.xml: $(SOURCE_PATH)/help.md $(SOURCE_PATH)/process_markdown.py
 	cd $(SOURCE_PATH) \
-	&& python3 -m pipenv install -r requirements.txt \
+	&& python3 -m pipenv install --skip-lock -r requirements.txt \
 	&& python3 -m pipenv run python process_markdown.py $(abspath $<) $(abspath $@)
 
 define _target_gen =
 
 app/src/main/res/values$(1)/help_strings.xml: $$(SOURCE_PATH)/help$(1).md $$(SOURCE_PATH)/process_markdown.py
 	cd $$(SOURCE_PATH) \
-	&& python3 -m pipenv install -r requirements.txt \
+	&& python3 -m pipenv install --skip-lock -r requirements.txt \
 	&& python3 -m pipenv run python process_markdown.py $(abspath $$<) $(abspath $$@)
 
 endef
