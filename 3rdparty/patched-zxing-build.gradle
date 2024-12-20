@@ -4,8 +4,7 @@ plugins {
 }
 
 android {
-    compileSdkVersion 33
-    buildToolsVersion "33.0.1"
+    compileSdkVersion 34
     // ndk version 25 is known to support c++20 (see #386)
     // ndkVersion '25.1.8937393'
 
