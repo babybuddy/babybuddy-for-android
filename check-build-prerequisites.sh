@@ -38,13 +38,13 @@ if ! jq --version > /dev/null 2>&1 ; then
     exit 1
 fi
 
-echo "Check if java 18.* is installed and accessible via JAVA_HOME..."
+echo "Check if java 17.* is installed and accessible via JAVA_HOME..."
 if [[ -z "$JAVA_HOME" ]]; then
     echo "JAVA_HOME is not set"
     exit 1
 fi
-if ! "$JAVA_HOME/bin/java" -version 2>&1 | grep -q "openjdk version \"18\." ; then
-    echo "java 18 is not installed"
+if ! "$JAVA_HOME/bin/java" -version 2>&1 | grep -q "openjdk (version )?[ \"]*17." ; then
+    echo "java 17 is not installed"
     exit 1
 fi
 
