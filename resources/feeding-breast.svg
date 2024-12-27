@@ -8,7 +8,7 @@
    version="1.1"
    id="svg821"
    sodipodi:docname="feeding-breast.svg"
-   inkscape:version="1.3 (0e150ed6c4, 2023-07-21)"
+   inkscape:version="1.4 (e7c3feb100, 2024-10-09)"
    inkscape:export-filename="feeding-breast.png"
    inkscape:export-xdpi="96.000008"
    inkscape:export-ydpi="96.000008"
@@ -35,11 +35,11 @@
      inkscape:current-layer="layer1"
      showgrid="false"
      units="px"
-     inkscape:window-width="1920"
-     inkscape:window-height="1056"
-     inkscape:window-x="1920"
-     inkscape:window-y="0"
-     inkscape:window-maximized="1"
+     inkscape:window-width="1284"
+     inkscape:window-height="893"
+     inkscape:window-x="0"
+     inkscape:window-y="139"
+     inkscape:window-maximized="0"
      inkscape:pagecheckerboard="0"
      inkscape:showpageshadow="2"
      inkscape:deskcolor="#d1d1d1" />
@@ -59,39 +59,22 @@
      inkscape:groupmode="layer"
      id="layer1"
      transform="translate(0,-161.53332)">
-    <g
-       id="g832"
-       transform="matrix(1.2566125,0,0,1.2560289,-7.7946527,-58.45858)"
-       style="stroke-width:0.795975">
-      <path
-         style="fill:none;stroke:#000000;stroke-width:4.21204;stroke-linecap:butt;stroke-linejoin:miter;stroke-miterlimit:4;stroke-dasharray:none;stroke-opacity:1"
-         d="m 56.874954,178.01159 c 1.282886,20.57084 -16.541532,34.77258 -34.237227,49.01723 15.838681,33.45054 30.349138,32.81002 44.714192,28.43748"
-         id="path1554"
-         inkscape:connector-curvature="0"
-         sodipodi:nodetypes="ccc" />
-      <path
-         style="fill:none;stroke:#000000;stroke-width:4.21204;stroke-linecap:butt;stroke-linejoin:miter;stroke-miterlimit:4;stroke-dasharray:none;stroke-opacity:1"
-         d="m 57.433231,257.43285 -0.181107,22.82059"
-         id="path1558"
-         inkscape:connector-curvature="0" />
-      <path
-         style="fill:none;stroke:#000000;stroke-width:4.21204;stroke-linecap:butt;stroke-linejoin:miter;stroke-miterlimit:4;stroke-dasharray:none;stroke-opacity:1"
-         d="m 89.094901,183.75868 c 1.28289,20.57084 -16.54153,34.77258 -34.237227,49.01723 15.838677,33.45054 30.349137,32.81002 44.714187,28.43748"
-         id="path1554-9"
-         inkscape:connector-curvature="0"
-         sodipodi:nodetypes="ccc" />
-      <path
-         style="fill:none;stroke:#000000;stroke-width:4.21204;stroke-linecap:butt;stroke-linejoin:miter;stroke-miterlimit:4;stroke-dasharray:none;stroke-opacity:1"
-         d="m 32.317722,220.30087 c 4.507393,6.2102 4.280158,12.06234 -3.180506,17.77342"
-         id="path1556"
-         inkscape:connector-curvature="0"
-         sodipodi:nodetypes="cc" />
-      <path
-         style="fill:none;stroke:#000000;stroke-width:4.21204;stroke-linecap:butt;stroke-linejoin:miter;stroke-miterlimit:4;stroke-dasharray:none;stroke-opacity:1"
-         d="m 64.309884,225.72644 c 4.507393,6.2102 4.280159,12.06234 -3.180506,17.77342"
-         id="path1556-5"
-         inkscape:connector-curvature="0"
-         sodipodi:nodetypes="cc" />
-    </g>
+    <path
+       style="fill:none;stroke:#000000;stroke-width:5.29167;stroke-linecap:butt;stroke-linejoin:miter;stroke-miterlimit:4;stroke-dasharray:none;stroke-opacity:1"
+       d="m 63.675125,165.12912 c 1.612091,25.83757 -20.786295,43.67537 -43.022927,61.56706 19.903085,42.01484 38.137106,41.21033 56.188413,35.7183"
+       id="path1554"
+       inkscape:connector-curvature="0"
+       sodipodi:nodetypes="ccc" />
+    <path
+       style="fill:none;stroke:#000000;stroke-width:5.29167;stroke-linecap:butt;stroke-linejoin:miter;stroke-miterlimit:4;stroke-dasharray:none;stroke-opacity:1"
+       d="m 64.376663,264.88452 -0.227581,28.66332"
+       id="path1558"
+       inkscape:connector-curvature="0" />
+    <path
+       style="fill:none;stroke:#000000;stroke-width:5.29167;stroke-linecap:butt;stroke-linejoin:miter;stroke-miterlimit:4;stroke-dasharray:none;stroke-opacity:1"
+       d="m 104.16311,172.34763 c 1.6121,25.83757 -20.78629,43.67537 -43.022924,61.56706 19.90308,42.01485 38.137105,41.21033 56.188404,35.7183"
+       id="path1554-9"
+       inkscape:connector-curvature="0"
+       sodipodi:nodetypes="ccc" />
   </g>
 </svg>

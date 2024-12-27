@@ -128,7 +128,7 @@ class ChildEventHistoryLoader(
 
     private fun newTimelineEntry(e: TimeEntry?): TimelineEntry {
         val result = if (removedViews.size > 0) {
-            removedViews.removeLast()
+            removedViews.removeAt(removedViews.size - 1)
         } else {
             TimelineEntry(fragment, e)
         };
@@ -227,7 +227,7 @@ class ChildEventHistoryLoader(
             View.VISIBLE
         }
         while (currentList.size > items.size) {
-            val removed = currentList.removeLast()
+            val removed = currentList.removeAt(currentList.size - 1)
             if (removedViews.size < 128) {
                 removedViews.add(removed)
             }

@@ -82,7 +82,7 @@ class AutoHGrid : ViewGroup {
                 if (newRowWidth > maxWidth) {
                     continue
                 }
-                resultRows[i].add(0, resultRows[prevI].removeLast())
+                resultRows[i].add(0, resultRows[prevI].removeAt(resultRows[prevI].size - 1))
                 modified = true
                 break
             }
