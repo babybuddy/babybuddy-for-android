@@ -15,12 +15,13 @@ import eu.pkgsoftware.babybuddywidgets.networking.babybuddy.models.SleepEntry
 import eu.pkgsoftware.babybuddywidgets.networking.babybuddy.models.TemperatureEntry
 import eu.pkgsoftware.babybuddywidgets.networking.babybuddy.models.TummyTimeEntry
 import eu.pkgsoftware.babybuddywidgets.networking.babybuddy.models.WeightEntry
-import kotlinx.coroutines.ExperimentalCoroutinesApi
 import kotlinx.coroutines.test.runTest
 import org.junit.Assert
 import org.junit.Test
 import java.io.File
 import java.net.URL
+import kotlin.time.Duration
+import kotlin.time.Duration.Companion.seconds
 
 data class ServerUrl(val version: String, val url: String)
 
@@ -133,12 +134,12 @@ class ClientV2IntegrationTest {
         Assert.assertTrue(headCircEntires.entries.size > 0)
     }
 
-    @OptIn(ExperimentalCoroutinesApi::class)
     @Test
-    fun testObtainLists() = runTest {
+    fun testObtainLists() = runTest(timeout = 60.seconds) {
         for (server in serverUrlArray) {
             serverUrl = server.url
-            println("TESTING BABYBUDDY VERSION: ${server.version}")
+
+            println("TESTING BABYBUDDY VERSION: ${server.version} at ${server.url}")
             runObtainListsTest()
         }
     }
