@@ -65,6 +65,11 @@ platform :android do
         "android.injected.signing.key.password" => password,
       }
     )
+    last_tag_name = sh("git describe --tags `git rev-list --tags --max-count=1`").strip
+    apk_source_path = "../app/build/outputs/bundle/release/app-release.aab"
+    apk_destination_path = "../babybuddy-for-android-#{last_tag_name}.aab"
+    FileUtils.mv(apk_source_path, apk_destination_path)
+    UI.message("APK moved and renamed to #{apk_destination_path}")
   end
   
   desc "Build release apk for GitHub"
@@ -84,5 +89,10 @@ platform :android do
         "android.injected.signing.key.password" => password,
       }
     )
+    last_tag_name = sh("git describe --tags `git rev-list --tags --max-count=1`").strip
+    apk_source_path = "../app/build/outputs/apk/release/app-release.apk"
+    apk_destination_path = "../babybuddy-for-android-#{last_tag_name}.apk"
+    FileUtils.mv(apk_source_path, apk_destination_path)
+    UI.message("APK moved and renamed to #{apk_destination_path}")
   end
 end
