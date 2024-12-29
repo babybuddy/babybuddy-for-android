@@ -23,6 +23,7 @@ import androidx.navigation.Navigation;
 import androidx.viewpager2.widget.ViewPager2;
 import eu.pkgsoftware.babybuddywidgets.databinding.LoggedInFragmentBinding;
 import eu.pkgsoftware.babybuddywidgets.debugging.GlobalDebugObject;
+import eu.pkgsoftware.babybuddywidgets.login.LoggedInMenu;
 import eu.pkgsoftware.babybuddywidgets.networking.BabyBuddyClient;
 import eu.pkgsoftware.babybuddywidgets.networking.ChildrenStateTracker;
 import eu.pkgsoftware.babybuddywidgets.networking.babybuddy.ConnectingDialogInterface;
@@ -46,6 +47,7 @@ public class LoggedInFragment extends BaseFragment {
     }
 
     private LoggedInFragmentBinding binding;
+    private LoggedInMenu menu;
 
     private BabyBuddyClient client = null;
     private CredStore credStore = null;
@@ -61,7 +63,6 @@ public class LoggedInFragment extends BaseFragment {
     @Override
     public void onCreate(@Nullable Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
-        setHasOptionsMenu(true);
         setRetainInstance(true);
     }
 
@@ -72,9 +73,20 @@ public class LoggedInFragment extends BaseFragment {
         credStore = getMainActivity().getCredStore();
         client = getMainActivity().getClient();
 
+        if (menu == null) {
+            menu = new LoggedInMenu(this);
+        }
+        getMainActivity().addMenuProvider(menu);
+
         if (children == null) {
             children = getMainActivity().children;
         }
+    }
+
+    @Override
+    public void onDetach() {
+        super.onDetach();
+        getMainActivity().removeMenuProvider(menu);
     }
 
     @Override
@@ -100,37 +112,6 @@ public class LoggedInFragment extends BaseFragment {
         binding.babyViewPagerSwitcher.setAdapter(emptyBabyPagerAdapter);
 
         return binding.getRoot();
-    }
-
-    @Override
-    public void onCreateOptionsMenu(@NonNull Menu menu, MenuInflater inflater) {
-        inflater.inflate(R.menu.loggedin_menu, menu);
-        menu.findItem(R.id.exportDebugLogsMenuItem).setVisible(GlobalDebugObject.getENABLED());
-    }
-
-    private void logout() {
-        getMainActivity().logout();
-        Navigation.findNavController(requireView()).navigate(R.id.logoutOperation);
-    }
-
-    @Override
-    public boolean onOptionsItemSelected(MenuItem item) {
-        if (item.getItemId() == R.id.logoutMenuButton) {
-            logout();
-        }
-        if (item.getItemId() == R.id.showHelpMenuButton) {
-            Navigation.findNavController(requireView()).navigate(R.id.global_showHelp);
-        }
-        if (item.getItemId() == R.id.aboutPageMenuItem) {
-            Navigation.findNavController(requireView()).navigate(R.id.global_aboutFragment);
-        }
-        if (item.getItemId() == R.id.exportDebugLogsMenuItem) {
-            Navigation.findNavController(requireView()).navigate(R.id.action_global_debugLogDisplay);
-        }
-        if (item.getItemId() == R.id.contactDeveloperMenuItem) {
-            Navigation.findNavController(requireView()).navigate(R.id.action_global_contactDeveloperFragment);
-        }
-        return false;
     }
 
     @Override
