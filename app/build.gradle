@@ -84,7 +84,7 @@ android {
 
     defaultConfig {
         applicationId "eu.pkgsoftware.babybuddywidgets"
-        minSdkVersion 24
+        minSdkVersion 27
         targetSdk 35
         versionCode 44
         versionName "2.4.3"
