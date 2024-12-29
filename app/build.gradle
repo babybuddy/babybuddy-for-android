@@ -80,14 +80,14 @@ preBuild.dependsOn(invokeResourcesMakefile)
 preBuild.dependsOn(invokeHelpMakefile)
 
 android {
-    compileSdk 34
+    compileSdk 35
 
     defaultConfig {
         applicationId "eu.pkgsoftware.babybuddywidgets"
         minSdkVersion 24
-        targetSdk 34
-        versionCode 43
-        versionName "2.4.2"
+        targetSdk 35
+        versionCode 44
+        versionName "2.4.3"
 
         testInstrumentationRunner "androidx.test.runner.AndroidJUnitRunner"
     }
@@ -114,31 +114,31 @@ android {
             }
         }
     }
-    lintOptions {
+    namespace 'eu.pkgsoftware.babybuddywidgets'
+    lint {
         abortOnError false
     }
-    namespace 'eu.pkgsoftware.babybuddywidgets'
 }
 
-ext.camerax_version = "1.3.4"
+ext.camerax_version = '1.4.1'
 
 dependencies {
     implementation 'com.squareup.phrase:phrase:1.2.0'
 
     // Retrofit and jackson need to be compatible. Maybe(?) the matching the major versions
     // is enough, but I'm not sure. This version works.
-    implementation 'com.squareup.retrofit2:retrofit:2.9.0'
-    implementation 'com.squareup.retrofit2:converter-jackson:2.9.0'
+    implementation 'com.squareup.retrofit2:retrofit:2.11.0'
+    implementation 'com.squareup.retrofit2:converter-jackson:2.11.0'
 
-    implementation 'com.fasterxml.jackson.core:jackson-core:2.10.1'
-    implementation 'com.fasterxml.jackson.core:jackson-annotations:2.10.1'
-    implementation 'com.fasterxml.jackson.module:jackson-module-kotlin:2.9.10'
+    implementation 'com.fasterxml.jackson.core:jackson-core:2.18.2'
+    implementation 'com.fasterxml.jackson.core:jackson-annotations:2.18.2'
+    implementation 'com.fasterxml.jackson.module:jackson-module-kotlin:2.18.2'
 
     implementation 'androidx.appcompat:appcompat:1.7.0'
     implementation 'com.google.android.material:material:1.12.0'
-    implementation 'androidx.constraintlayout:constraintlayout:2.1.4'
-    implementation 'androidx.navigation:navigation-fragment-ktx:2.8.0'
-    implementation 'androidx.navigation:navigation-ui-ktx:2.8.0'
+    implementation 'androidx.constraintlayout:constraintlayout:2.2.0'
+    implementation 'androidx.navigation:navigation-fragment-ktx:2.8.5'
+    implementation 'androidx.navigation:navigation-ui-ktx:2.8.5'
     implementation 'androidx.legacy:legacy-support-v4:1.0.0'
     implementation 'androidx.concurrent:concurrent-futures:1.2.0'
 
