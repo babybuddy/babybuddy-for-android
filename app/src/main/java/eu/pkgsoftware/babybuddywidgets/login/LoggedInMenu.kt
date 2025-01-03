@@ -24,7 +24,7 @@ class LoggedInMenu(val fragment: BaseFragment) : MenuProvider {
             fragment.mainActivity.logout()
             navController.navigate(R.id.logoutOperation)
         }
-        if (menuItem.itemId == R.id.showHelpMenuButton) {
+        if (menuItem.itemId == R.id.showHelpMenuMenuItem) {
             navController.navigate(R.id.global_showHelp)
         }
         if (menuItem.itemId == R.id.aboutPageMenuItem) {
@@ -35,6 +35,9 @@ class LoggedInMenu(val fragment: BaseFragment) : MenuProvider {
         }
         if (menuItem.itemId == R.id.contactDeveloperMenuItem) {
             navController.navigate(R.id.action_global_contactDeveloperFragment)
+        }
+        if (menuItem.itemId == R.id.settingsMenuMenuItem) {
+            navController.navigate(R.id.action_global_settingsFragment)
         }
         return false
     }

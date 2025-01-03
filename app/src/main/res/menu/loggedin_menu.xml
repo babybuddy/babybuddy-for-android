@@ -3,10 +3,10 @@
     xmlns:tools="http://schemas.android.com/tools"
     tools:context="eu.pkgsoftware.babybuddywidgets.MainActivity">
     <item
-        android:id="@+id/showHelpMenuButton"
+        android:id="@+id/showHelpMenuMenuItem"
         android:title="@string/showHelpMenuButtonTitle" />
     <item
-        android:id="@+id/settingsMenuButton"
+        android:id="@+id/settingsMenuMenuItem"
         android:title="@string/settingsMenuButtonTitle" />
     <item
         android:id="@+id/logoutMenuButton"

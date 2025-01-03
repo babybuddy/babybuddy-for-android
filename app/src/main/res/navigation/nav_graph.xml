@@ -75,4 +75,11 @@
         android:label="fragment_contact_developer"
         tools:layout="@layout/fragment_contact_developer" />
     <action android:id="@+id/action_global_contactDeveloperFragment" app:destination="@id/contactDeveloperFragment"/>
+    <fragment
+        android:id="@+id/settingsFragment"
+        android:name="eu.pkgsoftware.babybuddywidgets.SettingsFragment"
+        android:label="SettingsFragment" />
+    <action
+        android:id="@+id/action_global_settingsFragment"
+        app:destination="@id/settingsFragment" />
 </navigation>
