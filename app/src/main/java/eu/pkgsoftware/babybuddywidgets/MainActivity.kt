@@ -8,8 +8,10 @@ import android.view.KeyEvent
 import android.view.MotionEvent
 import androidx.appcompat.app.AlertDialog
 import androidx.appcompat.app.AppCompatActivity
+import androidx.appcompat.app.AppCompatDelegate
 import androidx.fragment.app.FragmentContainerView
 import androidx.navigation.Navigation
+import androidx.preference.PreferenceManager
 import com.squareup.phrase.Phrase
 import eu.pkgsoftware.babybuddywidgets.activitycomponents.TimerControl
 import eu.pkgsoftware.babybuddywidgets.compat.BabyBuddyV2TimerAdapter
@@ -138,6 +140,8 @@ class MainActivity : AppCompatActivity() {
 
     override fun onStart() {
         super.onStart()
+
+        applyLightDarkMode()
 
         binding?.root?.let {
             val ncv = it.findViewById<FragmentContainerView>(R.id.nav_host_fragment_content_main)
@@ -373,5 +377,22 @@ class MainActivity : AppCompatActivity() {
         // Storage gets cleaned in the resume function of the login fragment
         // because otherwise the cleanup functions of the LoggedIn fragment
         // will repopulate the storage with the old data that should be deleted
+    }
+
+    fun applyLightDarkMode() {
+        PreferenceManager.getDefaultSharedPreferences(this).let { p ->
+            val mode = p.getString("setting_dark_light_mode", "system")
+            when (mode) {
+                "system" -> {
+                    delegate.localNightMode = AppCompatDelegate.MODE_NIGHT_FOLLOW_SYSTEM
+                }
+                "light" -> {
+                    delegate.localNightMode = AppCompatDelegate.MODE_NIGHT_NO
+                }
+                "dark" -> {
+                    delegate.localNightMode = AppCompatDelegate.MODE_NIGHT_YES
+                }
+            }
+        }
     }
 }

@@ -3,8 +3,11 @@
     xmlns:tools="http://schemas.android.com/tools"
     tools:context="eu.pkgsoftware.babybuddywidgets.MainActivity">
     <item
-        android:id="@+id/showHelpMenuButton"
+        android:id="@+id/showHelpMenuMenuItem"
         android:title="@string/showHelpMenuButtonTitle" />
+    <item
+        android:id="@+id/settingsMenuMenuItem"
+        android:title="@string/action_settings" />
     <item
         android:id="@+id/logoutMenuButton"
         android:icon="@android:drawable/ic_menu_revert"

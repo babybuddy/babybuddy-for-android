@@ -200,4 +200,17 @@
     <string name="send_message_back_button">Back</string>
     <string name="send_message_failed_message">Failed to send message to developer</string>
     <string name="send_message_sent_message">Message sent to developer</string>
+
+    <!-- Settings screen -->
+    <string name="setting_dark_light_mode">Dark/Light mode</string>
+    <array name="setting_dark_light_mode_options">
+        <item>Follow system</item>
+        <item>Light</item>
+        <item>Dark</item>
+    </array>
+    <array name="setting_dark_light_mode_values" translatable="false">
+        <item>system</item>
+        <item>light</item>
+        <item>dark</item>
+    </array>
 </resources>
