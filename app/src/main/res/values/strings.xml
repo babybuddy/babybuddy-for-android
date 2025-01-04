@@ -63,7 +63,6 @@
     <!-- Menu items -->
     <string name="logoutMenu">Logout</string>
     <string name="showHelpMenuButtonTitle">Help</string>
-    <string name="settingsMenuButtonTitle">Settings</string>
 
     <!-- Login -->
     <string name="login_explanation">Please enter the URL to your <a href="https://github.com/babybuddy/babybuddy">Baby Buddy WebApp</a> installation. If you do not have a Baby Buddy server already, please visit the project page to find instructions how to host a server yourself.</string>
@@ -209,7 +208,7 @@
         <item>Light</item>
         <item>Dark</item>
     </array>
-    <array name="setting_dark_light_mode_values">
+    <array name="setting_dark_light_mode_values" translatable="false">
         <item>system</item>
         <item>light</item>
         <item>dark</item>

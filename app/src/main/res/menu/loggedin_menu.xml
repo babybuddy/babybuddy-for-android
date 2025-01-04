@@ -7,7 +7,7 @@
         android:title="@string/showHelpMenuButtonTitle" />
     <item
         android:id="@+id/settingsMenuMenuItem"
-        android:title="@string/settingsMenuButtonTitle" />
+        android:title="@string/action_settings" />
     <item
         android:id="@+id/logoutMenuButton"
         android:icon="@android:drawable/ic_menu_revert"

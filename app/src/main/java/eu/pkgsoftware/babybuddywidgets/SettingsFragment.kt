@@ -29,7 +29,7 @@ class SettingsFragment : PreferenceFragmentCompat() {
 
     override fun onResume() {
         super.onResume()
-        mainActivity.setTitle("Settings")
+        mainActivity.setTitle(R.string.action_settings)
         mainActivity.enableBackNavigationButton(true)
 
 
