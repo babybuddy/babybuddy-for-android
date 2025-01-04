@@ -22,6 +22,9 @@ def parse_strings_xml(file_path) -> StringsXmlContent:
 
     strings = {}
     for string_element in root.iter('string'):
+        if string_element.attrib.get('translatable', '').strip().lower() == 'false':
+            continue
+
         key = string_element.get('name')
         value = string_element.text
         strings[key] = value
@@ -29,6 +32,9 @@ def parse_strings_xml(file_path) -> StringsXmlContent:
 
     arrays = {}
     for array_element in root.iter('array'):
+        if array_element.attrib.get('translatable', '').strip().lower() == 'false':
+            continue
+
         key = array_element.get('name')
         value = []
         for item in array_element.iter('item'):
