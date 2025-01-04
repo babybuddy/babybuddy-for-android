@@ -1,11 +1,18 @@
 package eu.pkgsoftware.babybuddywidgets
 
+import android.content.SharedPreferences.OnSharedPreferenceChangeListener
 import android.os.Bundle
-import androidx.core.content.edit
 import androidx.preference.PreferenceFragmentCompat
-import androidx.preference.PreferenceManager
 
 class SettingsFragment : PreferenceFragmentCompat() {
+
+    val changeListener =
+        OnSharedPreferenceChangeListener { prefs, key ->
+            if (key == "setting_dark_light_mode") {
+                mainActivity.applyLightDarkMode()
+            }
+        }
+
     val mainActivity: MainActivity
         get() = activity as MainActivity
 
@@ -15,10 +22,7 @@ class SettingsFragment : PreferenceFragmentCompat() {
             if (p.getString("setting_dark_light_mode", "") == "") {
                 p.edit().putString("setting_dark_light_mode", "system").commit()
             }
-
-            println("setting_dark_light_mode: ${p.getString("setting_dark_light_mode", "xxxx")}")
         }
-
 
         setPreferencesFromResource(R.xml.app_settings, rootKey)
     }
@@ -28,5 +32,16 @@ class SettingsFragment : PreferenceFragmentCompat() {
         mainActivity.setTitle("Settings")
         mainActivity.enableBackNavigationButton(true)
 
+
+        preferenceManager?.sharedPreferences?.let { p ->
+            p.registerOnSharedPreferenceChangeListener(changeListener)
+        }
+    }
+
+    override fun onPause() {
+        super.onPause()
+        preferenceManager?.sharedPreferences?.let { p ->
+            p.unregisterOnSharedPreferenceChangeListener(changeListener)
+        }
     }
 }
