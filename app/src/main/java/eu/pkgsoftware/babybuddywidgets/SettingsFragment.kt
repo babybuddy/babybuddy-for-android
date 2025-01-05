@@ -33,6 +33,7 @@ class SettingsFragment : PreferenceFragmentCompat() {
         mainActivity.enableBackNavigationButton(true)
 
 
+
         preferenceManager?.sharedPreferences?.let { p ->
             p.registerOnSharedPreferenceChangeListener(changeListener)
         }

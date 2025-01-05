@@ -80,9 +80,11 @@ doc = panflute.load(io.StringIO(data))
 
 panflute.run_filter(doc_data.filter, doc=doc)
 
-def string_el(name: str, content: str) -> ET.Element:
+def string_el(name: str, content: str, **extra_attrs) -> ET.Element:
     el = ET.Element("string")
     el.attrib["name"] = name
+    for k, v in extra_attrs.items():
+        el.attrib[k] = v
     el.text = '"{}"'.format(
         content.strip("\n").replace("'", "\\'").replace('"', '\\"')
     )
@@ -96,10 +98,10 @@ for lib_i, lib in enumerate(doc_data.libraries):
             ", ".join(k for k, v in dataclasses.asdict(lib).items() if v is None),
         ))
 
-    help_xml.append(string_el(f"lib_license_{lib_i}_title", lib.title))
-    help_xml.append(string_el(f"lib_license_{lib_i}_source", lib.source))
-    help_xml.append(string_el(f"lib_license_{lib_i}_copyright", lib.copyright))
-    help_xml.append(string_el(f"lib_license_{lib_i}_full_text", lib.full_text))
+    help_xml.append(string_el(f"lib_license_{lib_i}_title", lib.title, translatable="false"))
+    help_xml.append(string_el(f"lib_license_{lib_i}_source", lib.source, translatable="false"))
+    help_xml.append(string_el(f"lib_license_{lib_i}_copyright", lib.copyright, translatable="false"))
+    help_xml.append(string_el(f"lib_license_{lib_i}_full_text", lib.full_text, translatable="false"))
         
 # Pretty indentation
 indent = "\n" + (" " * 4)

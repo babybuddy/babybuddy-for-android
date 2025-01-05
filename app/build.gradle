@@ -42,23 +42,23 @@ task generateAboutStrings {
     def xmlout = new StringWriter()
     def xml = new MarkupBuilder(xmlout)
     xml.resources {
-        xml."string-array"(name:"autostring_about_icon_iconlists") {
+        xml."string-array"(name:"autostring_about_icon_iconlists", translatable:"false") {
             for (item in outList) {
                 xml.item(item["icons"])
             }
         }
-        xml."string-array"(name:"autostring_about_icon_titles") {
+        xml."string-array"(name:"autostring_about_icon_titles", translatable:"false") {
             for (item in outList) {
                 xml.item(item["title"])
             }
         }
-        xml."string-array"(name:"autostring_about_icon_links") {
+        xml."string-array"(name:"autostring_about_icon_links", translatable:"false") {
             for (item in outList) {
                 xml.item(item["link"])
             }
         }
-        xml.string(name:"autostring_about_license_title", "Licensed under ${licenseTitle}")
-        xml.string(name:"autostring_about_license_text", licenseText)
+        xml.string(name:"autostring_about_license_title", translatable:"false", "Licensed under ${licenseTitle}")
+        xml.string(name:"autostring_about_license_text", translatable:"false", licenseText)
     }
 
     FileWriter about_strings_file_writer = new FileWriter("app/src/main/res/values/about_strings.xml")
