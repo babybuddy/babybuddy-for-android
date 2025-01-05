@@ -15,10 +15,10 @@ jobs:
     runs-on: ubuntu-latest
 
     steps:
-      - name: Install Pandoc
+      - name: Install Pandoc and other system requirements
         run: |
           sudo apt-get update
-          sudo apt-get install -y pandoc make gcc g++
+          sudo apt-get install -y pandoc make gcc g++ imagemagick
 
       - name: Set up Python
         uses: actions/setup-python@v5.1.0
