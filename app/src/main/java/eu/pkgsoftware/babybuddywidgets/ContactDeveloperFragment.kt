@@ -19,8 +19,11 @@ import java.util.Properties
 class ContactDeveloperFragment : BaseFragment() {
     lateinit var binding: FragmentContactDeveloperBinding
 
-    override fun onCreate(savedInstanceState: Bundle?) {
-        super.onCreate(savedInstanceState)
+    override fun onResume() {
+        super.onResume()
+
+        mainActivity.setTitle(getString(R.string.send_message_send_title))
+        mainActivity.enableBackNavigationButton(true)
     }
 
     override fun onCreateView(

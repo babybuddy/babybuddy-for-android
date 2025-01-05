@@ -73,20 +73,9 @@ public class LoggedInFragment extends BaseFragment {
         credStore = getMainActivity().getCredStore();
         client = getMainActivity().getClient();
 
-        if (menu == null) {
-            menu = new LoggedInMenu(this);
-        }
-        getMainActivity().addMenuProvider(menu);
-
         if (children == null) {
             children = getMainActivity().children;
         }
-    }
-
-    @Override
-    public void onDetach() {
-        super.onDetach();
-        getMainActivity().removeMenuProvider(menu);
     }
 
     @Override
@@ -121,6 +110,11 @@ public class LoggedInFragment extends BaseFragment {
     @Override
     public void onResume() {
         super.onResume();
+
+        if (menu == null) {
+            menu = new LoggedInMenu(this);
+        }
+        getMainActivity().addMenuProvider(menu);
 
         disconnectInterface = disconnectDialog.getInterface();
 
@@ -161,6 +155,9 @@ public class LoggedInFragment extends BaseFragment {
     @Override
     public void onPause() {
         super.onPause();
+
+        getMainActivity().removeMenuProvider(menu);
+        getMainActivity().invalidateOptionsMenu();
 
         disconnectInterface.hideConnecting();
 

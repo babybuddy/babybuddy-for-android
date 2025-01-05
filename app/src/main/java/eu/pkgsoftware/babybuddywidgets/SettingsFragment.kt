@@ -3,6 +3,7 @@ package eu.pkgsoftware.babybuddywidgets
 import android.content.SharedPreferences.OnSharedPreferenceChangeListener
 import android.os.Bundle
 import androidx.preference.PreferenceFragmentCompat
+import eu.pkgsoftware.babybuddywidgets.login.Utils
 
 class SettingsFragment : PreferenceFragmentCompat() {
 
@@ -29,10 +30,8 @@ class SettingsFragment : PreferenceFragmentCompat() {
 
     override fun onResume() {
         super.onResume()
-        mainActivity.setTitle(R.string.action_settings)
+        mainActivity.setTitle(getString(R.string.action_settings))
         mainActivity.enableBackNavigationButton(true)
-
-
 
         preferenceManager?.sharedPreferences?.let { p ->
             p.registerOnSharedPreferenceChangeListener(changeListener)

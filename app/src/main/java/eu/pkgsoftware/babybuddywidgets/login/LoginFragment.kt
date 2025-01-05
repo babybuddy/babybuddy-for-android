@@ -192,6 +192,7 @@ class LoginFragment : BaseFragment() {
     override fun onPause() {
         super.onPause()
         mainActivity.removeMenuProvider(menu)
+        mainActivity.invalidateOptionsMenu()
     }
 
     private suspend fun grabToken(asyncGrabber: AsyncGrabAppToken): String {
