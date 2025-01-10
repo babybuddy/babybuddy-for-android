@@ -274,7 +274,10 @@ abstract class GenericLoggingController(
 data class DiaperDataRecord(
     @JsonProperty("wet") val wet: Boolean,
     @JsonProperty("solid") val solid: Boolean,
-    @JsonProperty("note") val note: String
+    @JsonProperty("note") val note: String,
+    @JsonProperty("extra_options_open") val extraOptionsOpen: Boolean,
+    @JsonProperty("color") val color: String?,
+    @JsonProperty("amount") val amount: Double?
 )
 
 class DiaperLoggingController(val fragment: BaseFragment, childId: Int) : LoggingControls(childId) {
@@ -315,6 +318,7 @@ class DiaperLoggingController(val fragment: BaseFragment, childId: Int) : Loggin
             wetLogic.state = it.wet
             solidLogic.state = it.solid
             noteEditor.setText(it.note)
+            extraOptionsLogic.state = it.extraOptionsOpen
         }
 
         updateSaveEnabledState()
@@ -330,7 +334,12 @@ class DiaperLoggingController(val fragment: BaseFragment, childId: Int) : Loggin
 
     override fun storeStateForSuspend() {
         val ddr = DiaperDataRecord(
-            wetLogic.state, solidLogic.state, noteEditor.text.toString()
+            wetLogic.state,
+            solidLogic.state,
+            noteEditor.text.toString(),
+            extraOptionsLogic.state,
+            null,
+            null
         )
         fragment.mainActivity.storage.child(childId, "diaper", ddr)
     }
