@@ -65,7 +65,7 @@
             android:layout_weight="0"
             android:visibility="visible"
             app:layout_constraintEnd_toEndOf="parent"
-            app:layout_constraintTop_toBottomOf="@+id/noteEditor"
+            app:layout_constraintTop_toBottomOf="@+id/extraOptionsList"
             app:srcCompat="@android:drawable/ic_menu_save" />
 
         <LinearLayout
@@ -135,6 +135,54 @@
                 android:visibility="visible"
                 app:tint="@color/fixed_color_button_text_color" />
         </LinearLayout>
+
+        <LinearLayout
+            android:id="@+id/extraOptionsGroup"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_marginStart="32dp"
+            android:orientation="vertical"
+            app:layout_constraintStart_toEndOf="@+id/solidButtonGroup"
+            app:layout_constraintTop_toTopOf="parent">
+
+            <ImageButton
+                android:id="@+id/closeExtraOptions"
+                android:layout_width="64dp"
+                android:layout_height="64dp"
+                android:layout_weight="0"
+                android:scaleType="fitCenter"
+                android:src="@drawable/collapse_button"
+                android:tintMode="src_in"
+                android:visibility="gone"
+                app:tint="?android:attr/textColorSecondary" />
+
+            <ImageButton
+                android:id="@+id/openExtraOptions"
+                android:layout_width="64dp"
+                android:layout_height="64dp"
+                android:layout_weight="0"
+                android:scaleType="fitCenter"
+                android:src="@drawable/expand_button"
+                android:tintMode="src_in"
+                android:visibility="visible" />
+        </LinearLayout>
+
+        <LinearLayout
+            android:id="@+id/extraOptionsList"
+            android:layout_width="0dp"
+            android:layout_height="wrap_content"
+            android:orientation="vertical"
+            android:visibility="gone"
+            app:layout_constraintStart_toStartOf="parent"
+            app:layout_constraintTop_toBottomOf="@id/noteEditor">
+
+            <TextView
+                android:id="@+id/textView"
+                android:layout_width="wrap_content"
+                android:layout_height="match_parent"
+                android:text="@string/diaper_extra_options" />
+        </LinearLayout>
+
     </androidx.constraintlayout.widget.ConstraintLayout>
 
 

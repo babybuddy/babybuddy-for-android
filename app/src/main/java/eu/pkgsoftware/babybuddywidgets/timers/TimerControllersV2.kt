@@ -288,6 +288,12 @@ class DiaperLoggingController(val fragment: BaseFragment, childId: Int) : Loggin
     val solidLogic = SwitchButtonLogic(
         bindings.solidDisabledButton, bindings.solidEnabledButton, false
     )
+    val extraOptionsLogic = SwitchButtonLogic(
+        bindings.openExtraOptions,
+        bindings.closeExtraOptions,
+        false
+    )
+
     val noteEditor = bindings.noteEditor
 
     init {
@@ -296,6 +302,13 @@ class DiaperLoggingController(val fragment: BaseFragment, childId: Int) : Loggin
         }
         solidLogic.addStateListener { _, _ ->
             updateSaveEnabledState()
+        }
+        extraOptionsLogic.addStateListener { state, _ ->
+            bindings.extraOptionsList.visibility = if (state) {
+                View.VISIBLE
+            } else {
+                View.GONE
+            }
         }
 
         fragment.mainActivity.storage.child<DiaperDataRecord>(childId, "diaper")?.let {
@@ -865,9 +878,10 @@ class LoggingButtonController(
                 fragment.mainActivity.scope.launch {
                     try {
                         timerModificationsBlocker.register {
-                            val newTimer = AsyncPromise.call<Timer, TranslatedException> { promise ->
-                                timerControl.startTimer(it, promise)
-                            }
+                            val newTimer =
+                                AsyncPromise.call<Timer, TranslatedException> { promise ->
+                                    timerControl.startTimer(it, promise)
+                                }
                             controller.updateTimer(newTimer)
                         }
                     }

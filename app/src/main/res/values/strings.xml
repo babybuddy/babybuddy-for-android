@@ -91,13 +91,16 @@
     <!-- Generic logged in -->
     <string name="logged_in_no_children_found">(No children found)</string>
 
-    <!--- Store activities -->
+    <!-- Store activities -->
     <string name="diaper_title">Diaper</string>
     <string name="error_storing_activity_failed_title">Could not store activity</string>
     <string name="error_storing_activity_unsupported">Unsupported activity</string>
     <string name="popup_message_storing">Storing {activity} …</string>
 
     <string name="activity_notes_hint">Notes</string>
+
+    <!-- Store activity: Diaper -->
+    <string name="diaper_extra_options">Extra options</string>
 
     <!-- Generic store error -->
     <string name="activity_store_failure_message">Could not store activity</string>
