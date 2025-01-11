@@ -16,6 +16,7 @@ import com.fasterxml.jackson.annotation.JsonIgnoreProperties
 import com.fasterxml.jackson.annotation.JsonProperty
 import com.squareup.phrase.Phrase
 import eu.pkgsoftware.babybuddywidgets.BaseFragment
+import eu.pkgsoftware.babybuddywidgets.Constants
 import eu.pkgsoftware.babybuddywidgets.Constants.FeedingMethodEnum
 import eu.pkgsoftware.babybuddywidgets.Constants.FeedingTypeEnum
 import eu.pkgsoftware.babybuddywidgets.Constants.FeedingTypeEnumValues
@@ -296,6 +297,11 @@ class DiaperLoggingController(val fragment: BaseFragment, childId: Int) : Loggin
         bindings.closeExtraOptions,
         false
     )
+    var diaperColor: Constants.SolidDiaperColorEnum? = null
+        set(value) {
+            field = value
+            updateColorButtons()
+        }
 
     val noteEditor = bindings.noteEditor
 
@@ -314,14 +320,47 @@ class DiaperLoggingController(val fragment: BaseFragment, childId: Int) : Loggin
             }
         }
 
+        val colorValues = listOf(
+            Constants.SolidDiaperColorEnum.BLACK,
+            Constants.SolidDiaperColorEnum.BROWN,
+            Constants.SolidDiaperColorEnum.GREEN,
+            Constants.SolidDiaperColorEnum.YELLOW,
+            null
+        )
+        for (i in 0 until bindings.diaperColorGrid.childCount) {
+            val ll = bindings.diaperColorGrid.getChildAt(i) as LinearLayout
+            val iBtn = ll.getChildAt(1) as ImageButton
+            val value = colorValues[i]
+            iBtn.setOnClickListener { diaperColor = value }
+        }
+
         fragment.mainActivity.storage.child<DiaperDataRecord>(childId, "diaper")?.let {
             wetLogic.state = it.wet
             solidLogic.state = it.solid
             noteEditor.setText(it.note)
             extraOptionsLogic.state = it.extraOptionsOpen
+            diaperColor = it.color?.let { Constants.SolidDiaperColorEnum.byPostName(it) }
         }
 
         updateSaveEnabledState()
+    }
+
+    private fun updateColorButtons() {
+        var i = 0
+        val lastChildIndex = bindings.diaperColorGrid.children.count() - 1
+        for (entry in bindings.diaperColorGrid.children) {
+            val ll = entry as LinearLayout
+
+            val isSelected = (diaperColor?.value == i) or (diaperColor == null && i == lastChildIndex)
+            for (view in listOf(ll.children.first(), ll.children.last())) {
+                view.visibility = if (isSelected) {
+                    View.VISIBLE
+                } else {
+                    View.INVISIBLE
+                }
+            }
+            i++
+        }
     }
 
     fun updateSaveEnabledState() {
@@ -338,7 +377,7 @@ class DiaperLoggingController(val fragment: BaseFragment, childId: Int) : Loggin
             solidLogic.state,
             noteEditor.text.toString(),
             extraOptionsLogic.state,
-            null,
+            diaperColor?.post_name,
             null
         )
         fragment.mainActivity.storage.child(childId, "diaper", ddr)

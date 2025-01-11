@@ -66,4 +66,23 @@ object Constants {
         }
         FeedingMethodEnumValues = m.toMap()
     }
+
+    enum class SolidDiaperColorEnum(var value: Int, var post_name: String) {
+        BLACK(0, "black"),
+        BROWN(1, "brown"),
+        GREEN(2, "green"),
+        YELLOW(3, "yellow");
+
+        companion object {
+            @JvmStatic
+            fun byValue(value: Int): SolidDiaperColorEnum {
+                return SolidDiaperColorEnum.entries.first { it.value == value }
+            }
+
+            @JvmStatic
+            fun byPostName(name: String): SolidDiaperColorEnum {
+                return SolidDiaperColorEnum.entries.first { it.post_name == name }
+            }
+        }
+    }
 }

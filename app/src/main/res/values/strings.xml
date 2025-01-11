@@ -19,6 +19,12 @@
         <item>Parent fed</item>
         <item>Self fed</item>
     </array>
+    <array name="solidDiaperColors">
+        <item>Black</item>
+        <item>Brown</item>
+        <item>Green</item>
+        <item>Yellow</item>
+    </array>
 
     <string name="app_name">Baby Buddy</string>
 
@@ -100,7 +106,7 @@
     <string name="activity_notes_hint">Notes</string>
 
     <!-- Store activity: Diaper -->
-    <string name="diaper_extra_options">Extra options</string>
+    <string name="diaper_color_label">Diaper color</string>
 
     <!-- Generic store error -->
     <string name="activity_store_failure_message">Could not store activity</string>
