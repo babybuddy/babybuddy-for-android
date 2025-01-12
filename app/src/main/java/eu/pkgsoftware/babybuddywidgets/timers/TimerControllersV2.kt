@@ -320,6 +320,8 @@ class DiaperLoggingController(val fragment: BaseFragment, childId: Int) : Loggin
             }
         }
 
+        bindings.amountEditor.allowNull = true
+
         val colorValues = listOf(
             Constants.SolidDiaperColorEnum.BLACK,
             Constants.SolidDiaperColorEnum.BROWN,
@@ -339,7 +341,15 @@ class DiaperLoggingController(val fragment: BaseFragment, childId: Int) : Loggin
             solidLogic.state = it.solid
             noteEditor.setText(it.note)
             extraOptionsLogic.state = it.extraOptionsOpen
-            diaperColor = it.color?.let { Constants.SolidDiaperColorEnum.byPostName(it) }
+            diaperColor = it.color?.let {
+                try {
+                    Constants.SolidDiaperColorEnum.byPostName(it)
+                }
+                catch (_: NoSuchElementException) {
+                    null
+                }
+            }
+            bindings.amountEditor.value = it.amount
         }
 
         updateSaveEnabledState()
@@ -378,7 +388,7 @@ class DiaperLoggingController(val fragment: BaseFragment, childId: Int) : Loggin
             noteEditor.text.toString(),
             extraOptionsLogic.state,
             diaperColor?.post_name,
-            null
+            bindings.amountEditor.value,
         )
         fragment.mainActivity.storage.child(childId, "diaper", ddr)
     }
@@ -387,6 +397,9 @@ class DiaperLoggingController(val fragment: BaseFragment, childId: Int) : Loggin
         noteEditor.setText("")
         wetLogic.state = false
         solidLogic.state = false
+        extraOptionsLogic.state = false
+        diaperColor = null
+        bindings.amountEditor.value = null
     }
 
     suspend override fun save(): TimeEntry {
