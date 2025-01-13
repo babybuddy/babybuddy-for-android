@@ -353,6 +353,7 @@ class DiaperLoggingController(val fragment: BaseFragment, childId: Int) : Loggin
         }
 
         updateSaveEnabledState()
+        updateColorButtons()
     }
 
     private fun updateColorButtons() {
@@ -412,8 +413,8 @@ class DiaperLoggingController(val fragment: BaseFragment, childId: Int) : Loggin
                 _notes = noteEditor.text.toString(),
                 wet = wetLogic.state,
                 solid = solidLogic.state,
-                color = "",
-                amount = null
+                color = diaperColor?.post_name ?: "",
+                amount = bindings.amountEditor.value
             )
         )
     }
