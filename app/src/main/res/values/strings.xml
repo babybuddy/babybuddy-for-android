@@ -106,7 +106,7 @@
     <string name="activity_notes_hint">Notes</string>
 
     <!-- Store activity: Diaper -->
-    <string name="diaper_color_label">Diaper color</string>
+    <string name="diaper_color_label">Color</string>
     <string name="diaper_amount_title">Amount</string>
     <string name="diaper_amount_timeline_pattern">Amount: {amount}</string>
 

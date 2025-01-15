@@ -20,6 +20,7 @@ import kotlinx.coroutines.launch
 import java.io.IOException
 import java.net.MalformedURLException
 import java.text.DateFormat
+import java.text.NumberFormat
 
 
 class TimelineEntry(private val fragment: BaseFragment, private var _entry: TimeEntry?) {
@@ -142,9 +143,12 @@ class TimelineEntry(private val fragment: BaseFragment, private var _entry: Time
             }
 
             if (change.amount != null) {
+                val nf = NumberFormat.getInstance()
+                nf.maximumIntegerDigits = 3
+                nf.minimumFractionDigits = 0
                 amountString =
                     Phrase.from(fragment.resources, R.string.diaper_amount_timeline_pattern)
-                        .put("amount", String.format("%.3f", change.amount))
+                        .put("amount", nf.format(change.amount)).format().toString()
                     .format().toString()
                 amountString += "\n"
             }
