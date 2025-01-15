@@ -4,6 +4,7 @@ import android.view.MotionEvent
 import android.view.View
 import com.squareup.phrase.Phrase
 import eu.pkgsoftware.babybuddywidgets.BaseFragment
+import eu.pkgsoftware.babybuddywidgets.Constants
 import eu.pkgsoftware.babybuddywidgets.Constants.FeedingMethodEnum
 import eu.pkgsoftware.babybuddywidgets.Constants.FeedingTypeEnum
 import eu.pkgsoftware.babybuddywidgets.DialogCallback
@@ -121,14 +122,36 @@ class TimelineEntry(private val fragment: BaseFragment, private var _entry: Time
 
     private fun configureChange() {
         hideAllSubviews()
+        var amountString = ""
+
         binding.diaperView.visibility = View.VISIBLE
-        val change = entry!! as ChangeEntry
-        binding.diaperWetImage.visibility =
-            if (change!!.wet) View.VISIBLE else View.GONE
-        binding.diaperSolidImage.visibility = if (change.solid) View.VISIBLE else View.GONE
+        (entry as ChangeEntry?)?.let { change ->
+            binding.diaperWetImage.visibility =
+                if (change.wet) View.VISIBLE else View.GONE
+            binding.diaperSolidImage.visibility = if (change.solid) View.VISIBLE else View.GONE
+
+            if (change.color.isNotEmpty()) {
+                binding.diaperColorPreview.visibility = View.VISIBLE
+
+                val colorEnumValue = Constants.SolidDiaperColorEnum.byPostName(change.color)
+                fragment.resources.getColor(colorEnumValue.colorResId, null).let { color ->
+                    binding.diaperColorPreview.setBackgroundColor(color)
+                }
+            } else {
+                binding.diaperColorPreview.visibility = View.GONE
+            }
+
+            if (change.amount != null) {
+                amountString =
+                    Phrase.from(fragment.resources, R.string.diaper_amount_timeline_pattern)
+                        .put("amount", String.format("%.3f", change.amount))
+                    .format().toString()
+                amountString += "\n"
+            }
+        }
         val message = defaultPhraseFields(
-            Phrase.from("{start_date}  {start_time}\n{notes}")
-        ).format().toString().trim { it <= ' ' }
+            Phrase.from("{start_date}  {start_time}\n{amount}{notes}")
+        ).put("amount", amountString).format().toString().trim { it <= ' ' }
         binding.diaperText.text = message.trim { it <= ' ' }
     }
 

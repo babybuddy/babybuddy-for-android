@@ -108,6 +108,7 @@
     <!-- Store activity: Diaper -->
     <string name="diaper_color_label">Diaper color</string>
     <string name="diaper_amount_title">Amount</string>
+    <string name="diaper_amount_timeline_pattern">Amount: {amount}</string>
 
     <!-- Generic store error -->
     <string name="activity_store_failure_message">Could not store activity</string>
