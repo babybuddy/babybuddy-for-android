@@ -108,7 +108,6 @@
     <!-- Store activity: Diaper -->
     <string name="diaper_color_label">Color</string>
     <string name="diaper_amount_title">Amount</string>
-    <string name="diaper_amount_timeline_pattern">Amount: {amount}</string>
 
     <!-- Generic store error -->
     <string name="activity_store_failure_message">Could not store activity</string>
@@ -146,6 +145,8 @@
     <string name="history_delete_question_cancel_button">Cancel</string>
     <string name="history_loading_timeline_entry_failed">Failed to load {activity} entries.</string>
     <string name="history_loading_timeline_entry_failed_with_error">Failed to load {activity} entries: {error}</string>
+
+    <string name="history_amount_timeline_pattern">Amount: {amount}</string>
 
     <!-- QR Code Login -->
     <string name="login_qrcode_camera_access_needed_dialog_title">Camera access needed</string>

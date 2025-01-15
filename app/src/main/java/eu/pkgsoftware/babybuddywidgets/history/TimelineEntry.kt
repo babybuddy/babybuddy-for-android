@@ -14,6 +14,7 @@ import eu.pkgsoftware.babybuddywidgets.networking.BabyBuddyClient
 import eu.pkgsoftware.babybuddywidgets.networking.RequestCodeFailure
 import eu.pkgsoftware.babybuddywidgets.networking.babybuddy.models.ChangeEntry
 import eu.pkgsoftware.babybuddywidgets.networking.babybuddy.models.FeedingEntry
+import eu.pkgsoftware.babybuddywidgets.networking.babybuddy.models.PumpingEntry
 import eu.pkgsoftware.babybuddywidgets.networking.babybuddy.models.TimeEntry
 import eu.pkgsoftware.babybuddywidgets.networking.babybuddy.serverTimeToClientTime
 import kotlinx.coroutines.launch
@@ -22,6 +23,20 @@ import java.net.MalformedURLException
 import java.text.DateFormat
 import java.text.NumberFormat
 
+
+fun interpreteAmountValue(fragment: BaseFragment, amount: Double?): String {
+    if (amount == null) {
+        return ""
+    }
+    val nf = NumberFormat.getInstance()
+    nf.maximumIntegerDigits = 3
+    nf.minimumFractionDigits = 0
+    val result = Phrase.from(
+        fragment.resources, R.string.history_amount_timeline_pattern
+    ).put("amount", nf.format(amount)).format().toString()
+
+    return result + "\n"
+}
 
 class TimelineEntry(private val fragment: BaseFragment, private var _entry: TimeEntry?) {
     companion object {
@@ -123,8 +138,8 @@ class TimelineEntry(private val fragment: BaseFragment, private var _entry: Time
 
     private fun configureChange() {
         hideAllSubviews()
-        var amountString = ""
 
+        var amountString = ""
         binding.diaperView.visibility = View.VISIBLE
         (entry as ChangeEntry?)?.let { change ->
             binding.diaperWetImage.visibility =
@@ -142,16 +157,7 @@ class TimelineEntry(private val fragment: BaseFragment, private var _entry: Time
                 binding.diaperColorPreview.visibility = View.GONE
             }
 
-            if (change.amount != null) {
-                val nf = NumberFormat.getInstance()
-                nf.maximumIntegerDigits = 3
-                nf.minimumFractionDigits = 0
-                amountString =
-                    Phrase.from(fragment.resources, R.string.diaper_amount_timeline_pattern)
-                        .put("amount", nf.format(change.amount)).format().toString()
-                    .format().toString()
-                amountString += "\n"
-            }
+            amountString = interpreteAmountValue(fragment, change.amount)
         }
         val message = defaultPhraseFields(
             Phrase.from("{start_date}  {start_time}\n{amount}{notes}")
@@ -179,9 +185,12 @@ class TimelineEntry(private val fragment: BaseFragment, private var _entry: Time
 
     private fun configurePumping() {
         hideAllSubviews()
+        val pumping = entry!! as PumpingEntry
         binding.pumpingTimeView.visibility = View.VISIBLE
         val message = defaultPhraseFields(
-            Phrase.from("{start_date}  {opt_time_range}\n{notes}")
+            Phrase.from("{start_date}  {opt_time_range}\n{amount}{notes}")
+        ).put(
+            "amount", interpreteAmountValue(fragment, pumping.amount)
         ).format().toString().trim { it <= ' ' }
         binding.pumpingTimeNotes.text = message.trim { it <= ' ' }
     }
@@ -217,8 +226,11 @@ class TimelineEntry(private val fragment: BaseFragment, private var _entry: Time
             FeedingTypeEnum.SOLID_FOOD -> binding.solidFoodImage.visibility = View.VISIBLE
             else -> binding.solidFoodImage.visibility = View.VISIBLE
         }
+
         val message = defaultPhraseFields(
-            Phrase.from("{start_date}  {opt_time_range}\n{notes}")
+            Phrase.from("{start_date}  {opt_time_range}\n{amount}{notes}")
+        ).put(
+            "amount", interpreteAmountValue(fragment, feeding.amount)
         ).format().toString().trim { it <= ' ' }
         binding.feedingText.text = message.trim { it <= ' ' }
     }
