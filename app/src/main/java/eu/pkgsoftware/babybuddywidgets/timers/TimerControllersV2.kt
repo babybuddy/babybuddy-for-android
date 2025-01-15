@@ -404,6 +404,9 @@ class DiaperLoggingController(val fragment: BaseFragment, childId: Int) : Loggin
     }
 
     suspend override fun save(): TimeEntry {
+        val color = if (extraOptionsLogic.state) diaperColor?.post_name else null
+        val amount = if (extraOptionsLogic.state) bindings.amountEditor.value else null
+
         return fragment.mainActivity.client.v2client.createEntry(
             ChangeEntry::class,
             ChangeEntry(
@@ -413,8 +416,8 @@ class DiaperLoggingController(val fragment: BaseFragment, childId: Int) : Loggin
                 _notes = noteEditor.text.toString(),
                 wet = wetLogic.state,
                 solid = solidLogic.state,
-                color = diaperColor?.post_name ?: "",
-                amount = bindings.amountEditor.value
+                color = color ?: "",
+                amount = amount
             )
         )
     }
