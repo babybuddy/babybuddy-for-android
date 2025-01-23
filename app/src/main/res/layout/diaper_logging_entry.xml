@@ -58,14 +58,14 @@
 
         <ImageButton
             android:id="@+id/sendButton"
-            android:layout_width="wrap_content"
-            android:layout_height="wrap_content"
+            android:layout_width="56dp"
+            android:layout_height="56dp"
             android:layout_margin="4dp"
             android:layout_marginEnd="277dp"
             android:layout_weight="0"
             android:visibility="visible"
             app:layout_constraintEnd_toEndOf="parent"
-            app:layout_constraintTop_toBottomOf="@+id/noteEditor"
+            app:layout_constraintTop_toBottomOf="@+id/extraOptionsList"
             app:srcCompat="@android:drawable/ic_menu_save" />
 
         <LinearLayout
@@ -135,6 +135,201 @@
                 android:visibility="visible"
                 app:tint="@color/fixed_color_button_text_color" />
         </LinearLayout>
+
+        <LinearLayout
+            android:id="@+id/extraOptionsGroup"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_marginStart="32dp"
+            android:orientation="vertical"
+            app:layout_constraintBottom_toBottomOf="@+id/solidButtonGroup"
+            app:layout_constraintStart_toEndOf="@+id/solidButtonGroup"
+            app:layout_constraintTop_toTopOf="parent">
+
+            <ImageButton
+                android:id="@+id/closeExtraOptions"
+                android:layout_width="48dp"
+                android:layout_height="48dp"
+                android:layout_weight="0"
+                android:scaleType="fitCenter"
+                android:src="@drawable/collapse_button"
+                android:tintMode="src_in"
+                android:visibility="gone"
+                app:tint="?android:attr/textColorSecondary" />
+
+            <ImageButton
+                android:id="@+id/openExtraOptions"
+                android:layout_width="48dp"
+                android:layout_height="48dp"
+                android:layout_weight="0"
+                android:scaleType="fitCenter"
+                android:src="@drawable/expand_button"
+                android:tintMode="src_in"
+                android:visibility="visible" />
+        </LinearLayout>
+
+        <LinearLayout
+            android:id="@+id/extraOptionsList"
+            android:layout_width="0dp"
+            android:layout_height="wrap_content"
+            android:orientation="vertical"
+            android:padding="8dp"
+            android:visibility="gone"
+            app:layout_constraintStart_toStartOf="parent"
+            app:layout_constraintTop_toBottomOf="@id/noteEditor"
+            tools:visibility="visible">
+
+            <LinearLayout
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:orientation="horizontal"
+                android:gravity="center_vertical">
+                <TextView
+                    android:id="@+id/diaperColorLabel"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:text="@string/diaper_color_label"
+                    android:textAppearance="@style/TextAppearance.AppCompat.Medium" />
+
+                <eu.pkgsoftware.babybuddywidgets.widgets.AutoHGrid
+                    android:id="@+id/diaperColorGrid"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    app:equalizeRowWidths="true">
+
+                    <LinearLayout
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        android:gravity="center"
+                        android:orientation="vertical">
+
+                        <ImageView
+                            android:layout_width="16dp"
+                            android:layout_height="16dp"
+                            app:srcCompat="@android:drawable/arrow_down_float" />
+
+                        <ImageButton
+                            android:layout_width="54dp"
+                            android:layout_height="54dp"
+                            android:src="@color/diaperBlack" />
+
+                        <ImageView
+                            android:layout_width="16dp"
+                            android:layout_height="16dp"
+                            app:srcCompat="@android:drawable/arrow_up_float" />
+                    </LinearLayout>
+
+                    <LinearLayout
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        android:gravity="center"
+                        android:orientation="vertical">
+
+                        <ImageView
+                            android:layout_width="16dp"
+                            android:layout_height="16dp"
+                            app:srcCompat="@android:drawable/arrow_down_float" />
+
+                        <ImageButton
+                            android:layout_width="54dp"
+                            android:layout_height="54dp"
+                            android:src="@color/diaperBrown" />
+
+                        <ImageView
+                            android:layout_width="16dp"
+                            android:layout_height="16dp"
+                            app:srcCompat="@android:drawable/arrow_up_float" />
+                    </LinearLayout>
+
+                    <LinearLayout
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        android:gravity="center"
+                        android:orientation="vertical">
+
+                        <ImageView
+                            android:layout_width="16dp"
+                            android:layout_height="16dp"
+                            app:srcCompat="@android:drawable/arrow_down_float" />
+
+                        <ImageButton
+                            android:layout_width="54dp"
+                            android:layout_height="54dp"
+                            android:src="@color/diaperGreen" />
+
+                        <ImageView
+                            android:layout_width="16dp"
+                            android:layout_height="16dp"
+                            app:srcCompat="@android:drawable/arrow_up_float" />
+                    </LinearLayout>
+
+                    <LinearLayout
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        android:gravity="center"
+                        android:orientation="vertical">
+
+                        <ImageView
+                            android:layout_width="16dp"
+                            android:layout_height="16dp"
+                            app:srcCompat="@android:drawable/arrow_down_float" />
+
+                        <ImageButton
+                            android:layout_width="54dp"
+                            android:layout_height="54dp"
+                            android:src="@color/diaperYellow" />
+
+                        <ImageView
+                            android:layout_width="16dp"
+                            android:layout_height="16dp"
+                            app:srcCompat="@android:drawable/arrow_up_float" />
+                    </LinearLayout>
+
+                    <LinearLayout
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        android:gravity="center"
+                        android:orientation="vertical">
+
+                        <ImageView
+                            android:layout_width="16dp"
+                            android:layout_height="16dp"
+                            app:srcCompat="@android:drawable/arrow_down_float" />
+
+                        <ImageButton
+                            android:layout_width="54dp"
+                            android:layout_height="54dp"
+                            android:src="@android:drawable/ic_menu_close_clear_cancel" />
+
+                        <ImageView
+                            android:layout_width="16dp"
+                            android:layout_height="16dp"
+                            app:srcCompat="@android:drawable/arrow_up_float" />
+                    </LinearLayout>
+                </eu.pkgsoftware.babybuddywidgets.widgets.AutoHGrid>
+            </LinearLayout>
+
+            <LinearLayout
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:orientation="horizontal"
+                android:gravity="center_vertical">
+
+                <TextView
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:layout_marginEnd="16dp"
+                    android:text="@string/diaper_amount_title"
+                    android:textAppearance="@style/TextAppearance.AppCompat.Medium" />
+
+                <eu.pkgsoftware.babybuddywidgets.widgets.HorizontalDecIncEditor
+                    android:id="@+id/amountEditor"
+                    android:layout_width="0dp"
+                    android:layout_height="wrap_content"
+                    android:layout_weight="1" />
+            </LinearLayout>
+        </LinearLayout>
+
     </androidx.constraintlayout.widget.ConstraintLayout>
 
 

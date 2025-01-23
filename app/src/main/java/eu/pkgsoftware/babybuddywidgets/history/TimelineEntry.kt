@@ -4,6 +4,7 @@ import android.view.MotionEvent
 import android.view.View
 import com.squareup.phrase.Phrase
 import eu.pkgsoftware.babybuddywidgets.BaseFragment
+import eu.pkgsoftware.babybuddywidgets.Constants
 import eu.pkgsoftware.babybuddywidgets.Constants.FeedingMethodEnum
 import eu.pkgsoftware.babybuddywidgets.Constants.FeedingTypeEnum
 import eu.pkgsoftware.babybuddywidgets.DialogCallback
@@ -13,13 +14,29 @@ import eu.pkgsoftware.babybuddywidgets.networking.BabyBuddyClient
 import eu.pkgsoftware.babybuddywidgets.networking.RequestCodeFailure
 import eu.pkgsoftware.babybuddywidgets.networking.babybuddy.models.ChangeEntry
 import eu.pkgsoftware.babybuddywidgets.networking.babybuddy.models.FeedingEntry
+import eu.pkgsoftware.babybuddywidgets.networking.babybuddy.models.PumpingEntry
 import eu.pkgsoftware.babybuddywidgets.networking.babybuddy.models.TimeEntry
 import eu.pkgsoftware.babybuddywidgets.networking.babybuddy.serverTimeToClientTime
 import kotlinx.coroutines.launch
 import java.io.IOException
 import java.net.MalformedURLException
 import java.text.DateFormat
+import java.text.NumberFormat
 
+
+fun interpreteAmountValue(fragment: BaseFragment, amount: Double?): String {
+    if (amount == null) {
+        return ""
+    }
+    val nf = NumberFormat.getInstance()
+    nf.maximumIntegerDigits = 3
+    nf.minimumFractionDigits = 0
+    val result = Phrase.from(
+        fragment.resources, R.string.history_amount_timeline_pattern
+    ).put("amount", nf.format(amount)).format().toString()
+
+    return result + "\n"
+}
 
 class TimelineEntry(private val fragment: BaseFragment, private var _entry: TimeEntry?) {
     companion object {
@@ -121,14 +138,30 @@ class TimelineEntry(private val fragment: BaseFragment, private var _entry: Time
 
     private fun configureChange() {
         hideAllSubviews()
+
+        var amountString = ""
         binding.diaperView.visibility = View.VISIBLE
-        val change = entry!! as ChangeEntry
-        binding.diaperWetImage.visibility =
-            if (change!!.wet) View.VISIBLE else View.GONE
-        binding.diaperSolidImage.visibility = if (change.solid) View.VISIBLE else View.GONE
+        (entry as ChangeEntry?)?.let { change ->
+            binding.diaperWetImage.visibility =
+                if (change.wet) View.VISIBLE else View.GONE
+            binding.diaperSolidImage.visibility = if (change.solid) View.VISIBLE else View.GONE
+
+            if (change.color.isNotEmpty()) {
+                binding.diaperColorPreview.visibility = View.VISIBLE
+
+                val colorEnumValue = Constants.SolidDiaperColorEnum.byPostName(change.color)
+                fragment.resources.getColor(colorEnumValue.colorResId, null).let { color ->
+                    binding.diaperColorPreview.setBackgroundColor(color)
+                }
+            } else {
+                binding.diaperColorPreview.visibility = View.GONE
+            }
+
+            amountString = interpreteAmountValue(fragment, change.amount)
+        }
         val message = defaultPhraseFields(
-            Phrase.from("{start_date}  {start_time}\n{notes}")
-        ).format().toString().trim { it <= ' ' }
+            Phrase.from("{start_date}  {start_time}\n{amount}{notes}")
+        ).put("amount", amountString).format().toString().trim { it <= ' ' }
         binding.diaperText.text = message.trim { it <= ' ' }
     }
 
@@ -152,9 +185,12 @@ class TimelineEntry(private val fragment: BaseFragment, private var _entry: Time
 
     private fun configurePumping() {
         hideAllSubviews()
+        val pumping = entry!! as PumpingEntry
         binding.pumpingTimeView.visibility = View.VISIBLE
         val message = defaultPhraseFields(
-            Phrase.from("{start_date}  {opt_time_range}\n{notes}")
+            Phrase.from("{start_date}  {opt_time_range}\n{amount}{notes}")
+        ).put(
+            "amount", interpreteAmountValue(fragment, pumping.amount)
         ).format().toString().trim { it <= ' ' }
         binding.pumpingTimeNotes.text = message.trim { it <= ' ' }
     }
@@ -190,8 +226,11 @@ class TimelineEntry(private val fragment: BaseFragment, private var _entry: Time
             FeedingTypeEnum.SOLID_FOOD -> binding.solidFoodImage.visibility = View.VISIBLE
             else -> binding.solidFoodImage.visibility = View.VISIBLE
         }
+
         val message = defaultPhraseFields(
-            Phrase.from("{start_date}  {opt_time_range}\n{notes}")
+            Phrase.from("{start_date}  {opt_time_range}\n{amount}{notes}")
+        ).put(
+            "amount", interpreteAmountValue(fragment, feeding.amount)
         ).format().toString().trim { it <= ' ' }
         binding.feedingText.text = message.trim { it <= ' ' }
     }

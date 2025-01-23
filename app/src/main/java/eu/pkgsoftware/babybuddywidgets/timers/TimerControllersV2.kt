@@ -16,6 +16,7 @@ import com.fasterxml.jackson.annotation.JsonIgnoreProperties
 import com.fasterxml.jackson.annotation.JsonProperty
 import com.squareup.phrase.Phrase
 import eu.pkgsoftware.babybuddywidgets.BaseFragment
+import eu.pkgsoftware.babybuddywidgets.Constants
 import eu.pkgsoftware.babybuddywidgets.Constants.FeedingMethodEnum
 import eu.pkgsoftware.babybuddywidgets.Constants.FeedingTypeEnum
 import eu.pkgsoftware.babybuddywidgets.Constants.FeedingTypeEnumValues
@@ -274,7 +275,10 @@ abstract class GenericLoggingController(
 data class DiaperDataRecord(
     @JsonProperty("wet") val wet: Boolean,
     @JsonProperty("solid") val solid: Boolean,
-    @JsonProperty("note") val note: String
+    @JsonProperty("note") val note: String,
+    @JsonProperty("extra_options_open") val extraOptionsOpen: Boolean,
+    @JsonProperty("color") val color: String?,
+    @JsonProperty("amount") val amount: Double?
 )
 
 class DiaperLoggingController(val fragment: BaseFragment, childId: Int) : LoggingControls(childId) {
@@ -288,6 +292,17 @@ class DiaperLoggingController(val fragment: BaseFragment, childId: Int) : Loggin
     val solidLogic = SwitchButtonLogic(
         bindings.solidDisabledButton, bindings.solidEnabledButton, false
     )
+    val extraOptionsLogic = SwitchButtonLogic(
+        bindings.openExtraOptions,
+        bindings.closeExtraOptions,
+        false
+    )
+    var diaperColor: Constants.SolidDiaperColorEnum? = null
+        set(value) {
+            field = value
+            updateColorButtons()
+        }
+
     val noteEditor = bindings.noteEditor
 
     init {
@@ -297,14 +312,66 @@ class DiaperLoggingController(val fragment: BaseFragment, childId: Int) : Loggin
         solidLogic.addStateListener { _, _ ->
             updateSaveEnabledState()
         }
+        extraOptionsLogic.addStateListener { state, _ ->
+            bindings.extraOptionsList.visibility = if (state) {
+                View.VISIBLE
+            } else {
+                View.GONE
+            }
+        }
+
+        bindings.amountEditor.allowNull = true
+
+        val colorValues = listOf(
+            Constants.SolidDiaperColorEnum.BLACK,
+            Constants.SolidDiaperColorEnum.BROWN,
+            Constants.SolidDiaperColorEnum.GREEN,
+            Constants.SolidDiaperColorEnum.YELLOW,
+            null
+        )
+        for (i in 0 until bindings.diaperColorGrid.childCount) {
+            val ll = bindings.diaperColorGrid.getChildAt(i) as LinearLayout
+            val iBtn = ll.getChildAt(1) as ImageButton
+            val value = colorValues[i]
+            iBtn.setOnClickListener { diaperColor = value }
+        }
 
         fragment.mainActivity.storage.child<DiaperDataRecord>(childId, "diaper")?.let {
             wetLogic.state = it.wet
             solidLogic.state = it.solid
             noteEditor.setText(it.note)
+            extraOptionsLogic.state = it.extraOptionsOpen
+            diaperColor = it.color?.let {
+                try {
+                    Constants.SolidDiaperColorEnum.byPostName(it)
+                }
+                catch (_: NoSuchElementException) {
+                    null
+                }
+            }
+            bindings.amountEditor.value = it.amount
         }
 
         updateSaveEnabledState()
+        updateColorButtons()
+    }
+
+    private fun updateColorButtons() {
+        var i = 0
+        val lastChildIndex = bindings.diaperColorGrid.children.count() - 1
+        for (entry in bindings.diaperColorGrid.children) {
+            val ll = entry as LinearLayout
+
+            val isSelected = (diaperColor?.value == i) or (diaperColor == null && i == lastChildIndex)
+            for (view in listOf(ll.children.first(), ll.children.last())) {
+                view.visibility = if (isSelected) {
+                    View.VISIBLE
+                } else {
+                    View.INVISIBLE
+                }
+            }
+            i++
+        }
     }
 
     fun updateSaveEnabledState() {
@@ -317,7 +384,12 @@ class DiaperLoggingController(val fragment: BaseFragment, childId: Int) : Loggin
 
     override fun storeStateForSuspend() {
         val ddr = DiaperDataRecord(
-            wetLogic.state, solidLogic.state, noteEditor.text.toString()
+            wetLogic.state,
+            solidLogic.state,
+            noteEditor.text.toString(),
+            extraOptionsLogic.state,
+            diaperColor?.post_name,
+            bindings.amountEditor.value,
         )
         fragment.mainActivity.storage.child(childId, "diaper", ddr)
     }
@@ -326,9 +398,15 @@ class DiaperLoggingController(val fragment: BaseFragment, childId: Int) : Loggin
         noteEditor.setText("")
         wetLogic.state = false
         solidLogic.state = false
+        extraOptionsLogic.state = false
+        diaperColor = null
+        bindings.amountEditor.value = null
     }
 
     suspend override fun save(): TimeEntry {
+        val color = if (extraOptionsLogic.state) diaperColor?.post_name else null
+        val amount = if (extraOptionsLogic.state) bindings.amountEditor.value else null
+
         return fragment.mainActivity.client.v2client.createEntry(
             ChangeEntry::class,
             ChangeEntry(
@@ -338,8 +416,8 @@ class DiaperLoggingController(val fragment: BaseFragment, childId: Int) : Loggin
                 _notes = noteEditor.text.toString(),
                 wet = wetLogic.state,
                 solid = solidLogic.state,
-                color = "",
-                amount = null
+                color = color ?: "",
+                amount = amount
             )
         )
     }
@@ -865,9 +943,10 @@ class LoggingButtonController(
                 fragment.mainActivity.scope.launch {
                     try {
                         timerModificationsBlocker.register {
-                            val newTimer = AsyncPromise.call<Timer, TranslatedException> { promise ->
-                                timerControl.startTimer(it, promise)
-                            }
+                            val newTimer =
+                                AsyncPromise.call<Timer, TranslatedException> { promise ->
+                                    timerControl.startTimer(it, promise)
+                                }
                             controller.updateTimer(newTimer)
                         }
                     }

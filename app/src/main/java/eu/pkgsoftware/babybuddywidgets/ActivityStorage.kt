@@ -1,11 +1,18 @@
 package eu.pkgsoftware.babybuddywidgets
 
 import android.content.Context
+import android.content.Intent
 import android.database.sqlite.SQLiteDatabase
 import android.database.sqlite.SQLiteOpenHelper
 import com.fasterxml.jackson.module.kotlin.jacksonObjectMapper
 import eu.pkgsoftware.babybuddywidgets.debugging.GlobalDebugObject
 import java.io.IOException
+
+fun addJsonFieldValue(value: String, key: String, newValue: String): String {
+    val map = jacksonObjectMapper().readValue(value, Map::class.java).toMutableMap()
+    map[key] = newValue
+    return jacksonObjectMapper().writeValueAsString(map)
+}
 
 class ActivityDatabaseV1(context: Context) : SQLiteOpenHelper(
     context, "store", null, 1
@@ -17,12 +24,54 @@ class ActivityDatabaseV1(context: Context) : SQLiteOpenHelper(
     }
 
     override fun onUpgrade(db: SQLiteDatabase?, oldVersion: Int, newVersion: Int) {
-        TODO("Not yet implemented")
+        throw IllegalStateException("Initial version of database cannot be upgraded")
+    }
+}
+
+class ActivityDatabaseV2(context: Context) : SQLiteOpenHelper(
+    context, "store", null, 2
+) {
+    override fun onCreate(db: SQLiteDatabase) {
+        db.execSQL("create table global_kv (key_name text primary key, value text)")
+        db.execSQL("create table login_kv (key_name text primary key, value text)")
+        db.execSQL("create table child_kv (child INTEGER, key_name text, value text, primary key (child, key_name))")
+    }
+
+    override fun onUpgrade(db: SQLiteDatabase?, oldVersion: Int, newVersion: Int) {
+        if (db == null) {
+            return
+        }
+
+        if (oldVersion == 1) {
+            val valuesToUpdate = mutableMapOf<Int, String>()
+            db.rawQuery("select child, value from child_kv where key_name = 'diaper'", arrayOf()).use { cursor ->
+                while (cursor.moveToNext()) {
+                    try {
+                        val child = cursor.getInt(0)
+                        var value = cursor.getString(1)
+                        value = addJsonFieldValue(value, "extra_options_open", "false")
+                        value = addJsonFieldValue(value, "color", "null")
+                        value = addJsonFieldValue(value, "amount", "null")
+                        valuesToUpdate[child] = value
+                    } catch (e: Exception) {
+                        GlobalDebugObject.log("Failed to update diaper value for child ${cursor.getInt(0)}")
+                        // Ignore, better ignore than crash
+                    }
+                }
+                cursor.close()
+            }
+            for ((child, value) in valuesToUpdate) {
+                db.execSQL(
+                    "update child_kv set value = ? where child = ? and key_name = 'diaper'",
+                    arrayOf(value, child.toString())
+                )
+            }
+        }
     }
 }
 
 class ActivityStore(context: Context) {
-    val openHelper = ActivityDatabaseV1(context)
+    val openHelper = ActivityDatabaseV2(context)
     val database = openHelper.writableDatabase
     val jackOM = jacksonObjectMapper()
 

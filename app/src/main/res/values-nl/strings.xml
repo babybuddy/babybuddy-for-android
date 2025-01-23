@@ -19,6 +19,12 @@
         <item>Ouder voeding</item>
         <item>Zelf voeding</item>
     </array>
+    <array name="solidDiaperColors">
+        <item>Zwart</item>
+        <item>Bruin</item>
+        <item>Groen</item>
+        <item>Geel</item>
+    </array>
 
     <string name="app_name">Baby Buddy</string>
 
@@ -93,6 +99,7 @@
 
     <!-- Generic store error -->
     <string name="activity_notes_hint">Notities</string>
+    <string name="diaper_amount_title">Hoeveelheid</string>
     <string name="activity_store_failure_message">Kon activiteit niet opslaan</string>
     <string name="activity_store_failure_server_error">{message}\n\nServer meldt: {server_message}</string>
     <string name="activity_store_failure_server_error_generic_ioerror">Fout bij opslaan van activiteit</string>
@@ -126,6 +133,7 @@
     <string name="history_loading_timeline_entry_failed_with_error">Kan {activity} gegevens niet laden: {error}</string>
 
     <!-- QR Code Login -->
+    <string name="history_amount_timeline_pattern">Hoeveelheid: {amount}</string>
     <string name="login_qrcode_camera_access_needed_dialog_title">Cameratoegang nodig</string>
     <string name="login_qrcode_camera_access_needed_dialog_body">
         Om de QR-codescanner te gebruiken, heeft de app toegang nodig tot de camera van uw apparaat.\n\nAls alternatief kunt u ervoor kiezen om het inlogscherm te gebruiken en server, gebruikersnaam en wachtwoord handmatig in te voeren.
@@ -196,4 +204,5 @@
         <item>Licht</item>
         <item>Donker</item>
     </array>
+    <string name="diaper_color_label">Kleur</string>
 </resources>

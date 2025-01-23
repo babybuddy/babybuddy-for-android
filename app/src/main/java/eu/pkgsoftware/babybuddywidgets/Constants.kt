@@ -1,5 +1,6 @@
 package eu.pkgsoftware.babybuddywidgets
 
+import androidx.annotation.ColorRes
 import java.text.SimpleDateFormat
 import java.util.Locale
 
@@ -65,5 +66,24 @@ object Constants {
             m.put(e.value, e)
         }
         FeedingMethodEnumValues = m.toMap()
+    }
+
+    enum class SolidDiaperColorEnum(var value: Int, var post_name: String, @ColorRes var colorResId: Int) {
+        BLACK(0, "black", R.color.diaperBlack),
+        BROWN(1, "brown", R.color.diaperBrown),
+        GREEN(2, "green", R.color.diaperGreen),
+        YELLOW(3, "yellow", R.color.diaperYellow);
+
+        companion object {
+            @JvmStatic
+            fun byValue(value: Int): SolidDiaperColorEnum {
+                return SolidDiaperColorEnum.entries.first { it.value == value }
+            }
+
+            @JvmStatic
+            fun byPostName(name: String): SolidDiaperColorEnum {
+                return SolidDiaperColorEnum.entries.first { it.post_name == name }
+            }
+        }
     }
 }
