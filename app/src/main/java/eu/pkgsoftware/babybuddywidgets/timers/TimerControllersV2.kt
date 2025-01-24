@@ -526,7 +526,7 @@ class FeedingLoggingController(
     fragment: BaseFragment,
     childId: Int,
     timerControl: TimerControlInterface
-) : GenericLoggingController(fragment, childId, timerControl, TummyTimeEntry::class) {
+) : GenericLoggingController(fragment, childId, timerControl, FeedingEntry::class) {
     val feedingBinding = FeedingLoggingEntryBinding.inflate(fragment.layoutInflater)
 
     override val uiCurrentTimerTime = feedingBinding.currentTimerTime
