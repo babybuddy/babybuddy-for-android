@@ -110,4 +110,10 @@
     <string name="send_message_sent_message">Bericht wurde an den Entwickler verschickt</string>
     <string name="setting_dark_light_mode">Hell/Dunkel Modus</string>
     <string name="history_loading_timeline_entry_failed">Fehler beim Laden von {activity} Einträgen</string>
+    <string name="timeline_title_line_title">Ereignisse</string>
+    <array name="setting_dark_light_mode_options">
+        <item>Systemeinstellungen verwenden</item>
+        <item>Hell</item>
+        <item>Dunkel</item>
+    </array>
 </resources>

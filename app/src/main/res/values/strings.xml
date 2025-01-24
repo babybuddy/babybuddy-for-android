@@ -215,6 +215,7 @@
 
     <!-- Settings screen -->
     <string name="setting_dark_light_mode">Dark/Light mode</string>
+    <string name="timeline_title_line_title">Timeline</string>
     <array name="setting_dark_light_mode_options">
         <item>Follow system</item>
         <item>Light</item>

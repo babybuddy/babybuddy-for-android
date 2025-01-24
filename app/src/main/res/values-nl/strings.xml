@@ -204,4 +204,5 @@
         <item>Donker</item>
     </array>
     <string name="diaper_color_label">Kleur</string>
+    <string name="timeline_title_line_title">Timeline</string>
 </resources>
