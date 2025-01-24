@@ -165,7 +165,6 @@
     <string name="help_title">Hulp</string>
 
     <!-- Upgrade notifications -->
-    <string name="upgrade_latest_info_version_less_than_or_equal">2.4.0</string>
     <string name="upgrade_latest_info_title">Update {version}</string>
     <string name="upgrade_latest_info_note">Deze
         nieuwe versie van Babybuddy App voegt loggingondersteuning toe voor alle ontbrekende
@@ -205,4 +204,5 @@
         <item>Donker</item>
     </array>
     <string name="diaper_color_label">Kleur</string>
+    <string name="timeline_title_line_title">Timeline</string>
 </resources>

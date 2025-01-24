@@ -182,7 +182,7 @@
     <string name="help_title">Help</string>
 
     <!-- Upgrade notifications -->
-    <string name="upgrade_latest_info_version_less_than_or_equal">2.4.0</string>
+    <string name="upgrade_latest_info_version_less_than_or_equal" translatable="false">2.4.0</string>
     <string name="upgrade_latest_info_title">Update {version}</string>
     <string name="upgrade_latest_info_note">This
         new version of babybuddy adds logging support for all missing event types. I worked
@@ -215,6 +215,7 @@
 
     <!-- Settings screen -->
     <string name="setting_dark_light_mode">Dark/Light mode</string>
+    <string name="timeline_title_line_title">Timeline</string>
     <array name="setting_dark_light_mode_options">
         <item>Follow system</item>
         <item>Light</item>
