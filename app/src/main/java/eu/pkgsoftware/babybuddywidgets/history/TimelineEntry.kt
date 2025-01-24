@@ -22,6 +22,8 @@ import java.io.IOException
 import java.net.MalformedURLException
 import java.text.DateFormat
 import java.text.NumberFormat
+import java.time.ZoneId
+import kotlin.math.max
 
 
 fun interpreteAmountValue(fragment: BaseFragment, amount: Double?): String {
@@ -104,9 +106,17 @@ class TimelineEntry(private val fragment: BaseFragment, private var _entry: Time
         val local_start_time = serverTimeToClientTime(entry!!.start)
         val local_end_time = serverTimeToClientTime(entry!!.end)
 
+        val start_utc = local_start_time.toInstant().atZone(ZoneId.of("UTC"))
+        val end_utc = local_end_time.toInstant().atZone(ZoneId.of("UTC"))
+        val time_diff = end_utc.toEpochSecond() - start_utc.toEpochSecond()
+        val time_diff_hours = time_diff / 3600
+        val time_diff_minutes = max(1, (time_diff % 3600) / 60)
+        val time_diff_minutes_str = time_diff_minutes.toString().padStart(2, '0')
+        val time_diff_string = "$time_diff_hours:${time_diff_minutes_str}"
+
         val start_time = TIME_FORMAT.format(local_start_time)
         val end_time = TIME_FORMAT.format(local_end_time)
-        val opt_time_range = if (start_time == end_time) start_time else "$start_time - $end_time"
+        val opt_time_range = if (time_diff < 30) start_time else "$start_time - $end_time ($time_diff_string)"
 
         return phrase
             .putOptional("type", entry!!.appType)
@@ -115,6 +125,7 @@ class TimelineEntry(private val fragment: BaseFragment, private var _entry: Time
             .putOptional("end_date", DATE_FORMAT.format(local_end_time))
             .putOptional("end_time", TIME_FORMAT.format(local_end_time))
             .putOptional("opt_time_range", opt_time_range)
+            .putOptional("time_diff", time_diff_string)
             .putOptional("notes", entry!!.notes.trim { it <= ' ' })
     }
 
