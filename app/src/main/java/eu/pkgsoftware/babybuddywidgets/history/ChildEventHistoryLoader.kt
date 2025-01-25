@@ -235,6 +235,7 @@ class ChildEventHistoryLoader(
         }
         attemptAddingLongClickTutorialMessage()
         delay(500)
+        updateTop()
     }
 
     private fun attemptAddingLongClickTutorialMessage() {
@@ -290,6 +291,9 @@ class ChildEventHistoryLoader(
         val liItems = listIntegrator.items
         listIntegrator.top = null
         for (item in currentList) {
+            if (i >= liItems.size) {
+                break // this can happen if we are in the middle of the async refresh
+            }
             if (visibilityCheck.checkPartiallyVisible(item.view)) {
                 listIntegrator.top = liItems[i]
                 break
