@@ -88,9 +88,21 @@ public class LoggedInFragment extends BaseFragment {
         binding.babyViewPagerSwitcher.registerOnPageChangeCallback(new ViewPager2.OnPageChangeCallback() {
             @Override
             public void onPageSelected(int position) {
+                BabyBuddyClient.Child child = null;
+                if (children != null) {
+                    if (position >= children.length) {
+                        position = children.length - 1;
+                    }
+                    if (position < 0) {
+                        position = 0;
+                    }
+                    if (children.length > 0) {
+                        child = children[position];
+                    }
+                }
+
                 super.onPageSelected(position);
 
-                BabyBuddyClient.Child child = children == null ? null : children[position];
                 credStore.setSelectedChild(child == null ? null : child.slug);
                 babyAdapter.activeViewChanged(child);
 
@@ -104,7 +116,7 @@ public class LoggedInFragment extends BaseFragment {
     }
 
     @Override
-    protected void setupTutorialMessages(TutorialManagement m) {
+    protected void setupTutorialMessages(@NonNull TutorialManagement m) {
     }
 
     @Override
