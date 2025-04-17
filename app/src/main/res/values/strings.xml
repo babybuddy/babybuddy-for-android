@@ -46,6 +46,7 @@
     <string name="activity_singular_head_circumference">head circumference</string>
 
     <!-- Feeding store messages -->
+    <string name="feeding_amount_title">Amount</string>
     <string name="store_feeding_amount_string">Amount: {quantity}</string>
     <string name="store_feeding_amount_none">None</string>
 
