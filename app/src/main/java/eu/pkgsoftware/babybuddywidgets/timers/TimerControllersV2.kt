@@ -676,7 +676,7 @@ class FeedingLoggingController(
                 end = maxDate(timer.start, nowServer()),
                 feedingType = selectedType!!,
                 feedingMethod = selectedMethod!!,
-                amount = feedingBinding.amountNumberPicker.value?.toDouble(),
+                amount = feedingBinding.amountNumberPicker.value,
                 _notes = feedingBinding.noteEditor.text.toString()
             )
         )
