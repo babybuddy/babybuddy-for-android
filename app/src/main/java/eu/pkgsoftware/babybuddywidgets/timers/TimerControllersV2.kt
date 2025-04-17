@@ -658,12 +658,42 @@ class FeedingLoggingController(
             feedingBinding.feedingMethodButtons.visibility = View.GONE
             feedingBinding.feedingMethodSpinner.visibility = View.VISIBLE
         }
+        feedingBinding.feedingIconImage.setImageResource(
+            feedingImageResourceFor(selectedType, selectedMethod)
+        )
 
         if (feedingBinding.feedingTypeSpinner.isVisible && feedingBinding.feedingMethodSpinner.isVisible) {
             saveButton.visibility = View.VISIBLE
         } else {
             saveButton.visibility = View.GONE
         }
+    }
+    fun feedingImageResourceFor(
+        selectedType: FeedingTypeEnum?,
+        selectedMethod: FeedingMethodEnum?,
+    ) = when (selectedType) {
+        FeedingTypeEnum.BREAST_MILK -> {
+            when (selectedMethod) {
+                FeedingMethodEnum.LEFT_BREAST -> R.drawable.pkg_breast_left
+                FeedingMethodEnum.RIGHT_BREAST -> R.drawable.pkg_breast_right
+
+
+                FeedingMethodEnum.BOTH_BREASTS,
+                null -> R.drawable.pkg_breast
+
+                FeedingMethodEnum.BOTTLE,
+                FeedingMethodEnum.PARENT_FED,
+                FeedingMethodEnum.SELF_FED,
+                    -> R.drawable.pkg_bottle
+            }
+        }
+
+        FeedingTypeEnum.SOLID_FOOD -> R.drawable.pkg_solid_food
+
+        FeedingTypeEnum.FORMULA,
+        FeedingTypeEnum.FORTIFIED_BREAST_MILK,
+        null,
+            -> R.drawable.pkg_bottle
     }
 
     override suspend fun createEntry(timer: Timer): TimeEntry {
