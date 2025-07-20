@@ -1,0 +1,7 @@
+Mit dieser App können Sie schnell Aktivitäten auf der <a href="https://github.com/babybuddy/babybuddy">Open-Source-Website Baby Buddy</a> erfassen und bearbeiten. Sie müssen Ihren eigenen Baby Buddy-Server hosten, um die App nutzen zu können.
+
+Mit der App können Sie Ereignisse mit weniger Tastendrücken als über die Weboberfläche protokollieren: Verfolgen Sie schnell die Fütterungen, Schlafphasen, Bauchzeiten und Windelwechsel Ihres Babys und verwenden Sie den Verlauf für einen einfachen Überblick über die neuesten Ereignisse.
+
+Die App ist für die Verwendung durch mehrere Personen auf mehreren Geräten optimiert, sodass die Ereignisverfolgung von verschiedenen Betreuern geteilt werden kann.
+
+Hinweis: Die App verwendet einige Medien-Dateien, die unter non-libre Lizenzen veröffentlicht wurden. Details finden sich auf der <a href="https://github.com/MrApplejuice/BabyBuddyAndroid/blob/master/ATTRIBUTIONS.md">attributions page</a>.
