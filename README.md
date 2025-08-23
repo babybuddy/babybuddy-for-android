@@ -1,3 +1,9 @@
+# Development temporarily on hold due to my move to a new house
+
+Dear visitor. I was hoping to be able to resume development of the app further a bit sooner. However, I am still not finished with moving into my new place. Because this entire app is kept afloat as a hobby project next to my 9-5 job, I have to officially declare that development is on hold until my move is finished. Most importantly my PC has to move to its final location and I need to unpack my Android testing devices.
+
+I expect development and updates to start again in the Winter 2025. Until then the app will only get attention if when it breaks. Thanks for anyone purchasing the app on the play store. It is really exciting and encouraging to me to have built something that seemingly is useful for others!
+
 # Baby Buddy for Android
 
 Android integration for the open source web-app
