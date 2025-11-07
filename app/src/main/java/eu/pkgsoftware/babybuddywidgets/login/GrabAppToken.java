@@ -122,6 +122,8 @@ public class GrabAppToken extends StreamReader {
 
     private HttpURLConnection doQuery(String path) throws IOException {
         HttpURLConnection con = (HttpURLConnection) subPath(path).openConnection();
+        con.setConnectTimeout(5000); // 5 seconds to connect
+        con.setReadTimeout(10000);   // 10 seconds between reads
         for (Map.Entry<String, String> item : headers.entrySet()) {
             con.setRequestProperty(item.getKey(), item.getValue());
         }
