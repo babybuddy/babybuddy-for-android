@@ -65,14 +65,14 @@ class DebugNetworkInterceptor : Interceptor {
         } ?: "No cookies"
 
         val buf = Buffer();
-        request.body()?.writeTo(buf) ?: buf.writeUtf8("null");
+        request.body?.writeTo(buf) ?: buf.writeUtf8("null");
         val bodyStream = ByteArrayOutputStream(10000)
         buf.copyTo(bodyStream)
 
         GlobalDebugObject.log(
-            "Raw request: ${request.url()} - " +
+            "Raw request: ${request.url} - " +
             "Request body: ${bodyStream} - " +
-            "Response: ${response.message()} - " +
+            "Response: ${response.message} - " +
             cookie
         )
         return response
