@@ -120,7 +120,7 @@ android {
     }
 }
 
-ext.camerax_version = '1.5.1'
+ext.camerax_version = '1.5.2'
 
 dependencies {
     implementation 'com.squareup.phrase:phrase:1.2.0'
