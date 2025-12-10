@@ -22,7 +22,7 @@ You can either install the [APK from the lastest release](https://github.com/bab
 
 ### Third party repositories
 
-The app is also available in the F-Driod repository provided by [@IzzySoft](https://github.com/IzzySoft)
+The app is also available in the F-Driod repository kindly provided by [@IzzySoft](https://github.com/IzzySoft)
 
 <a href='https://apt.izzysoft.de/packages/eu.pkgsoftware.babybuddywidgets'><img height='75' alt='Get it at IzzyOnDroid' src='https://gitlab.com/IzzyOnDroid/repo/-/raw/master/assets/IzzyOnDroid.png'/></a>
 
