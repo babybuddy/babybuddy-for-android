@@ -7,7 +7,7 @@ plugins {
 }
 apply plugin: 'kotlin-android'
 
-task generateAboutStrings {
+tasks.register('generateAboutStrings') {
     String attributionsText = new File("ATTRIBUTIONS.md").text
     String[] sections = attributionsText.replaceAll("\n", " ").split("##")
 
@@ -67,11 +67,11 @@ task generateAboutStrings {
     about_strings_file_writer.close()
 }
 
-task invokeResourcesMakefile(type: Exec) {
+tasks.register('invokeResourcesMakefile', Exec) {
     commandLine 'make', '-C', '..', '-f', 'resources.makefile'
 }
 
-task invokeHelpMakefile(type: Exec) {
+tasks.register('invokeHelpMakefile', Exec) {
     commandLine 'make', '-C', '..', '-f', 'help.makefile'
 }
 
@@ -80,7 +80,7 @@ preBuild.dependsOn(invokeResourcesMakefile)
 preBuild.dependsOn(invokeHelpMakefile)
 
 android {
-    compileSdk 35
+    compileSdk = 35
 
     defaultConfig {
         applicationId "eu.pkgsoftware.babybuddywidgets"
