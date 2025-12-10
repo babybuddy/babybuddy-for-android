@@ -190,6 +190,7 @@
     <string name="send_message_back_button">Terug</string>
     <string name="send_message_failed_message">Bericht kon niet worden verstuurd</string>
     <string name="send_message_sent_message">Bericht verstuurd naar ontwikkelaar</string>
+    <string name="feeding_amount_title">Volume</string>
     <string name="store_feeding_amount_string">Hoeveelheid: {quantity}</string>
     <string name="store_feeding_amount_none">Geen</string>
     <string name="activity_store_failure_server_error_general">Kon activiteit niet opslaan.</string>

@@ -7,6 +7,9 @@ import com.fasterxml.jackson.annotation.JsonProperty
 import com.fasterxml.jackson.annotation.JsonSetter
 import com.fasterxml.jackson.databind.annotation.JsonDeserialize
 import com.fasterxml.jackson.databind.annotation.JsonSerialize
+import eu.pkgsoftware.babybuddywidgets.Constants
+import eu.pkgsoftware.babybuddywidgets.Constants.FeedingMethodEnum
+import eu.pkgsoftware.babybuddywidgets.Constants.FeedingTypeEnum
 import eu.pkgsoftware.babybuddywidgets.networking.BabyBuddyClient.ACTIVITIES
 import eu.pkgsoftware.babybuddywidgets.networking.BabyBuddyClient.EVENTS
 import eu.pkgsoftware.babybuddywidgets.DateTimeDeserializer
@@ -97,8 +100,8 @@ data class FeedingEntry(
     override val end: Date,
 
     @JsonSetter("notes") val _notes: String?,
-    @JsonProperty("type", required = true) val feedingType: String,
-    @JsonProperty("method", required = true) val feedingMethod: String,
+    @JsonProperty("type", required = true) val feedingType: FeedingTypeEnum,
+    @JsonProperty("method", required = true) val feedingMethod: FeedingMethodEnum,
     @JsonProperty("amount", required = true) val amount: Double?,
 ) : TimeEntry {
     override @JsonIgnore val appType: String = ACTIVITIES.FEEDING

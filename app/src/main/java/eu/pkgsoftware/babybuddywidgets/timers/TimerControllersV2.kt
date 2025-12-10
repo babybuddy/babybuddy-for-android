@@ -518,8 +518,8 @@ class TummyTimeLoggingController(
 data class FeedingRecord(
     @JsonProperty("amount") val amount: Double?,
     @JsonProperty("note") val note: String,
-    @JsonProperty("feeding_type") val feedingType: String?,
-    @JsonProperty("feeding_method") val feedingMethod: String?,
+    @JsonProperty("feeding_type") val feedingType: FeedingTypeEnum?,
+    @JsonProperty("feeding_method") val feedingMethod: FeedingMethodEnum?,
 )
 
 class FeedingLoggingController(
@@ -535,19 +535,19 @@ class FeedingLoggingController(
     override val controlsView: View = feedingBinding.root
 
     private var assignedMethodButtons: List<FeedingMethodEnum> = emptyList()
-    private var selectedType: String? = null
-    private var selectedMethod: String? = null
+    private var selectedType: FeedingTypeEnum? = null
+    private var selectedMethod: FeedingMethodEnum? = null
 
     override fun postInit() {
         super.postInit()
 
         populateButtonList(
-            fragment.resources.getTextArray(R.array.feedingTypes),
-            feedingBinding.feedingTypeButtons,
-            feedingBinding.feedingTypeSpinner,
-            object : ButtonListCallback {
+            textArray = fragment.resources.getTextArray(R.array.feedingTypes),
+            buttons = feedingBinding.feedingTypeButtons,
+            spinner = feedingBinding.feedingTypeSpinner,
+            callback = object : ButtonListCallback {
                 override fun onSelectionChanged(i: Int) {
-                    selectedType = FeedingTypeEnumValues[i]!!.post_name
+                    selectedType = FeedingTypeEnumValues[i]!!
                     selectedMethod = null
                     setupFeedingMethodButtons(FeedingTypeEnumValues[i]!!)
                     feedingBinding.feedingMethodButtons.visibility = View.VISIBLE
@@ -564,7 +564,7 @@ class FeedingLoggingController(
                     position: Int,
                     id: Long
                 ) {
-                    val newType = FeedingTypeEnumValues[position]!!.post_name
+                    val newType = FeedingTypeEnumValues[position]!!
                     if (newType == selectedType) return
                     selectedType = newType
                     selectedMethod = null
@@ -591,11 +591,11 @@ class FeedingLoggingController(
 
             it.feedingType?.let {
                 try {
-                    feedingBinding.feedingTypeSpinner.setSelection(FeedingTypeEnum.byPostName(it).value)
+                    feedingBinding.feedingTypeSpinner.setSelection(it.value)
                     selectedType = it
                     feedingBinding.feedingTypeButtons.visibility = View.GONE
                     feedingBinding.feedingTypeSpinner.visibility = View.VISIBLE
-                    setupFeedingMethodButtons(FeedingTypeEnum.byPostName(it))
+                    setupFeedingMethodButtons(it)
                 }
                 catch (_: NoSuchElementException) {
                 }
@@ -603,7 +603,7 @@ class FeedingLoggingController(
             it.feedingMethod?.let {
                 if (selectedType != null) {
                     try {
-                        assignedMethodButtons.indexOf(FeedingMethodEnum.byPostName(it)).let {
+                        assignedMethodButtons.indexOf(it).let {
                             feedingBinding.feedingMethodSpinner.setSelection(it)
                         }
                         selectedMethod = it
@@ -647,7 +647,7 @@ class FeedingLoggingController(
             feedingBinding.feedingMethodButtons.visibility = View.GONE
             feedingBinding.feedingMethodSpinner.visibility = View.GONE
         } else if (selectedMethod == null) {
-            setupFeedingMethodButtons(FeedingTypeEnum.byPostName(selectedType))
+            setupFeedingMethodButtons(selectedType)
             feedingBinding.feedingTypeButtons.visibility = View.GONE
             feedingBinding.feedingTypeSpinner.visibility = View.VISIBLE
             feedingBinding.feedingMethodButtons.visibility = View.VISIBLE
@@ -658,12 +658,42 @@ class FeedingLoggingController(
             feedingBinding.feedingMethodButtons.visibility = View.GONE
             feedingBinding.feedingMethodSpinner.visibility = View.VISIBLE
         }
+        feedingBinding.feedingIconImage.setImageResource(
+            feedingImageResourceFor(selectedType, selectedMethod)
+        )
 
         if (feedingBinding.feedingTypeSpinner.isVisible && feedingBinding.feedingMethodSpinner.isVisible) {
             saveButton.visibility = View.VISIBLE
         } else {
             saveButton.visibility = View.GONE
         }
+    }
+    fun feedingImageResourceFor(
+        selectedType: FeedingTypeEnum?,
+        selectedMethod: FeedingMethodEnum?,
+    ) = when (selectedType) {
+        FeedingTypeEnum.BREAST_MILK -> {
+            when (selectedMethod) {
+                FeedingMethodEnum.LEFT_BREAST -> R.drawable.pkg_breast_left
+                FeedingMethodEnum.RIGHT_BREAST -> R.drawable.pkg_breast_right
+
+
+                FeedingMethodEnum.BOTH_BREASTS,
+                null -> R.drawable.pkg_breast
+
+                FeedingMethodEnum.BOTTLE,
+                FeedingMethodEnum.PARENT_FED,
+                FeedingMethodEnum.SELF_FED,
+                    -> R.drawable.pkg_bottle
+            }
+        }
+
+        FeedingTypeEnum.SOLID_FOOD -> R.drawable.pkg_solid_food
+
+        FeedingTypeEnum.FORMULA,
+        FeedingTypeEnum.FORTIFIED_BREAST_MILK,
+        null,
+            -> R.drawable.pkg_bottle
     }
 
     override suspend fun createEntry(timer: Timer): TimeEntry {
@@ -676,7 +706,7 @@ class FeedingLoggingController(
                 end = maxDate(timer.start, nowServer()),
                 feedingType = selectedType!!,
                 feedingMethod = selectedMethod!!,
-                amount = feedingBinding.amountNumberPicker.value?.toDouble(),
+                amount = feedingBinding.amountNumberPicker.value,
                 _notes = feedingBinding.noteEditor.text.toString()
             )
         )
@@ -751,7 +781,7 @@ class FeedingLoggingController(
             feedingBinding.feedingMethodSpinner,
             object : ButtonListCallback {
                 override fun onSelectionChanged(i: Int) {
-                    selectedMethod = assignedMethodButtons[i].post_name
+                    selectedMethod = assignedMethodButtons[i]
                     updateVisuals()
                 }
             }
@@ -764,7 +794,7 @@ class FeedingLoggingController(
                     position: Int,
                     id: Long
                 ) {
-                    selectedMethod = assignedMethodButtons[position].post_name
+                    selectedMethod = assignedMethodButtons[position]
                     updateVisuals()
                 }
 

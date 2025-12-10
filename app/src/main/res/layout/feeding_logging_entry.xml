@@ -7,7 +7,7 @@
     android:orientation="horizontal">
 
     <FrameLayout
-        android:id="@+id/sleepIcon"
+        android:id="@+id/feedingIcon"
         android:layout_width="48dp"
         android:layout_height="0dp"
         android:background="@color/feeding_enabled"
@@ -20,6 +20,7 @@
         app:layout_constraintTop_toTopOf="parent">
 
         <ImageView
+            android:id="@+id/feedingIconImage"
             android:layout_width="match_parent"
             android:layout_height="match_parent"
             android:scaleType="fitCenter"
@@ -46,7 +47,7 @@
         android:layout_height="wrap_content"
         android:layout_marginStart="8dp"
         app:layout_constraintEnd_toEndOf="parent"
-        app:layout_constraintStart_toEndOf="@+id/sleepIcon"
+        app:layout_constraintStart_toEndOf="@+id/feedingIcon"
         app:layout_constraintTop_toTopOf="parent">
 
         <EditText
@@ -124,7 +125,7 @@
             android:layout_height="wrap_content"
             android:layout_marginStart="8dp"
             android:layout_marginTop="16dp"
-            android:text="Amount"
+            android:text="@string/feeding_amount_title"
             android:textAppearance="@android:style/TextAppearance.DeviceDefault.Widget.TextView.SpinnerItem"
             app:layout_constraintStart_toStartOf="parent"
             app:layout_constraintTop_toTopOf="parent" />

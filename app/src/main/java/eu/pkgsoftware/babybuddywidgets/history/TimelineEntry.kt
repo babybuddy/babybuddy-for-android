@@ -215,19 +215,22 @@ class TimelineEntry(private val fragment: BaseFragment, private var _entry: Time
         binding.feedingBreastRightImage.visibility = View.GONE
         binding.feedingBottleImage.visibility = View.GONE
         binding.solidFoodImage.visibility = View.GONE
-        when (FeedingTypeEnum.byPostName(feeding.feedingType)) {
+        when (feeding.feedingType) {
             FeedingTypeEnum.BREAST_MILK -> {
-                val feedingMethod = FeedingMethodEnum.byPostName(
-                    feeding.feedingMethod
-                )
-                if (feedingMethod.value == 1) {
-                    binding.feedingBreastLeftImage.visibility = View.VISIBLE
-                } else if (feedingMethod.value == 2) {
-                    binding.feedingBreastRightImage.visibility = View.VISIBLE
-                } else if (feedingMethod.value == 3) {
-                    binding.feedingBreastImage.visibility = View.VISIBLE
-                } else {
-                    binding.feedingBottleImage.visibility = View.VISIBLE
+                val feedingMethod = feeding.feedingMethod
+
+                when (feedingMethod) {
+                    FeedingMethodEnum.LEFT_BREAST ->
+                        binding.feedingBreastLeftImage.visibility = View.VISIBLE
+                    FeedingMethodEnum.RIGHT_BREAST ->
+                        binding.feedingBreastRightImage.visibility = View.VISIBLE
+                    FeedingMethodEnum.BOTH_BREASTS ->
+                        binding.feedingBreastImage.visibility = View.VISIBLE
+
+                    FeedingMethodEnum.BOTTLE,
+                    FeedingMethodEnum.PARENT_FED,
+                    FeedingMethodEnum.SELF_FED ->
+                        binding.feedingBottleImage.visibility = View.VISIBLE
                 }
             }
 
