@@ -80,12 +80,12 @@ preBuild.dependsOn(invokeResourcesMakefile)
 preBuild.dependsOn(invokeHelpMakefile)
 
 android {
-    compileSdk = 35
+    compileSdk = 36
 
     defaultConfig {
         applicationId "eu.pkgsoftware.babybuddywidgets"
         minSdkVersion 27
-        targetSdk 35
+        targetSdk 36
         versionCode 53
         versionName "2.6.3"
 
@@ -147,12 +147,12 @@ dependencies {
     implementation "androidx.camera:camera-lifecycle:$camerax_version"
     implementation "androidx.camera:camera-view:$camerax_version"
 
-    implementation 'androidx.core:core-ktx:1.16.0'
+    implementation 'androidx.core:core-ktx:1.17.0'
     implementation "org.jetbrains.kotlin:kotlin-stdlib-jdk7:$kotlin_version"
     implementation "org.jetbrains.kotlinx:kotlinx-coroutines-core:1.10.2"
     implementation "org.jetbrains.kotlinx:kotlinx-coroutines-android:1.10.2"
     implementation "org.jetbrains.kotlin:kotlin-reflect:$kotlin_version"
-    implementation 'androidx.preference:preference:1.2.1'
+    implementation "androidx.preference:preference-ktx:1.2.1"
 
     testImplementation 'junit:junit:4.13.2'
     testImplementation "org.jetbrains.kotlinx:kotlinx-coroutines-test:1.10.2"

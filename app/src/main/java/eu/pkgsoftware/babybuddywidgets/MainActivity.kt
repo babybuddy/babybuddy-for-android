@@ -9,6 +9,9 @@ import android.view.MotionEvent
 import androidx.appcompat.app.AlertDialog
 import androidx.appcompat.app.AppCompatActivity
 import androidx.appcompat.app.AppCompatDelegate
+import androidx.core.view.ViewCompat
+import androidx.core.view.WindowCompat
+import androidx.core.view.WindowInsetsCompat
 import androidx.fragment.app.FragmentContainerView
 import androidx.navigation.Navigation
 import androidx.preference.PreferenceManager
@@ -126,16 +129,26 @@ class MainActivity : AppCompatActivity() {
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
+        WindowCompat.enableEdgeToEdge(window)
 
         binding = ActivityMainBinding.inflate(
             layoutInflater
         ).let {
+            ViewCompat.setOnApplyWindowInsetsListener(it.root) { v, insets ->
+                val systemBars = insets.getInsets(
+                    WindowInsetsCompat.Type.systemBars() or WindowInsetsCompat.Type.displayCutout()
+                )
+                v.setPadding(systemBars.left, systemBars.top, systemBars.right, systemBars.bottom)
+                WindowInsetsCompat.CONSUMED
+            }
+
             setContentView(it.root)
             setSupportActionBar(it.toolbar)
             it
         }
         enableBackNavigationButton(false)
         tutorialAccess
+
     }
 
     override fun onStart() {
@@ -382,17 +395,26 @@ class MainActivity : AppCompatActivity() {
     fun applyLightDarkMode() {
         PreferenceManager.getDefaultSharedPreferences(this).let { p ->
             val mode = p.getString("setting_dark_light_mode", "system")
+            var useLightStatusBar = true
             when (mode) {
                 "system" -> {
                     delegate.localNightMode = AppCompatDelegate.MODE_NIGHT_FOLLOW_SYSTEM
+                    useLightStatusBar = when (resources.configuration.uiMode and
+                        android.content.res.Configuration.UI_MODE_NIGHT_MASK) {
+                        android.content.res.Configuration.UI_MODE_NIGHT_YES -> false
+                        else -> true
+                    }
                 }
                 "light" -> {
                     delegate.localNightMode = AppCompatDelegate.MODE_NIGHT_NO
+                    useLightStatusBar = true
                 }
                 "dark" -> {
                     delegate.localNightMode = AppCompatDelegate.MODE_NIGHT_YES
+                    useLightStatusBar = false
                 }
             }
+            WindowCompat.getInsetsController(window, window.decorView).isAppearanceLightStatusBars = useLightStatusBar
         }
     }
 }
