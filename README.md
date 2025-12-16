@@ -1,3 +1,9 @@
+# Development temporarily on hold due to my move to a new house
+
+Dear visitor. I was hoping to be able to resume development of the app further a bit sooner. However, I am still not finished with moving into my new place. Because this entire app is kept afloat as a hobby project next to my 9-5 job, I have to officially declare that development is on hold until my move is finished. Most importantly my PC has to move to its final location and I need to unpack my Android testing devices.
+
+I expect development and updates to start again in the Winter 2025. Until then the app will only get attention if when it breaks. Thanks for anyone purchasing the app on the play store. It is really exciting and encouraging to me to have built something that seemingly is useful for others!
+
 # Baby Buddy for Android
 
 Android integration for the open source web-app
@@ -14,7 +20,11 @@ You can either install the [APK from the lastest release](https://github.com/bab
 
 <a href='https://play.google.com/store/apps/details?id=eu.pkgsoftware.babybuddywidgets&pcampaignid=pcampaignidMKT-Other-global-all-co-prtnr-py-PartBadge-Mar2515-1'><img height='75' alt='Get it on Google Play' src='https://play.google.com/intl/en_us/badges/static/images/badges/en_badge_web_generic.png'/></a>
 
-(The second option offers automatic updates and supports the app's development)
+### Third party repositories
+
+The app is also available in the F-Driod repository kindly provided by [@IzzySoft](https://github.com/IzzySoft)
+
+<a href='https://apt.izzysoft.de/packages/eu.pkgsoftware.babybuddywidgets'><img height='75' alt='Get it at IzzyOnDroid' src='https://gitlab.com/IzzyOnDroid/repo/-/raw/master/assets/IzzyOnDroid.png'/></a>
 
 ## User Documentation
 

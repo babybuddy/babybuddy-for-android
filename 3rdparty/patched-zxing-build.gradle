@@ -19,6 +19,7 @@ android {
         externalNativeBuild {
             cmake {
                 arguments "-DCMAKE_BUILD_TYPE=RelWithDebInfo"
+                arguments "-DCMAKE_SHARED_LINKER_FLAGS=-Wl,-z,max-page-size=16384"
             }
         }
     }
