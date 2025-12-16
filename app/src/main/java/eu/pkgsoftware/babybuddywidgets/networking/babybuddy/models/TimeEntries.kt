@@ -189,7 +189,7 @@ data class BmiEntry(
     @JsonProperty("id", required = true) override val id: Int,
     @JsonProperty("child", required = true) override val childId: Int,
     @JsonProperty("date", required = true) @JsonDeserialize(using = DateOnlyDeserializer::class) override val start: Date,
-    @JsonProperty("notes", required = false) val _notes: String?,
+    @param:JsonProperty("notes", required = false) val _notes: String?,
     @JsonProperty("bmi", required = true) val bmi: Double,
 ) : TimeEntry {
     override @JsonIgnore val appType: String = EVENTS.BMI
@@ -206,7 +206,7 @@ data class TemperatureEntry(
     @JsonProperty("id", required = true) override val id: Int,
     @JsonProperty("child", required = true) override val childId: Int,
     @JsonProperty("time", required = true) @JsonDeserialize(using = DateTimeDeserializer::class) override val start: Date,
-    @JsonProperty("notes", required = false) val _notes: String?,
+    @param:JsonProperty("notes", required = false) val _notes: String?,
     @JsonProperty("temperature", required = true) val temperature: Double,
 ) : TimeEntry {
     override @JsonIgnore val appType: String = EVENTS.TEMPERATURE
@@ -223,7 +223,7 @@ data class WeightEntry(
     @JsonProperty("id", required = true) override val id: Int,
     @JsonProperty("child", required = true) override val childId: Int,
     @JsonProperty("date", required = true) @JsonDeserialize(using = DateOnlyDeserializer::class) override val start: Date,
-    @JsonProperty("notes", required = false) val _notes: String?,
+    @param:JsonProperty("notes", required = false) val _notes: String?,
     @JsonProperty("weight", required = true) val weight: Double,
 ) : TimeEntry {
     override @JsonIgnore val appType: String = EVENTS.WEIGHT
@@ -240,7 +240,7 @@ data class HeightEntry(
     @JsonProperty("id", required = true) override val id: Int,
     @JsonProperty("child", required = true) override val childId: Int,
     @JsonProperty("date", required = true) @JsonDeserialize(using = DateOnlyDeserializer::class) override val start: Date,
-    @JsonProperty("notes", required = false) val _notes: String?,
+    @param:JsonProperty("notes", required = false) val _notes: String?,
     @JsonProperty("height", required = true) val height: Double,
 ) : TimeEntry {
     override @JsonIgnore val appType: String = EVENTS.HEIGHT
@@ -257,7 +257,7 @@ data class HeadCircumferenceEntry(
     @JsonProperty("id", required = true) override val id: Int,
     @JsonProperty("child", required = true) override val childId: Int,
     @JsonProperty("date", required = true) @JsonDeserialize(using = DateOnlyDeserializer::class) override val start: Date,
-    @JsonProperty("notes", required = false) val _notes: String?,
+    @param:JsonProperty("notes", required = false) val _notes: String?,
     @JsonProperty("head_circumference", required = true) val head_circumference: Double,
 ) : TimeEntry {
     override @JsonIgnore val appType: String = EVENTS.HEAD_CIRCUMFERENCE

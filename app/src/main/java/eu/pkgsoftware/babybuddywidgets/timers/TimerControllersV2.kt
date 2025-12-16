@@ -1,8 +1,10 @@
 package eu.pkgsoftware.babybuddywidgets.timers
 
+import android.content.Context
 import android.os.Handler
 import android.view.View
 import android.view.ViewGroup
+import android.view.inputmethod.InputMethodManager
 import android.widget.AdapterView
 import android.widget.ArrayAdapter
 import android.widget.Button
@@ -76,6 +78,7 @@ abstract class LoggingControls(val childId: Int) {
 
     open fun updateVisuals() {}
     open fun postInit() {}
+    open fun postStart() {}
 }
 
 interface TimerBase {
@@ -436,6 +439,20 @@ class NotesLoggingController(val fragment: BaseFragment, childId: Int) : Logging
     val noteEditor = bindings.noteEditor
 
     init {
+        noteEditor.setOnFocusChangeListener { view, hasFocus ->
+            val imm =
+                view.context.getSystemService(Context.INPUT_METHOD_SERVICE) as InputMethodManager?
+                    ?: return@setOnFocusChangeListener
+            when (hasFocus) {
+                true -> imm.showSoftInput(
+                    view, InputMethodManager.SHOW_IMPLICIT
+                )
+                false -> imm.hideSoftInputFromWindow(
+                    view.windowToken, InputMethodManager.HIDE_IMPLICIT_ONLY
+                )
+            }
+        }
+
         noteEditor.addTextChangedListener {
             updateVisuals()
         }
@@ -473,6 +490,11 @@ class NotesLoggingController(val fragment: BaseFragment, childId: Int) : Logging
         } else {
             View.GONE
         }
+    }
+
+    override fun postStart() {
+        super.postStart()
+        noteEditor.requestFocus()
     }
 }
 
@@ -992,6 +1014,7 @@ class LoggingButtonController(
                 }
             }
         }
+        controller.postStart()
     }
 
     private suspend fun stopTimerFromSwitch(

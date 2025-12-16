@@ -7,6 +7,7 @@ The app is optimized to be used by multiple people on multiple devices so that e
 <h2><b>Third Party Attributions</b></h2>
 
 The application contains the following media from www.flaticon.com, licensed under their attributions license for free use:
+
 - <a href="https://www.flaticon.com/free-icons/poop">Poop icons created by Good Ware - Flaticon</a>
 - <a href="https://www.flaticon.com/free-icons/diaper">Diaper icons created by Good Ware - Flaticon</a>
 - <a href="https://www.flaticon.com/free-icons/sleep">Sleep icons created by Good Ware - Flaticon</a>
