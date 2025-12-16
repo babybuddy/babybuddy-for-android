@@ -439,16 +439,18 @@ class NotesLoggingController(val fragment: BaseFragment, childId: Int) : Logging
     val noteEditor = bindings.noteEditor
 
     init {
-        try {
-            noteEditor.setOnFocusChangeListener { view, hasFocus ->
-                val imm = view.context.getSystemService(Context.INPUT_METHOD_SERVICE) as InputMethodManager?
-                when (hasFocus) {
-                    true -> imm?.showSoftInput(view, InputMethodManager.SHOW_IMPLICIT)
-                    false -> imm?.hideSoftInputFromWindow(view.windowToken, InputMethodManager.HIDE_IMPLICIT_ONLY)
-                }
+        noteEditor.setOnFocusChangeListener { view, hasFocus ->
+            val imm =
+                view.context.getSystemService(Context.INPUT_METHOD_SERVICE) as InputMethodManager?
+                    ?: return@setOnFocusChangeListener
+            when (hasFocus) {
+                true -> imm.showSoftInput(
+                    view, InputMethodManager.SHOW_IMPLICIT
+                )
+                false -> imm.hideSoftInputFromWindow(
+                    view.windowToken, InputMethodManager.HIDE_IMPLICIT_ONLY
+                )
             }
-        } catch (e: Exception) {
-            e.printStackTrace()
         }
 
         noteEditor.addTextChangedListener {
