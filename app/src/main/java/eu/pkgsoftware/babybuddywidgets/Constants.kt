@@ -34,12 +34,10 @@ object Constants {
             override fun serialize(value: FeedingTypeEnum?, gen: JsonGenerator?, serializers: SerializerProvider?) {
                 gen?.writeString(value?.post_name)
             }
-
         }
         class FeedingTypeEnumDeserializer : JsonDeserializer<FeedingTypeEnum>() {
             override fun deserialize(parser: JsonParser?, ctxt: DeserializationContext?): FeedingTypeEnum? =
                 parser?.text?.let { FeedingTypeEnum.byPostName(it) }
-
         }
     }
 
