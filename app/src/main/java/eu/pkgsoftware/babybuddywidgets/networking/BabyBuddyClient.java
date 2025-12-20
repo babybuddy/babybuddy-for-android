@@ -457,6 +457,8 @@ public class BabyBuddyClient extends StreamReader {
 
     private HttpURLConnection doQuery(String path) throws IOException {
         HttpURLConnection con = (HttpURLConnection) pathToUrl(path).openConnection();
+        con.setConnectTimeout(2000); // 2 seconds to connect
+        con.setReadTimeout(5000);   // 5  seconds between reads
         String token = credStore.getAppToken();
         con.setRequestProperty("Authorization", "Token " + token);
 
