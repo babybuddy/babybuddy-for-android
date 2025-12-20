@@ -1,5 +1,6 @@
 package eu.pkgsoftware.babybuddywidgets.networking;
 
+import android.net.Network;
 import android.os.Handler;
 import android.os.Looper;
 
@@ -403,8 +404,31 @@ public class BabyBuddyClient extends StreamReader {
     private CredStore credStore;
     private Looper mainLoop;
     private long serverDateOffset = -1000;
+    private NetworkMonitor networkMonitor;
+    private volatile boolean networkChanged = false;
 
     public final Client v2client;
+
+    // Network change listener that marks when network has changed
+    private final NetworkMonitor.NetworkChangeListener networkChangeListener = new NetworkMonitor.NetworkChangeListener() {
+        @Override
+        public void onNetworkChanged(Network newNetwork) {
+            GlobalDebugObject.log("BabyBuddyClient: Network changed to " + newNetwork);
+            networkChanged = true;
+        }
+
+        @Override
+        public void onNetworkLost() {
+            GlobalDebugObject.log("BabyBuddyClient: Network lost");
+            networkChanged = true;
+        }
+
+        @Override
+        public void onNetworkAvailable(Network network) {
+            GlobalDebugObject.log("BabyBuddyClient: Network available " + network);
+            networkChanged = true;
+        }
+    };
 
     private void updateServerDateTime(HttpURLConnection con) {
         String dateString = con.getHeaderField("Date");
@@ -456,11 +480,15 @@ public class BabyBuddyClient extends StreamReader {
         return sdf.format(now);
     }
 
-    public BabyBuddyClient(Looper mainLoop, CredStore credStore) {
+    public BabyBuddyClient(Looper mainLoop, CredStore credStore, NetworkMonitor networkMonitor) {
         this.mainLoop = mainLoop;
         this.credStore = credStore;
         this.syncMessage = new Handler(mainLoop);
         this.v2client = new Client(credStore);
+
+        // Initialize network monitoring
+        this.networkMonitor = networkMonitor;
+        this.networkMonitor.addListener(networkChangeListener);
     }
 
     private final Random requestIdGenerator = new Random();
@@ -783,5 +811,13 @@ public class BabyBuddyClient extends StreamReader {
                 }
             }
         );
+    }
+
+    /**
+     * Clean up resources when the client is no longer needed.
+     * This should be called when the activity/application is being destroyed.
+     */
+    public void cleanup() {
+        networkMonitor.removeListener(networkChangeListener);
     }
 }

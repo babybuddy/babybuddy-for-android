@@ -19,6 +19,7 @@ import eu.pkgsoftware.babybuddywidgets.databinding.ActivityMainBinding
 import eu.pkgsoftware.babybuddywidgets.networking.BabyBuddyClient
 import eu.pkgsoftware.babybuddywidgets.networking.BabyBuddyClient.Child
 import eu.pkgsoftware.babybuddywidgets.networking.BabyBuddyClient.GenericSubsetResponseHeader
+import eu.pkgsoftware.babybuddywidgets.networking.NetworkMonitor
 import eu.pkgsoftware.babybuddywidgets.tutorial.TutorialAccess
 import eu.pkgsoftware.babybuddywidgets.tutorial.TutorialManagement
 import eu.pkgsoftware.babybuddywidgets.utils.AsyncClientRequest
@@ -27,6 +28,7 @@ import org.json.JSONArray
 import java.util.*
 import kotlin.coroutines.resume
 import kotlin.coroutines.suspendCoroutine
+import androidx.navigation.findNavController
 
 interface StoreFunction<X> : BabyBuddyClient.RequestCallback<X> {
     fun store(timer: BabyBuddyClient.Timer, callback: BabyBuddyClient.RequestCallback<X>)
@@ -50,6 +52,8 @@ class MainActivity : AppCompatActivity() {
 
     val scope = MainScope()
     val inputEventListeners = mutableListOf<InputEventListener>()
+
+    private var networkMonitor: NetworkMonitor? = null
 
     internal var internalStorage: ActivityStore? = null
     val storage: ActivityStore
@@ -82,11 +86,19 @@ class MainActivity : AppCompatActivity() {
     internal var internalClient: BabyBuddyClient? = null
     val client: BabyBuddyClient
         get() {
+            val networkMonitor = this.networkMonitor ?: run {
+                val nm = NetworkMonitor(applicationContext)
+                this.networkMonitor = nm
+                nm.startMonitoring()
+                nm
+            }
+
             internalClient.let {
                 if (it == null) {
                     val newClient = BabyBuddyClient(
                         mainLooper,
-                        credStore
+                        credStore,
+                        networkMonitor
                     )
                     internalClient = newClient
                     return newClient
@@ -143,13 +155,28 @@ class MainActivity : AppCompatActivity() {
 
         applyLightDarkMode()
 
-        binding?.root?.let {
+        binding.root.let {
             val ncv = it.findViewById<FragmentContainerView>(R.id.nav_host_fragment_content_main)
-            Navigation.findNavController(ncv)
+            ncv.findNavController()
                 .addOnDestinationChangedListener { controller, destination, arguments ->
                     enableBackNavigationButton(false)
                 }
         }
+    }
+
+    override fun onResume() {
+        super.onResume()
+        networkMonitor?.startMonitoring()
+    }
+
+    override fun onPause() {
+        super.onPause()
+        networkMonitor?.stopMonitoring()
+    }
+
+    override fun onDestroy() {
+        super.onDestroy()
+        internalClient?.cleanup()
     }
 
     @JvmField
