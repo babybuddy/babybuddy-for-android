@@ -195,9 +195,9 @@ class MainActivity : AppCompatActivity() {
     }
 
     override fun onSupportNavigateUp(): Boolean {
-        binding?.root?.let {
+        binding.root.let {
             val ncv = it.findViewById<FragmentContainerView>(R.id.nav_host_fragment_content_main)
-            Navigation.findNavController(ncv).navigateUp()
+            ncv.findNavController().navigateUp()
         }
         return false;
     }
@@ -216,7 +216,7 @@ class MainActivity : AppCompatActivity() {
     }
 
     override fun dispatchKeyEvent(event: KeyEvent): Boolean {
-        event?.let {
+        event.let {
             invokeInputEventListeners(it)
         }
         return super.dispatchKeyEvent(event)
@@ -384,14 +384,11 @@ class MainActivity : AppCompatActivity() {
 
     fun getChildTimerControl(childId: Int): BabyBuddyV2TimerAdapter {
         if (!timerControls.containsKey(childId)) {
-            timerControls.put(
+            timerControls[childId] = BabyBuddyV2TimerAdapter(
                 childId,
-                BabyBuddyV2TimerAdapter(
-                    childId,
-                    TimerControl(this, childId),
-                    resources,
-                    credStore,
-                )
+                TimerControl(this, childId),
+                resources,
+                credStore,
             )
         }
         return timerControls[childId]!!

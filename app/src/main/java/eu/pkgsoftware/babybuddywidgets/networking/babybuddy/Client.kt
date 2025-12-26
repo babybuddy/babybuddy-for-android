@@ -1,9 +1,11 @@
 package eu.pkgsoftware.babybuddywidgets.networking.babybuddy
 
+import android.util.Log
 import com.fasterxml.jackson.databind.JsonNode
 import com.fasterxml.jackson.databind.node.ObjectNode
 import com.fasterxml.jackson.module.kotlin.jacksonObjectMapper
 import eu.pkgsoftware.babybuddywidgets.debugging.GlobalDebugObject
+import eu.pkgsoftware.babybuddywidgets.networking.NetworkMonitor
 import eu.pkgsoftware.babybuddywidgets.networking.RequestCodeFailure
 import eu.pkgsoftware.babybuddywidgets.networking.ServerAccessProviderInterface
 import eu.pkgsoftware.babybuddywidgets.networking.babybuddy.models.ApiInterface
@@ -26,6 +28,7 @@ import retrofit2.converter.jackson.JacksonConverterFactory
 import java.io.ByteArrayOutputStream
 import java.net.MalformedURLException
 import java.net.URL
+import kotlin.coroutines.suspendCoroutine
 import kotlin.random.Random
 import kotlin.reflect.KClass
 import kotlin.reflect.KFunction
@@ -36,6 +39,10 @@ import kotlin.reflect.full.findAnnotation
 import kotlin.reflect.full.findParameterByName
 import kotlin.reflect.full.functions
 import kotlin.reflect.jvm.javaMethod
+import kotlin.coroutines.resume
+import kotlin.coroutines.resumeWithException
+
+val LOGTAG = "ClientV2"
 
 fun genRequestId(): String {
     return Random.nextInt(0xFFFFFF + 1).toString(16).padStart(6, '0')
@@ -97,7 +104,7 @@ data class PaginatedResult<T> (
     val totalCount: Int,
 )
 
-class Client(val credStore: ServerAccessProviderInterface) {
+class Client(val credStore: ServerAccessProviderInterface, val networkMonitor: NetworkMonitor) {
     val httpClient = OkHttpClient.Builder()
         .addInterceptor(ServerTimeOffsetInterceptor(SystemServerTimeOffsetTracker))
         .addInterceptor(AuthInterceptor("Token " + credStore.appToken, credStore.authCookies))
@@ -112,20 +119,61 @@ class Client(val credStore: ServerAccessProviderInterface) {
 
     private val api = retrofit.create(ApiInterface::class.java)
 
-    private fun <T> executeCall(call: Call<T>, ignoredBody: T? = null): T {
-        val r = call.execute()
-        return if (r.isSuccessful) {
-            if (ignoredBody != null) {
-                return ignoredBody
+    private suspend fun <T> executeCallAsync(call: Call<T>, ignoredBody: T? = null): T {
+        while (true) {
+            val thisCall = call.clone()
+
+            val networkManagerListener = object : NetworkMonitor.NetworkChangeListener {
+                override fun onNetworkChanged(newNetwork: android.net.Network?) {
+                    thisCall.cancel()
+                }
             }
-            val p = r.body() ?: throw InvalidBody()
-            p
-        } else {
-            throw RequestCodeFailure(
-                r.code(),
-                "Failed",
-                r.errorBody()?.charStream()?.readText() ?: "[no message]",
-            )
+
+            networkMonitor.addListener(networkManagerListener)
+            var result : T? = null
+            try {
+                result = suspendCoroutine <T?> { continuation ->
+                    thisCall.enqueue(object : retrofit2.Callback<T> {
+                        override fun onResponse(call: Call<T>, response: retrofit2.Response<T>) {
+                            if (response.isSuccessful) {
+                                if (ignoredBody != null) {
+                                    continuation.resume(ignoredBody)
+                                    return
+                                }
+                                val p = response.body() ?: run {
+                                    continuation.resumeWithException(InvalidBody())
+                                    return
+                                }
+                                continuation.resume(p)
+                            } else {
+                                continuation.resumeWithException(
+                                    RequestCodeFailure(
+                                        response.code(),
+                                        "Failed",
+                                        response.errorBody()?.charStream()?.readText() ?: "[no message]",
+                                    )
+                                )
+                            }
+                        }
+
+                        override fun onFailure(call: Call<T>, t: Throwable) {
+                            if (thisCall.isCanceled) {
+                                Log.d(LOGTAG, "Request was cancelled due to network change")
+                                continuation.resume(null)
+                            } else {
+                                continuation.resumeWithException(t)
+                            }
+                        }
+                    })
+                }
+            }
+            finally {
+                networkMonitor.removeListener(networkManagerListener)
+            }
+
+            if (!thisCall.isCanceled && result != null) {
+                return result
+            }
         }
     }
 
@@ -147,7 +195,7 @@ class Client(val credStore: ServerAccessProviderInterface) {
             GlobalDebugObject.log("${REQID} V2Client::getProfile")
             try {
                 val call = api.getProfile()
-                return@withContext executeCall(call)
+                return@withContext executeCallAsync(call)
             }
             catch (e: Exception) {
                 GlobalDebugObject.log("${REQID} V2Client::getProfile !exception! ${e.message}")
@@ -184,7 +232,7 @@ class Client(val credStore: ServerAccessProviderInterface) {
                 val call: Call<PaginatedEntries<T>> = selected.javaMethod!!.invoke(
                     api, offset, limit, lExtraArgs
                 ) as Call<PaginatedEntries<T>>
-                val callResult = executeCall(call)
+                val callResult = executeCallAsync(call)
 
                 GlobalDebugObject.log("${REQID} V2Client::getEntries ${itemClass.simpleName} retrieved ${callResult.count} results")
                 PaginatedResult(callResult.entries, offset, callResult.count)
@@ -207,7 +255,7 @@ class Client(val credStore: ServerAccessProviderInterface) {
                 val apiPath = classAPIPath(klass)
 
                 val call = api.genericDeleteEntry(apiPath, item.id)
-                executeCall(call, ignoredBody = Unit)
+                executeCallAsync(call, ignoredBody = Unit)
 
                 GlobalDebugObject.log("${REQID} V2Client::deleteEntry ${klass.simpleName} deleted")
             }
@@ -280,7 +328,7 @@ class Client(val credStore: ServerAccessProviderInterface) {
         return withContext(Dispatchers.IO) {
             try {
                 val call: Call<T> = selected.javaMethod!!.invoke(api, node) as Call<T>
-                return@withContext executeCall(call)
+                return@withContext executeCallAsync(call)
             }
             catch (e: Exception) {
                 GlobalDebugObject.log("${REQID} V2Client::createEntry ${klass.simpleName} !exception! ${e.message}")

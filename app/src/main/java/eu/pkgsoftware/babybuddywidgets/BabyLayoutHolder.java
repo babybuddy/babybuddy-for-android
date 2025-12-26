@@ -63,19 +63,6 @@ public class BabyLayoutHolder extends RecyclerView.ViewHolder implements TimerCo
         return child;
     }
 
-    private void requeueImmediateTimerListRefresh() {
-        client.listTimers(child.id, new BabyBuddyClient.RequestCallback<BabyBuddyClient.Timer[]>() {
-            @Override
-            public void error(@NonNull Exception error) {
-            }
-
-            @Override
-            public void response(BabyBuddyClient.Timer[] response) {
-                updateTimerList(response);
-            }
-        });
-    }
-
     private void resetChildHistoryLoader() {
         if (childHistoryLoader != null) {
             childHistoryLoader.close();

@@ -8,26 +8,15 @@ import android.net.NetworkRequest
 import android.util.Log
 
 class NetworkMonitor(context: Context) {
-    private val connectivityManager = context.getSystemService(Context.CONNECTIVITY_SERVICE) as ConnectivityManager
+    private val connectivityManager = context.getSystemService(
+        Context.CONNECTIVITY_SERVICE
+    ) as ConnectivityManager
     private val listeners = mutableListOf<NetworkChangeListener>()
     private var currentNetwork: Network? = null
     private var isMonitoring = false
 
     interface NetworkChangeListener {
-        /**
-         * Called when the active network changes (e.g., WiFi -> Mobile or vice versa)
-         */
         fun onNetworkChanged(newNetwork: Network?)
-
-        /**
-         * Called when network connectivity is lost
-         */
-        fun onNetworkLost()
-
-        /**
-         * Called when network connectivity is restored
-         */
-        fun onNetworkAvailable(network: Network)
     }
 
     private val networkCallback = object : ConnectivityManager.NetworkCallback() {
@@ -38,8 +27,6 @@ class NetworkMonitor(context: Context) {
 
             // Notify listeners
             synchronized(listeners) {
-                listeners.forEach { it.onNetworkAvailable(network) }
-
                 // If we switched from one network to another, also notify of the change
                 if (previousNetwork != null && previousNetwork != network) {
                     Log.d(TAG, "Network switched from $previousNetwork to $network")
@@ -54,7 +41,6 @@ class NetworkMonitor(context: Context) {
             if (currentNetwork == network) {
                 currentNetwork = null
                 synchronized(listeners) {
-                    listeners.forEach { it.onNetworkLost() }
                     listeners.forEach { it.onNetworkChanged(null) }
                 }
             }

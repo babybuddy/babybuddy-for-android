@@ -395,7 +395,6 @@ public class BabyBuddyClient extends StreamReader {
 
     public interface RequestCallback<R> {
         void error(@NotNull Exception error);
-
         void response(R response);
     }
 
@@ -413,19 +412,6 @@ public class BabyBuddyClient extends StreamReader {
     private final NetworkMonitor.NetworkChangeListener networkChangeListener = new NetworkMonitor.NetworkChangeListener() {
         @Override
         public void onNetworkChanged(Network newNetwork) {
-            GlobalDebugObject.log("BabyBuddyClient: Network changed to " + newNetwork);
-            networkChanged = true;
-        }
-
-        @Override
-        public void onNetworkLost() {
-            GlobalDebugObject.log("BabyBuddyClient: Network lost");
-            networkChanged = true;
-        }
-
-        @Override
-        public void onNetworkAvailable(Network network) {
-            GlobalDebugObject.log("BabyBuddyClient: Network available " + network);
             networkChanged = true;
         }
     };
@@ -486,7 +472,7 @@ public class BabyBuddyClient extends StreamReader {
         this.mainLoop = mainLoop;
         this.credStore = credStore;
         this.syncMessage = new Handler(mainLoop);
-        this.v2client = new Client(credStore);
+        this.v2client = new Client(credStore, networkMonitor);
 
         // Initialize network monitoring
         this.networkMonitor = networkMonitor;
@@ -537,7 +523,6 @@ public class BabyBuddyClient extends StreamReader {
                         );
                         throw new RequestCodeFailure(responseCode, message, messageText);
                     }
-
 
                     final String result = loadHttpData(query);
                     GlobalDebugObject.log(QUERY_STR + " succeeded: response = " + result);
