@@ -4,7 +4,6 @@ import android.view.View
 import androidx.recyclerview.widget.RecyclerView
 import com.squareup.phrase.Phrase
 import eu.pkgsoftware.babybuddywidgets.activitycomponents.TimerControl
-import eu.pkgsoftware.babybuddywidgets.compat.BabyBuddyV2TimerAdapter
 import eu.pkgsoftware.babybuddywidgets.databinding.BabyManagerBinding
 import eu.pkgsoftware.babybuddywidgets.history.ChildEventHistoryLoader
 import eu.pkgsoftware.babybuddywidgets.history.ShowErrorPill
@@ -38,7 +37,7 @@ class BabyLayoutHolder(
 
     private var cachedTimers: Array<BabyBuddyClient.Timer>? = null
     private val updateTimersCallbacks: MutableList<TimersUpdatedCallback> =
-        ArrayList<TimersUpdatedCallback>(10)
+        ArrayList(10)
 
     private var pendingTimerModificationCalls = 0
 
