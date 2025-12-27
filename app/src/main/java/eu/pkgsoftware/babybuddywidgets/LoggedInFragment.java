@@ -1,34 +1,21 @@
 package eu.pkgsoftware.babybuddywidgets;
 
 import android.content.Context;
-import android.graphics.PointF;
 import android.os.Bundle;
 import android.view.LayoutInflater;
-import android.view.Menu;
-import android.view.MenuInflater;
-import android.view.MenuItem;
 import android.view.View;
 import android.view.ViewGroup;
 
-import java.io.IOException;
-import java.io.InputStream;
-import java.util.Arrays;
-import java.util.Collection;
 import java.util.Objects;
-import java.util.Properties;
 
 import androidx.annotation.NonNull;
 import androidx.annotation.Nullable;
-import androidx.navigation.Navigation;
 import androidx.viewpager2.widget.ViewPager2;
 import eu.pkgsoftware.babybuddywidgets.databinding.LoggedInFragmentBinding;
-import eu.pkgsoftware.babybuddywidgets.debugging.GlobalDebugObject;
 import eu.pkgsoftware.babybuddywidgets.login.LoggedInMenu;
 import eu.pkgsoftware.babybuddywidgets.networking.BabyBuddyClient;
 import eu.pkgsoftware.babybuddywidgets.networking.ChildrenStateTracker;
 import eu.pkgsoftware.babybuddywidgets.networking.babybuddy.ConnectingDialogInterface;
-import eu.pkgsoftware.babybuddywidgets.tutorial.Trackable;
-import eu.pkgsoftware.babybuddywidgets.tutorial.TutorialEntry;
 import eu.pkgsoftware.babybuddywidgets.tutorial.TutorialManagement;
 
 public class LoggedInFragment extends BaseFragment {

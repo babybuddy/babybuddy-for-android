@@ -1,5 +1,6 @@
 package eu.pkgsoftware.babybuddywidgets.networking;
 
+import android.net.Network;
 import android.os.Handler;
 import android.os.Looper;
 
@@ -394,7 +395,6 @@ public class BabyBuddyClient extends StreamReader {
 
     public interface RequestCallback<R> {
         void error(@NotNull Exception error);
-
         void response(R response);
     }
 
@@ -403,8 +403,18 @@ public class BabyBuddyClient extends StreamReader {
     private CredStore credStore;
     private Looper mainLoop;
     private long serverDateOffset = -1000;
+    private NetworkMonitor networkMonitor;
+    private volatile boolean networkChanged = false;
 
     public final Client v2client;
+
+    // Network change listener that marks when network has changed
+    private final NetworkMonitor.NetworkChangeListener networkChangeListener = new NetworkMonitor.NetworkChangeListener() {
+        @Override
+        public void onNetworkChanged(Network newNetwork) {
+            networkChanged = true;
+        }
+    };
 
     private void updateServerDateTime(HttpURLConnection con) {
         String dateString = con.getHeaderField("Date");
@@ -433,6 +443,8 @@ public class BabyBuddyClient extends StreamReader {
 
     private HttpURLConnection doQuery(String path) throws IOException {
         HttpURLConnection con = (HttpURLConnection) pathToUrl(path).openConnection();
+        con.setConnectTimeout(20000);
+        con.setReadTimeout(30000);
         String token = credStore.getAppToken();
         con.setRequestProperty("Authorization", "Token " + token);
 
@@ -456,11 +468,15 @@ public class BabyBuddyClient extends StreamReader {
         return sdf.format(now);
     }
 
-    public BabyBuddyClient(Looper mainLoop, CredStore credStore) {
+    public BabyBuddyClient(Looper mainLoop, CredStore credStore, NetworkMonitor networkMonitor) {
         this.mainLoop = mainLoop;
         this.credStore = credStore;
         this.syncMessage = new Handler(mainLoop);
-        this.v2client = new Client(credStore);
+        this.v2client = new Client(credStore, networkMonitor);
+
+        // Initialize network monitoring
+        this.networkMonitor = networkMonitor;
+        this.networkMonitor.addListener(networkChangeListener);
     }
 
     private final Random requestIdGenerator = new Random();
@@ -507,7 +523,6 @@ public class BabyBuddyClient extends StreamReader {
                         );
                         throw new RequestCodeFailure(responseCode, message, messageText);
                     }
-
 
                     final String result = loadHttpData(query);
                     GlobalDebugObject.log(QUERY_STR + " succeeded: response = " + result);
@@ -783,5 +798,13 @@ public class BabyBuddyClient extends StreamReader {
                 }
             }
         );
+    }
+
+    /**
+     * Clean up resources when the client is no longer needed.
+     * This should be called when the activity/application is being destroyed.
+     */
+    public void cleanup() {
+        networkMonitor.removeListener(networkChangeListener);
     }
 }

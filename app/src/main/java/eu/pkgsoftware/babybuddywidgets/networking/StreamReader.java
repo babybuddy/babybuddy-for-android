@@ -19,18 +19,14 @@ public class StreamReader {
     @NonNull
     public static String loadHttpData(InputStream in) throws IOException {
         byte[] buffer = new byte[1000000];
-
         int offset = 0;
-        while (true) {
-            if (buffer.length - offset <= 0) {
-                break;
+        int len;
+        do {
+            len = in.read(buffer, offset, buffer.length - offset);
+            if (len > 0) {
+                offset += len;
             }
-            int len = in.read(buffer, offset, buffer.length - offset);
-            if (len <= 0) {
-                break;
-            }
-            offset += len;
-        }
+        } while (len > 0 && offset < buffer.length);
 
         String html;
         if (offset <= 0) {
