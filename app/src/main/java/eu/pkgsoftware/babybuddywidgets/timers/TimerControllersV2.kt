@@ -38,6 +38,7 @@ import eu.pkgsoftware.babybuddywidgets.networking.RequestCodeFailure
 import eu.pkgsoftware.babybuddywidgets.networking.babybuddy.exponentialBackoff
 import eu.pkgsoftware.babybuddywidgets.networking.babybuddy.maxDate
 import eu.pkgsoftware.babybuddywidgets.networking.babybuddy.models.ChangeEntry
+import eu.pkgsoftware.babybuddywidgets.networking.babybuddy.models.Child
 import eu.pkgsoftware.babybuddywidgets.networking.babybuddy.models.FeedingEntry
 import eu.pkgsoftware.babybuddywidgets.networking.babybuddy.models.NoteEntry
 import eu.pkgsoftware.babybuddywidgets.networking.babybuddy.models.PumpingEntry
@@ -895,7 +896,7 @@ class LoggingButtonController(
     val fragment: BaseFragment,
     val bindings: BabyManagerBinding,
     val controlsInterface: FragmentCallbacks,
-    val child: BabyBuddyClient.Child,
+    val child: Child,
     val timerControl: TimerControlInterface,
 ) : TimersUpdatedCallback {
     val logicMap = mapOf(

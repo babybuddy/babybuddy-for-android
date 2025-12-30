@@ -180,9 +180,6 @@ class MainActivity : AppCompatActivity() {
     }
 
     @JvmField
-    var children = arrayOf<Child>()
-
-    @JvmField
     var selectedTimer: BabyBuddyClient.Timer? = null
 
     fun setTitle(title: String) {

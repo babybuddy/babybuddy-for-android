@@ -77,7 +77,6 @@ public class CredStore extends CredStoreEncryptionEngine implements ServerAccess
     private String storedVersion = "";
 
     private String currentChild = null;
-    // private Map<String, String> children = new HashMap<>();
 
     public static String getAppVersionString(Context context) {
         PackageManager pm = context.getPackageManager();
@@ -111,7 +110,6 @@ public class CredStore extends CredStoreEncryptionEngine implements ServerAccess
 
             storedVersion = props.getProperty("stored_version", "-1");
 
-            // children = props.getProperty("children_cache", "");
             currentChild = props.getProperty("selected_child", null);
 
             Enumeration<?> nameEnum = props.propertyNames();
@@ -216,7 +214,6 @@ public class CredStore extends CredStoreEncryptionEngine implements ServerAccess
 
         props.put("stored_version", storedVersion);
 
-        // props.setProperty("children_cache", stringMapToString(children));
         if (currentChild != null) {
             props.setProperty("selected_child", currentChild);
         }

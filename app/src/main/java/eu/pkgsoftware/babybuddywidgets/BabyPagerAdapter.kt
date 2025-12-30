@@ -5,32 +5,28 @@ import android.view.ViewGroup
 import android.widget.RelativeLayout
 import androidx.recyclerview.widget.RecyclerView
 import eu.pkgsoftware.babybuddywidgets.databinding.BabyManagerBinding
-import eu.pkgsoftware.babybuddywidgets.networking.BabyBuddyClient
-import eu.pkgsoftware.babybuddywidgets.networking.ChildrenStateTracker
+import eu.pkgsoftware.babybuddywidgets.logic.ChildrenStateTracker
+import eu.pkgsoftware.babybuddywidgets.networking.babybuddy.models.Child
+import eu.pkgsoftware.babybuddywidgets.networking.babybuddy.models.childIndexBySlug
 
-// I need to extract this one!!!
-internal class BabyPagerAdapter : RecyclerView.Adapter<BabyLayoutHolder?>() {
-    private val holders: MutableList<BabyLayoutHolder> = ArrayList<BabyLayoutHolder>()
+class BabyPagerAdapter(val stateTracker: ChildrenStateTracker) : RecyclerView.Adapter<BabyLayoutHolder>() {
     var active: BabyLayoutHolder? = null
-        private set
 
+    private val holders: MutableList<BabyLayoutHolder> = ArrayList()
     private var fragment: BaseFragment? = null
-    private var children: Array<BabyBuddyClient.Child?>? = null
-    private var stateTracker: ChildrenStateTracker? = null
+    private var children = emptyArray<Child>()
 
-    fun postInit(
-        fragment: BaseFragment?,
-        children: Array<BabyBuddyClient.Child?>?,
-        stateTracker: ChildrenStateTracker?
-    ) {
-        this.fragment = fragment
-        this.stateTracker = stateTracker
-        updateChildren(children)
+    init {
+        stateTracker.addChildListener({ newChildren ->
+            children = newChildren
+            notifyDataSetChanged()
+        })
     }
 
-    fun updateChildren(children: Array<BabyBuddyClient.Child?>?) {
-        this.children = children
-        notifyDataSetChanged()
+    fun postInit(
+        fragment: BaseFragment?
+    ) {
+        this.fragment = fragment
     }
 
     override fun onCreateViewHolder(parent: ViewGroup, viewType: Int): BabyLayoutHolder {
@@ -50,15 +46,15 @@ internal class BabyPagerAdapter : RecyclerView.Adapter<BabyLayoutHolder?>() {
     }
 
     override fun onBindViewHolder(holder: BabyLayoutHolder, position: Int) {
-        holder.updateChild(children!![position], stateTracker!!)
+        holder.updateChild(children[position])
 
-        val childIndex = LoggedInFragment.childIndexBySlug(
+        val childIndex = childIndexBySlug(
             children,
-            fragment!!.mainActivity.credStore.getSelectedChild()
+            fragment!!.mainActivity.credStore.getSelectedChild() ?: ""
         )
         if (childIndex >= 0) {
-            if (children!![position] == children!![childIndex]) {
-                activeViewChanged(children!![position])
+            if (children[position] == children[childIndex]) {
+                activeViewChanged(children[position])
             }
         }
     }
@@ -68,17 +64,14 @@ internal class BabyPagerAdapter : RecyclerView.Adapter<BabyLayoutHolder?>() {
     }
 
     override fun getItemCount(): Int {
-        if (children == null) {
-            return 0
-        }
-        return children!!.size
+        return children.size
     }
 
-    fun activeViewChanged(c: BabyBuddyClient.Child?) {
+    fun activeViewChanged(c: Child) {
         this.active = null
         for (h in holders) {
             if (c == h.child) {
-                h.updateChild(c, stateTracker!!)
+                h.updateChild(c)
                 this.active = h
             } else {
                 h.onViewDeselected()

@@ -8,9 +8,7 @@ import eu.pkgsoftware.babybuddywidgets.databinding.BabyManagerBinding
 import eu.pkgsoftware.babybuddywidgets.history.ChildEventHistoryLoader
 import eu.pkgsoftware.babybuddywidgets.history.ShowErrorPill
 import eu.pkgsoftware.babybuddywidgets.networking.BabyBuddyClient
-import eu.pkgsoftware.babybuddywidgets.networking.ChildrenStateTracker
-import eu.pkgsoftware.babybuddywidgets.networking.ChildrenStateTracker.ChildListener
-import eu.pkgsoftware.babybuddywidgets.networking.ChildrenStateTracker.ChildObserver
+import eu.pkgsoftware.babybuddywidgets.networking.babybuddy.models.Child
 import eu.pkgsoftware.babybuddywidgets.networking.babybuddy.models.TimeEntry
 import eu.pkgsoftware.babybuddywidgets.timers.FragmentCallbacks
 import eu.pkgsoftware.babybuddywidgets.timers.LoggingButtonController
@@ -27,13 +25,9 @@ class BabyLayoutHolder(
 ), TimerControlInterface {
     private val client: BabyBuddyClient
 
-
-    var child: BabyBuddyClient.Child? = null
-        private set
+    var child: Child? = null
 
     private var childHistoryLoader: ChildEventHistoryLoader? = null
-
-    private var childObserver: ChildObserver? = null
 
     private var cachedTimers: Array<BabyBuddyClient.Timer>? = null
     private val updateTimersCallbacks: MutableList<TimersUpdatedCallback> =
@@ -60,28 +54,19 @@ class BabyLayoutHolder(
         childHistoryLoader = null
     }
 
-    fun updateChild(c: BabyBuddyClient.Child?, stateTracker: ChildrenStateTracker) {
-        if (childObserver != null && child === c && stateTracker === childObserver!!.getTracker()) {
+    fun updateChild(c: Child) {
+        if (child === c) {
             return
         }
 
         clear()
         this.child = c
 
-        if (child != null) {
-            if (stateTracker == null) {
-                throw RuntimeException("StateTracker was null somehow")
-            }
-            childObserver = stateTracker.ChildObserver(
-                child!!.id,
-                ChildListener { timers: Array<BabyBuddyClient.Timer> ->
-                    this.updateTimerList(timers)
-                })
-
+        child ?.let { child ->
             childHistoryLoader = ChildEventHistoryLoader(
                 baseFragment,
                 binding.innerTimeline,
-                child!!.id,
+                child.id,
                 VisibilityCheck(binding.mainScrollView),
                 binding.timelineProgressSpinner,
                 object : ShowErrorPill {
@@ -125,7 +110,7 @@ class BabyLayoutHolder(
                         }
                     }
                 },
-                child!!,
+                child,
                 this
             )
         }
@@ -145,9 +130,11 @@ class BabyLayoutHolder(
         }
 
         for (t in timers) {
-            if (t.child_id != child!!.id) {
-                return
-            }
+            child?.let { child ->
+                if (t.child_id != child.id) {
+                    return
+                }
+            } ?: return
         }
 
         cachedTimers = timers
@@ -158,15 +145,7 @@ class BabyLayoutHolder(
         if (loggingButtonController != null) {
             loggingButtonController!!.storeStateForSuspend()
         }
-        resetChildObserver()
         resetChildHistoryLoader()
-    }
-
-    private fun resetChildObserver() {
-        if (childObserver != null) {
-            childObserver!!.close()
-            childObserver = null
-        }
     }
 
     fun clear() {
@@ -175,7 +154,6 @@ class BabyLayoutHolder(
             loggingButtonController!!.destroy()
             loggingButtonController = null
         }
-        resetChildObserver()
         resetChildHistoryLoader()
         child = null
         cachedTimers = null
@@ -206,43 +184,51 @@ class BabyLayoutHolder(
         timer: BabyBuddyClient.Timer,
         cb: Promise<BabyBuddyClient.Timer, TranslatedException>
     ) {
-        baseFragment.mainActivity.getChildTimerControl(child!!).createNewTimer(
-            timer, UpdateBufferingPromise(cb)
-        )
+        child?.let { child ->
+            baseFragment.mainActivity.getChildTimerControl(child.id).createNewTimer(
+                timer, UpdateBufferingPromise(cb)
+            )
+        }
     }
 
     override fun startTimer(
         timer: BabyBuddyClient.Timer,
         cb: Promise<BabyBuddyClient.Timer, TranslatedException>
     ) {
-        baseFragment.mainActivity.getChildTimerControl(child!!).startTimer(
-            timer, UpdateBufferingPromise(cb)
-        )
+        child?.let { child ->
+            baseFragment.mainActivity.getChildTimerControl(child.id).startTimer(
+                timer, UpdateBufferingPromise(cb)
+            )
+        }
     }
 
     override fun stopTimer(timer: BabyBuddyClient.Timer, cb: Promise<Any, TranslatedException>) {
-        baseFragment.mainActivity.getChildTimerControl(child!!).stopTimer(
-            timer, UpdateBufferingPromise(cb)
-        )
+        child?.let { child ->
+            baseFragment.mainActivity.getChildTimerControl(child.id).stopTimer(
+                timer, UpdateBufferingPromise(cb)
+            )
+        }
     }
 
     override fun registerTimersUpdatedCallback(callback: TimersUpdatedCallback) {
-        if (updateTimersCallbacks.contains(callback)) {
-            return
-        }
-        updateTimersCallbacks.add(callback)
+        child?.let { child ->
+            if (updateTimersCallbacks.contains(callback)) {
+                return
+            }
+            updateTimersCallbacks.add(callback)
 
-        baseFragment.mainActivity.getChildTimerControl(child!!).registerTimersUpdatedCallback(
-            object : TimersUpdatedCallback {
-                override fun newTimerListLoaded(timers: Array<BabyBuddyClient.Timer>) {
-                    for (c in updateTimersCallbacks) {
-                        c.newTimerListLoaded(timers)
+            baseFragment.mainActivity.getChildTimerControl(child.id).registerTimersUpdatedCallback(
+                object : TimersUpdatedCallback {
+                    override fun newTimerListLoaded(timers: Array<BabyBuddyClient.Timer>) {
+                        for (c in updateTimersCallbacks) {
+                            c.newTimerListLoaded(timers)
+                        }
                     }
                 }
-            }
-        )
+            )
 
-        callTimerUpdateCallback()
+            callTimerUpdateCallback()
+        }
     }
 
     override fun unregisterTimersUpdatedCallback(callback: TimersUpdatedCallback) {
@@ -254,17 +240,23 @@ class BabyLayoutHolder(
 
     private fun callTimerUpdateCallback() {
         // urgh...
-        val wrapped = baseFragment.mainActivity.getChildTimerControl(child!!).wrap as TimerControl
-        if (cachedTimers != null) {
-            wrapped.callTimerUpdateCallback(cachedTimers!!)
+        child?.let { child ->
+            val wrapped = baseFragment.mainActivity.getChildTimerControl(child.id).wrap as TimerControl
+            if (cachedTimers != null) {
+                wrapped.callTimerUpdateCallback(cachedTimers!!)
+            }
         }
     }
 
     override fun getNotes(timer: BabyBuddyClient.Timer): CredStore.Notes {
-        return baseFragment.mainActivity.getChildTimerControl(child!!).getNotes(timer)
+        return child?.let { child ->
+            return@let baseFragment.mainActivity.getChildTimerControl(child.id).getNotes(timer)
+        } ?: CredStore.Notes("", false)
     }
 
     override fun setNotes(timer: BabyBuddyClient.Timer, notes: CredStore.Notes?) {
-        baseFragment.mainActivity.getChildTimerControl(child!!).setNotes(timer, notes)
+        child?.let { child ->
+            baseFragment.mainActivity.getChildTimerControl(child.id).setNotes(timer, notes)
+        }
     }
 }
