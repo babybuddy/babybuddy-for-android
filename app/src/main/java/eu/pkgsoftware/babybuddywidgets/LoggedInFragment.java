@@ -1,22 +1,24 @@
 package eu.pkgsoftware.babybuddywidgets;
 
-import android.content.Context;
 import android.os.Bundle;
+import android.os.Handler;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
 
+import org.jetbrains.annotations.NotNull;
+
 import java.util.ArrayList;
-import java.util.Arrays;
 import java.util.Collections;
 import java.util.List;
-import java.util.Objects;
 
 import androidx.annotation.NonNull;
 import androidx.annotation.Nullable;
 import androidx.viewpager2.widget.ViewPager2;
 import eu.pkgsoftware.babybuddywidgets.databinding.LoggedInFragmentBinding;
+import eu.pkgsoftware.babybuddywidgets.logic.ApplicationInterface;
 import eu.pkgsoftware.babybuddywidgets.logic.ChildrenStateTracker;
+import eu.pkgsoftware.babybuddywidgets.logic.RequestScheduler;
 import eu.pkgsoftware.babybuddywidgets.login.LoggedInMenu;
 import eu.pkgsoftware.babybuddywidgets.networking.BabyBuddyClient;
 import eu.pkgsoftware.babybuddywidgets.networking.babybuddy.ConnectingDialogInterface;
@@ -34,6 +36,7 @@ public class LoggedInFragment extends BaseFragment {
     private final EmptyBabyPagerAdapter emptyBabyPagerAdapter = new EmptyBabyPagerAdapter();
     private BabyPagerAdapter babyAdapter = null;
 
+    private RequestScheduler requestScheduler = null;
     private ChildrenStateTracker stateTracker = null;
     private final List<Child> children = new ArrayList<>();
 
@@ -43,29 +46,7 @@ public class LoggedInFragment extends BaseFragment {
     public void onCreate(@Nullable Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setRetainInstance(true);
-    }
 
-    @Override
-    public void onAttach(@NonNull Context context) {
-        super.onAttach(context);
-
-        credStore = getMainActivity().getCredStore();
-        client = getMainActivity().getClient();
-
-        stateTracker = new ChildrenStateTracker(client.v2client, getMainActivity().getStorage());
-        stateTracker.addChildListener(children -> {
-            this.children.clear();
-            Collections.addAll(this.children, children);
-
-            String childSlug = credStore.getSelectedChild();
-            if ((childSlug == null) && (!this.children.isEmpty())) {
-                childSlug = this.children.get(0).getSlug();
-                credStore.setSelectedChild(childSlug);
-                binding.babyViewPagerSwitcher.setCurrentItem(0, false);
-            }
-
-            return Unit.INSTANCE;
-        }, true);
     }
 
     @Override
@@ -108,6 +89,74 @@ public class LoggedInFragment extends BaseFragment {
     }
 
     @Override
+    public void onViewCreated(@NonNull View view, @Nullable Bundle savedInstanceState) {
+        super.onViewCreated(view, savedInstanceState);
+
+        credStore = getMainActivity().getCredStore();
+        client = getMainActivity().getClient();
+
+        disconnectInterface = disconnectDialog.getInterface();
+        requestScheduler = new RequestScheduler(new ApplicationInterface() {
+            private boolean isConnected = true;
+            private long lastDisconnectTime = 0;
+            private final Handler loopHandler = new Handler(getMainActivity().getMainLooper());
+
+            @Override
+            public void setDisconnected(@NotNull String reason, boolean disconnected) {
+                if (disconnectInterface == null) {
+                    return;
+                }
+                isConnected = !disconnected;
+                if (disconnected) {
+                    lastDisconnectTime = System.currentTimeMillis();
+                    loopHandler.post(this::updateDisconnecting);
+                } else {
+                    disconnectInterface.hideConnecting();
+                }
+
+            }
+
+            private void updateDisconnecting() {
+                if (disconnectInterface == null) {
+                    return;
+                }
+                if (isConnected) {
+                    return;
+                }
+                long disconnectedFor = System.currentTimeMillis() - lastDisconnectTime;
+                disconnectInterface.showConnecting(disconnectedFor, null);
+                loopHandler.postDelayed(this::updateDisconnecting, 100);
+            }
+
+            @Override
+            public void reportError(@NotNull String message, Exception error) {
+                if (error != null) {
+                    error.printStackTrace();
+                } else {
+                    System.err.println("RequestScheduler Error: " + message);
+                }
+            }
+        });
+
+        stateTracker = new ChildrenStateTracker(
+            client.v2client, getMainActivity().getStorage(), requestScheduler
+        );
+        stateTracker.addChildListener(children -> {
+            this.children.clear();
+            Collections.addAll(this.children, children);
+
+            String childSlug = credStore.getSelectedChild();
+            if ((childSlug == null) && (!this.children.isEmpty())) {
+                childSlug = this.children.get(0).getSlug();
+                credStore.setSelectedChild(childSlug);
+                binding.babyViewPagerSwitcher.setCurrentItem(0, false);
+            }
+
+            return Unit.INSTANCE;
+        }, true);
+    }
+
+    @Override
     protected void setupTutorialMessages(@NonNull TutorialManagement m) {
     }
 
@@ -115,14 +164,12 @@ public class LoggedInFragment extends BaseFragment {
     public void onResume() {
         super.onResume();
 
-        stateTracker.startPolling();
+        requestScheduler.startScheduler();
 
         if (menu == null) {
             menu = new LoggedInMenu(this);
         }
         getMainActivity().addMenuProvider(menu);
-
-        disconnectInterface = disconnectDialog.getInterface();
 
         if (babyAdapter == null) {
             babyAdapter = new BabyPagerAdapter(stateTracker);
@@ -143,16 +190,6 @@ public class LoggedInFragment extends BaseFragment {
 
         this.updateTitle();
 
-        /*stateTracker.setConnectionStateListener(
-            (connected, disconnectedFor) -> {
-                if (connected) {
-                    disconnectInterface.hideConnecting();
-                } else {
-                    disconnectInterface.showConnecting(disconnectedFor, null);
-                }
-            }
-        );*/
-
         UpdateNotifications.Companion.showUpdateNotice(this);
     }
 
@@ -160,7 +197,7 @@ public class LoggedInFragment extends BaseFragment {
     public void onPause() {
         super.onPause();
 
-        stateTracker.stopPolling();
+        requestScheduler.stopScheduler();
 
         getMainActivity().removeMenuProvider(menu);
         getMainActivity().invalidateOptionsMenu();
