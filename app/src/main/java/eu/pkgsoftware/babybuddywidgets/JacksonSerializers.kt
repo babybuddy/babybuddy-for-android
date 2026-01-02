@@ -10,7 +10,6 @@ import eu.pkgsoftware.babybuddywidgets.networking.babybuddy.DATE_ONLY_FORMAT_STR
 import eu.pkgsoftware.babybuddywidgets.networking.babybuddy.DATE_TIME_FORMAT_STRING
 import eu.pkgsoftware.babybuddywidgets.networking.babybuddy.formatDate
 import eu.pkgsoftware.babybuddywidgets.networking.babybuddy.parseNullOrDate
-import eu.pkgsoftware.babybuddywidgets.networking.babybuddy.serverTimeToClientTime
 import java.io.IOException
 import java.util.Date
 

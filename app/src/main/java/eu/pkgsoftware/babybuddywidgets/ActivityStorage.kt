@@ -1,7 +1,6 @@
 package eu.pkgsoftware.babybuddywidgets
 
 import android.content.Context
-import android.content.Intent
 import android.database.sqlite.SQLiteDatabase
 import android.database.sqlite.SQLiteOpenHelper
 import com.fasterxml.jackson.module.kotlin.jacksonObjectMapper
@@ -138,8 +137,7 @@ class ActivityStore(context: Context) {
         openHelper.close()
     }
 
-    fun deleteAllData() {
-        database.delete("global_kv", "1", arrayOf())
+    fun deleteAllLoginData() {
         database.delete("login_kv", "1", arrayOf())
         database.delete("child_kv", "1", arrayOf())
     }
