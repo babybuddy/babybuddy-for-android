@@ -76,8 +76,6 @@ public class CredStore extends CredStoreEncryptionEngine implements ServerAccess
     private Map<String, Integer> tutorialParameters = new HashMap<>();
     private String storedVersion = "";
 
-    private String currentChild = null;
-
     public static String getAppVersionString(Context context) {
         PackageManager pm = context.getPackageManager();
         PackageInfo pi = null;
@@ -109,8 +107,6 @@ public class CredStore extends CredStoreEncryptionEngine implements ServerAccess
             encryptedCookies = props.getProperty("cookies", null);
 
             storedVersion = props.getProperty("stored_version", "-1");
-
-            currentChild = props.getProperty("selected_child", null);
 
             Enumeration<?> nameEnum = props.propertyNames();
             for (Object o : Collections.list(nameEnum)) {
@@ -214,10 +210,6 @@ public class CredStore extends CredStoreEncryptionEngine implements ServerAccess
 
         props.put("stored_version", storedVersion);
 
-        if (currentChild != null) {
-            props.setProperty("selected_child", currentChild);
-        }
-
         for (Map.Entry<String, Notes> e : notesAssignments.entrySet()) {
             if (e.getValue() == null) {
                 continue;
@@ -265,15 +257,6 @@ public class CredStore extends CredStoreEncryptionEngine implements ServerAccess
             return "";
         }
         return serverUrl;
-    }
-
-    public String getSelectedChild() {
-        return currentChild;
-    }
-
-    public void setSelectedChild(String c) {
-        currentChild = c;
-        storePrefs();
     }
 
     public void setObjectNotes(String id, boolean visible, String notes) {

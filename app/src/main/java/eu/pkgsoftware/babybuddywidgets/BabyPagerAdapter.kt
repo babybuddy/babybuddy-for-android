@@ -7,7 +7,6 @@ import androidx.recyclerview.widget.RecyclerView
 import eu.pkgsoftware.babybuddywidgets.databinding.BabyManagerBinding
 import eu.pkgsoftware.babybuddywidgets.logic.ChildrenStateTracker
 import eu.pkgsoftware.babybuddywidgets.networking.babybuddy.models.Child
-import eu.pkgsoftware.babybuddywidgets.networking.babybuddy.models.childIndexBySlug
 
 class BabyPagerAdapter(val stateTracker: ChildrenStateTracker) : RecyclerView.Adapter<BabyLayoutHolder>() {
     var active: BabyLayoutHolder? = null
@@ -47,16 +46,6 @@ class BabyPagerAdapter(val stateTracker: ChildrenStateTracker) : RecyclerView.Ad
 
     override fun onBindViewHolder(holder: BabyLayoutHolder, position: Int) {
         holder.updateChild(children[position])
-
-        val childIndex = childIndexBySlug(
-            children,
-            fragment!!.mainActivity.credStore.getSelectedChild() ?: ""
-        )
-        if (childIndex >= 0) {
-            if (children[position] == children[childIndex]) {
-                activeViewChanged(children[position])
-            }
-        }
     }
 
     override fun onViewRecycled(holder: BabyLayoutHolder) {
