@@ -1,5 +1,6 @@
 package eu.pkgsoftware.babybuddywidgets
 
+import android.util.Log
 import android.view.View
 import androidx.recyclerview.widget.RecyclerView
 import com.squareup.phrase.Phrase
@@ -41,26 +42,23 @@ class BabyLayoutHolder(
         client = baseFragment.mainActivity.client
 
         binding.mainScrollView.setOnScrollChangeListener(View.OnScrollChangeListener { v: View?, scrollX: Int, scrollY: Int, oldScrollX: Int, oldScrollY: Int ->
-            if (childHistoryLoader != null) {
-                childHistoryLoader!!.updateTop()
-            }
+            childHistoryLoader?.updateTop()
         })
     }
 
-    private fun resetChildHistoryLoader() {
-        if (childHistoryLoader != null) {
-            childHistoryLoader!!.close()
-        }
-        childHistoryLoader = null
-    }
-
     fun updateChild(c: Child) {
-        if (child === c) {
-            return
+        Log.d(
+            "BabyLayoutHolder",
+            "Selecting view for child ${c.slug} (current child: ${child?.slug})"
+        )
+
+        if (child !== c) {
+            close()
+            this.child = c
         }
 
-        clear()
-        this.child = c
+        resetChildHistoryLoader()
+        closeButtonController()
 
         child ?.let { child ->
             childHistoryLoader = ChildEventHistoryLoader(
@@ -141,26 +139,33 @@ class BabyLayoutHolder(
         callTimerUpdateCallback()
     }
 
-    fun onViewDeselected() {
-        if (loggingButtonController != null) {
-            loggingButtonController!!.storeStateForSuspend()
-        }
-        resetChildHistoryLoader()
+    private fun resetChildHistoryLoader() {
+        childHistoryLoader?.close()
+        childHistoryLoader = null
     }
 
-    fun clear() {
-        if (loggingButtonController != null) {
-            loggingButtonController!!.storeStateForSuspend()
-            loggingButtonController!!.destroy()
+    private fun closeButtonController() {
+        loggingButtonController?.let {
+            it.storeStateForSuspend()
+            it.destroy()
             loggingButtonController = null
         }
+    }
+
+    fun onViewDeselected() {
+        Log.d(
+            "BabyLayoutHolder",
+            "Deselected view for child " + child?.slug
+        )
         resetChildHistoryLoader()
-        child = null
-        cachedTimers = null
+        closeButtonController()
     }
 
     fun close() {
-        clear()
+        closeButtonController()
+        resetChildHistoryLoader()
+        child = null
+        cachedTimers = null
     }
 
     private inner class UpdateBufferingPromise<A, B>(private val promise: Promise<A, B>) :

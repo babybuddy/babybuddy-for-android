@@ -111,7 +111,7 @@ class NetworkMonitor(context: Context) {
         synchronized(listeners) {
             if (!listeners.contains(listener)) {
                 listeners.add(listener)
-                Log.d(TAG, "Added network listener, total: ${listeners.size}")
+                //Log.d(TAG, "Added network listener, total: ${listeners.size}")
             }
         }
     }
@@ -119,7 +119,7 @@ class NetworkMonitor(context: Context) {
     fun removeListener(listener: NetworkChangeListener) {
         synchronized(listeners) {
             listeners.remove(listener)
-            Log.d(TAG, "Removed network listener, total: ${listeners.size}")
+            //Log.d(TAG, "Removed network listener, total: ${listeners.size}")
         }
     }
 

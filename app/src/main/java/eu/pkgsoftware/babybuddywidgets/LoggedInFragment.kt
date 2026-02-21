@@ -36,7 +36,6 @@ class LoggedInFragment : BaseFragment() {
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         setRetainInstance(true)
-
         selectedChildSlug = mainActivity.storage.login<String>("selected-child-slug") ?: ""
     }
 
@@ -47,7 +46,6 @@ class LoggedInFragment : BaseFragment() {
         menu = LoggedInMenu(this)
 
         binding = LoggedInFragmentBinding.inflate(inflater, container, false)
-
         binding.babyViewPagerSwitcher.registerOnPageChangeCallback(object :
             OnPageChangeCallback() {
             override fun onPageSelected(position: Int) {
@@ -203,14 +201,11 @@ class LoggedInFragment : BaseFragment() {
     }
 
     private fun selectChild(c: Child) {
-        if (c.slug == selectedChildSlug) {
-            return
-        }
-
         val childIndex = Child.childIndexBySlug(children.toTypedArray(), c.slug)
         mainActivity.storage.login<String>("selected-child-slug", c.slug)
         selectedChildSlug = c.slug
 
+        babyAdapter?.activeViewChanged(c)
         if (childIndex != binding.babyViewPagerSwitcher.getCurrentItem()) {
             binding.babyViewPagerSwitcher.setCurrentItem(max(0, childIndex), true)
         }
