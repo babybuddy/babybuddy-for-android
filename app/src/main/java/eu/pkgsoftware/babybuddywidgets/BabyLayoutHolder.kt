@@ -11,12 +11,14 @@ import eu.pkgsoftware.babybuddywidgets.history.ShowErrorPill
 import eu.pkgsoftware.babybuddywidgets.networking.BabyBuddyClient
 import eu.pkgsoftware.babybuddywidgets.networking.babybuddy.models.Child
 import eu.pkgsoftware.babybuddywidgets.networking.babybuddy.models.TimeEntry
+import eu.pkgsoftware.babybuddywidgets.networking.babybuddy.models.Timer
 import eu.pkgsoftware.babybuddywidgets.timers.FragmentCallbacks
 import eu.pkgsoftware.babybuddywidgets.timers.LoggingButtonController
 import eu.pkgsoftware.babybuddywidgets.timers.TimerControlInterface
 import eu.pkgsoftware.babybuddywidgets.timers.TimersUpdatedCallback
 import eu.pkgsoftware.babybuddywidgets.timers.TranslatedException
 import eu.pkgsoftware.babybuddywidgets.utils.Promise
+import kotlinx.coroutines.launch
 
 class BabyLayoutHolder(
     private val baseFragment: BaseFragment,
@@ -55,6 +57,12 @@ class BabyLayoutHolder(
         if (child !== c) {
             close()
             this.child = c
+
+            child?.let { child ->
+                baseFragment.mainActivity.scope.launch {
+                    updateTimerLoop(child)
+                }
+            }
         }
 
         resetChildHistoryLoader()
@@ -111,6 +119,29 @@ class BabyLayoutHolder(
                 child,
                 this
             )
+        }
+    }
+
+    suspend fun updateTimerLoop(childArg: Child?) {
+        if (childArg == null) {
+            return
+        }
+        while (this.child == childArg) {
+            println("Updating timers for child ${childArg.slug}")
+            val newTimersResult = client.v2client.getEntries(Timer::class, childId = childArg.id)
+            val oldTimers = mutableListOf<BabyBuddyClient.Timer>()
+            for (t in newTimersResult.entries) {
+                val oldTimer = BabyBuddyClient.Timer();
+                oldTimer.id = t.id
+                oldTimer.child_id = t.childId
+                oldTimer.name = t.name
+                oldTimer.start = t.start
+                oldTimer.active = true
+                oldTimer.user_id = t.userId
+                oldTimers.add(oldTimer)
+            }
+            updateTimerList(oldTimers.toTypedArray())
+            kotlinx.coroutines.delay(1000)
         }
     }
 

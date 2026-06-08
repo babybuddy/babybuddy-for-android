@@ -51,12 +51,14 @@ class SpannableUtils {
                     val linkText = matcher.group(2)
                     val startSpanIndex = builder.length
                     builder.append(linkText)
-                    builder.setSpan(
-                        ClickableLinkSpan(linkUrl, clickHandler),
-                        startSpanIndex,
-                        builder.length,
-                        Spanned.SPAN_EXCLUSIVE_EXCLUSIVE
-                    )
+                    if (builder.length > 0) {
+                        builder.setSpan(
+                            ClickableLinkSpan(linkUrl, clickHandler),
+                            startSpanIndex,
+                            builder.length,
+                            Spanned.SPAN_EXCLUSIVE_EXCLUSIVE
+                        )
+                    }
                     prevMatchEnd = matcher.end()
                 }
                 if (builder != null) {

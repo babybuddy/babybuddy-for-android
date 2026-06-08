@@ -1160,6 +1160,7 @@ class LoggingButtonController(
         timerHandler = null
     }
 
+    // TODO Note to self: This is never called, update-times needs to be repaired first! Nope: updateTimerList
     override fun newTimerListLoaded(timers: Array<Timer>) {
         cachedTimers = timers;
         if (timerModificationsBlocker.isBlocked) return
