@@ -37,6 +37,8 @@ class BabyLayoutHolder(
         ArrayList(10)
 
     private var pendingTimerModificationCalls = 0
+    private var deselected = true
+    private var timerPollJob: kotlinx.coroutines.Job? = null
 
     private var loggingButtonController: LoggingButtonController? = null
 
@@ -49,26 +51,39 @@ class BabyLayoutHolder(
     }
 
     fun updateChild(c: Child) {
+        if (c == child && !deselected) {
+            return
+        }
+
         Log.d(
             "BabyLayoutHolder",
             "Selecting view for child ${c.slug} (current child: ${child?.slug})"
         )
 
+        var childChanged = false
         if (child !== c) {
+            childChanged = true
             close()
             this.child = c
-
-            child?.let { child ->
-                baseFragment.mainActivity.scope.launch {
-                    updateTimerLoop(child)
-                }
-            }
         }
 
         resetChildHistoryLoader()
         closeButtonController()
 
         child ?.let { child ->
+            deselected = false
+
+            timerPollJob?.let {
+                if (childChanged) {
+                    it.cancel()
+                }
+            }
+            if (!(timerPollJob?.isActive ?: false)) {
+                timerPollJob = baseFragment.mainActivity.scope.launch {
+                    updateTimerLoop(child)
+                }
+            }
+
             childHistoryLoader = ChildEventHistoryLoader(
                 baseFragment,
                 binding.innerTimeline,
@@ -126,7 +141,7 @@ class BabyLayoutHolder(
         if (childArg == null) {
             return
         }
-        while (this.child == childArg) {
+        while (!deselected) {
             println("Updating timers for child ${childArg.slug}")
             val newTimersResult = client.v2client.getEntries(Timer::class, childId = childArg.id)
             val oldTimers = mutableListOf<BabyBuddyClient.Timer>()
@@ -188,13 +203,16 @@ class BabyLayoutHolder(
             "BabyLayoutHolder",
             "Deselected view for child " + child?.slug
         )
-        resetChildHistoryLoader()
         closeButtonController()
+        resetChildHistoryLoader()
+        deselected = true
     }
 
     fun close() {
         closeButtonController()
         resetChildHistoryLoader()
+        timerPollJob?.cancel()
+        deselected = true
         child = null
         cachedTimers = null
     }

@@ -45,10 +45,6 @@ class BabyPagerAdapter(val stateTracker: ChildrenStateTracker) : RecyclerView.Ad
     }
 
     override fun onBindViewHolder(holder: BabyLayoutHolder, position: Int) {
-        holders.forEach {
-            it.onViewDeselected()
-        }
-
         holder.updateChild(children[position])
     }
 
