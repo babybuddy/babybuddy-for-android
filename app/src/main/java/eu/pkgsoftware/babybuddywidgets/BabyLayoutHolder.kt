@@ -6,9 +6,13 @@ import androidx.recyclerview.widget.RecyclerView
 import com.squareup.phrase.Phrase
 import eu.pkgsoftware.babybuddywidgets.activitycomponents.TimerControl
 import eu.pkgsoftware.babybuddywidgets.databinding.BabyManagerBinding
+import eu.pkgsoftware.babybuddywidgets.debugging.GlobalDebugObject
 import eu.pkgsoftware.babybuddywidgets.history.ChildEventHistoryLoader
 import eu.pkgsoftware.babybuddywidgets.history.ShowErrorPill
 import eu.pkgsoftware.babybuddywidgets.networking.BabyBuddyClient
+import eu.pkgsoftware.babybuddywidgets.networking.RequestCodeFailure
+import eu.pkgsoftware.babybuddywidgets.networking.babybuddy.InterruptedException
+import eu.pkgsoftware.babybuddywidgets.networking.babybuddy.PaginatedResult
 import eu.pkgsoftware.babybuddywidgets.networking.babybuddy.models.Child
 import eu.pkgsoftware.babybuddywidgets.networking.babybuddy.models.TimeEntry
 import eu.pkgsoftware.babybuddywidgets.networking.babybuddy.models.Timer
@@ -19,6 +23,9 @@ import eu.pkgsoftware.babybuddywidgets.timers.TimersUpdatedCallback
 import eu.pkgsoftware.babybuddywidgets.timers.TranslatedException
 import eu.pkgsoftware.babybuddywidgets.utils.Promise
 import kotlinx.coroutines.launch
+import retrofit2.HttpException
+import java.io.IOException
+import kotlin.time.Duration.Companion.milliseconds
 
 class BabyLayoutHolder(
     private val baseFragment: BaseFragment,
@@ -70,7 +77,7 @@ class BabyLayoutHolder(
         resetChildHistoryLoader()
         closeButtonController()
 
-        child ?.let { child ->
+        child?.let { child ->
             deselected = false
 
             timerPollJob?.let {
@@ -142,21 +149,39 @@ class BabyLayoutHolder(
             return
         }
         while (!deselected) {
-            println("Updating timers for child ${childArg.slug}")
-            val newTimersResult = client.v2client.getEntries(Timer::class, childId = childArg.id)
-            val oldTimers = mutableListOf<BabyBuddyClient.Timer>()
-            for (t in newTimersResult.entries) {
-                val oldTimer = BabyBuddyClient.Timer();
-                oldTimer.id = t.id
-                oldTimer.child_id = t.childId
-                oldTimer.name = t.name
-                oldTimer.start = t.start
-                oldTimer.active = true
-                oldTimer.user_id = t.userId
-                oldTimers.add(oldTimer)
+            var newTimersResult: PaginatedResult<Timer>? = null
+            try {
+                newTimersResult = client.v2client.getEntries(Timer::class, childId = childArg.id)
+            } catch (e: InterruptedException) {
+                GlobalDebugObject.log("BabyBuddyHolder timer retrieval interrupted")
+            } catch (e: RequestCodeFailure) {
+                GlobalDebugObject.log("BabyBuddyHolder timer retrieval failed with code ${e.code}")
+            } catch (e: HttpException) {
+                GlobalDebugObject.log("BabyBuddyHolder timer retrieval failed with HTTP exception ${e.message}")
+            } catch (e: IOException) {
+                // Generic I/O / network errors (DNS, connection refused, etc.)
+                GlobalDebugObject.log("BabyBuddyHolder timer retrieval failed with IO exception: ${e.message}")
             }
-            updateTimerList(oldTimers.toTypedArray())
-            kotlinx.coroutines.delay(1000)
+
+            val disconnectInterface = baseFragment.disconnectInterface
+            if (newTimersResult != null) {
+                val oldTimers = mutableListOf<BabyBuddyClient.Timer>()
+                for (t in newTimersResult.entries) {
+                    val oldTimer = BabyBuddyClient.Timer();
+                    oldTimer.id = t.id
+                    oldTimer.child_id = t.childId
+                    oldTimer.name = t.name
+                    oldTimer.start = t.start
+                    oldTimer.active = true
+                    oldTimer.user_id = t.userId
+                    oldTimers.add(oldTimer)
+                }
+                disconnectInterface.setDisconnected("child list", false)
+                updateTimerList(oldTimers.toTypedArray())
+            } else {
+                disconnectInterface.setDisconnected("child list", true)
+            }
+            kotlinx.coroutines.delay(1000.milliseconds)
         }
     }
 
@@ -295,7 +320,8 @@ class BabyLayoutHolder(
     private fun callTimerUpdateCallback() {
         // urgh...
         child?.let { child ->
-            val wrapped = baseFragment.mainActivity.getChildTimerControl(child.id).wrap as TimerControl
+            val wrapped =
+                baseFragment.mainActivity.getChildTimerControl(child.id).wrap as TimerControl
             if (cachedTimers != null) {
                 wrapped.callTimerUpdateCallback(cachedTimers!!)
             }

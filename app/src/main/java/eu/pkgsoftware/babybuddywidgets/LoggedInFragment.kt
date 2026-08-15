@@ -8,11 +8,9 @@ import android.view.ViewGroup
 import androidx.viewpager2.widget.ViewPager2.OnPageChangeCallback
 import eu.pkgsoftware.babybuddywidgets.UpdateNotifications.Companion.showUpdateNotice
 import eu.pkgsoftware.babybuddywidgets.databinding.LoggedInFragmentBinding
-import eu.pkgsoftware.babybuddywidgets.logic.ApplicationInterface
 import eu.pkgsoftware.babybuddywidgets.logic.ChildrenStateTracker
 import eu.pkgsoftware.babybuddywidgets.logic.RequestScheduler
 import eu.pkgsoftware.babybuddywidgets.login.LoggedInMenu
-import eu.pkgsoftware.babybuddywidgets.networking.babybuddy.ConnectingDialogInterface
 import eu.pkgsoftware.babybuddywidgets.networking.babybuddy.models.Child
 import eu.pkgsoftware.babybuddywidgets.tutorial.TutorialManagement
 import java.util.Collections
@@ -30,8 +28,6 @@ class LoggedInFragment : BaseFragment() {
 
     private var selectedChildSlug = ""
     private var children = listOf<Child>()
-
-    private var disconnectInterface: ConnectingDialogInterface? = null
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
@@ -72,48 +68,9 @@ class LoggedInFragment : BaseFragment() {
     override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
         super.onViewCreated(view, savedInstanceState)
 
-        disconnectInterface = disconnectDialog.getInterface()
-        requestScheduler = RequestScheduler(object : ApplicationInterface {
-            private var isConnected = true
-            private var lastDisconnectTime: Long = 0
-            private val loopHandler = Handler(mainActivity.mainLooper)
-
-            override fun setDisconnected(reason: String, disconnected: Boolean) {
-                if (disconnectInterface == null) {
-                    return
-                }
-                isConnected = !disconnected
-                if (disconnected) {
-                    lastDisconnectTime = System.currentTimeMillis()
-                    loopHandler.post(Runnable { this.updateDisconnecting() })
-                } else {
-                    disconnectInterface!!.hideConnecting()
-                }
-            }
-
-            fun updateDisconnecting() {
-                if (disconnectInterface == null) {
-                    return
-                }
-                if (isConnected) {
-                    return
-                }
-                val disconnectedFor = System.currentTimeMillis() - lastDisconnectTime
-                disconnectInterface!!.showConnecting(disconnectedFor, null)
-                loopHandler.postDelayed(Runnable { this.updateDisconnecting() }, 100)
-            }
-
-            override fun reportError(message: String, error: Exception?) {
-                if (error != null) {
-                    error.printStackTrace()
-                } else {
-                    System.err.println("RequestScheduler Error: $message")
-                }
-            }
-        })
-
+        requestScheduler = RequestScheduler(disconnectInterface)
         stateTracker = ChildrenStateTracker(
-            mainActivity.client.v2client, mainActivity.storage, requestScheduler
+            mainActivity.client.v2client, mainActivity.storage, requestScheduler, this.disconnectInterface
         )
         stateTracker!!.addChildListener({ children: Array<Child> ->
             this.children = Collections.unmodifiableList(children.toList())
@@ -147,7 +104,6 @@ class LoggedInFragment : BaseFragment() {
             }
         }
 
-
         val childSlug = selectedChildSlug
         val childIndex = Child.childIndexBySlug(children.toTypedArray(), childSlug)
         val clampedIndex = max(0, childIndex)
@@ -169,8 +125,6 @@ class LoggedInFragment : BaseFragment() {
         mainActivity.removeMenuProvider(menu)
         mainActivity.invalidateOptionsMenu()
 
-        disconnectInterface!!.hideConnecting()
-
         progressDialog.hide()
         mainActivity.credStore.storePrefs()
 
@@ -183,11 +137,14 @@ class LoggedInFragment : BaseFragment() {
         stateTracker = null
     }
 
+    override fun onDestroy() {
+        super.onDestroy()
+        stateTracker?.destroy()
+    }
+
     private fun closeAdapter() {
-        if (babyAdapter != null) {
-            babyAdapter!!.close()
-            babyAdapter = null
-        }
+        babyAdapter?.close()
+        babyAdapter = null
     }
 
     private fun selectedChild(): Child? {

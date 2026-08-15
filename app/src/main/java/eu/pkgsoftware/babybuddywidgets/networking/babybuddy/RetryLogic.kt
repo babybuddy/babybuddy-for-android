@@ -1,5 +1,6 @@
 package eu.pkgsoftware.babybuddywidgets.networking.babybuddy
 
+import eu.pkgsoftware.babybuddywidgets.ConnectingDialogInterface
 import eu.pkgsoftware.babybuddywidgets.networking.RequestCodeFailure
 import kotlinx.coroutines.delay
 import java.io.IOException
@@ -7,12 +8,6 @@ import java.io.IOException
 const val INITIAL_RETRY_INTERVAL = 200L
 const val EXPONENTIAL_BACKOFF_FACTOR_1000 = 1500L
 const val EXPONENTIAL_BACKOFF_LIMIT = 10000
-
-interface ConnectingDialogInterface {
-    fun interruptLoading(): Boolean
-    fun showConnecting(currentTimeout: Long, error: Exception?)
-    fun hideConnecting()
-}
 
 class InterruptedException : Exception("Exponential backoff interrupted")
 

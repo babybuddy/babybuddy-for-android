@@ -1,5 +1,6 @@
 package eu.pkgsoftware.babybuddywidgets.logic
 
+import eu.pkgsoftware.babybuddywidgets.DisconnectInterface
 import kotlinx.coroutines.*
 import java.util.concurrent.atomic.AtomicBoolean
 import kotlin.math.min
@@ -10,18 +11,14 @@ interface CallResult {
     fun isFailure(): Boolean
 }
 
-interface ApplicationInterface {
-    fun setDisconnected(reason: String, disconnected: Boolean)
-    fun reportError(message: String, error: Exception?)
-}
-
 typealias SuspendingTask = suspend () -> CallResult
 
-class RequestScheduler(val appinterface: ApplicationInterface) {
+class RequestScheduler(val appinterface: DisconnectInterface) {
     private data class ScheduledEntry(
         val intervalMillis: Long,
         val task: SuspendingTask,
         val running: AtomicBoolean = AtomicBoolean(false),
+        val once: Boolean = false,
         @Volatile var nextRun: Long = 0L,
         @Volatile var startTime: Long = 0L
     )
@@ -41,6 +38,14 @@ class RequestScheduler(val appinterface: ApplicationInterface) {
     fun scheduleInterval(intervalMillis: Long, task: SuspendingTask) {
         val now = System.currentTimeMillis()
         val entry = ScheduledEntry(intervalMillis = intervalMillis, task = task, nextRun = now)
+        synchronized(entriesLock) {
+            entries.add(entry)
+        }
+    }
+
+    fun scheduleOnceNow(task: SuspendingTask) {
+        val now = System.currentTimeMillis()
+        val entry = ScheduledEntry(intervalMillis = 0, task = task, nextRun = now, once = true)
         synchronized(entriesLock) {
             entries.add(entry)
         }
@@ -151,7 +156,13 @@ class RequestScheduler(val appinterface: ApplicationInterface) {
         entry: ScheduledEntry
     ) {
         if (result.isSuccess() || result.isFailure()) {
-            entry.nextRun = entry.startTime + entry.intervalMillis
+            if (entry.once) {
+                synchronized(entriesLock) {
+                    entries.remove(entry)
+                }
+            } else {
+                entry.nextRun = entry.startTime + entry.intervalMillis
+            }
 
             if (result.isFailure()) {
                 appinterface.reportError("Task reported failure", null)

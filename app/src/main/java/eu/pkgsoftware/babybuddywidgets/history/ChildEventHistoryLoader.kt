@@ -12,7 +12,7 @@ import eu.pkgsoftware.babybuddywidgets.debugging.GlobalDebugObject
 import eu.pkgsoftware.babybuddywidgets.logic.ContinuousListItem
 import eu.pkgsoftware.babybuddywidgets.logic.EndAwareContinuousListIntegrator
 import eu.pkgsoftware.babybuddywidgets.networking.RequestCodeFailure
-import eu.pkgsoftware.babybuddywidgets.networking.babybuddy.ConnectingDialogInterface
+import eu.pkgsoftware.babybuddywidgets.ConnectingDialogInterface
 import eu.pkgsoftware.babybuddywidgets.networking.babybuddy.InterruptedException
 import eu.pkgsoftware.babybuddywidgets.networking.babybuddy.exponentialBackoff
 import eu.pkgsoftware.babybuddywidgets.networking.babybuddy.models.ChangeEntry
@@ -27,6 +27,9 @@ import eu.pkgsoftware.babybuddywidgets.tutorial.Direction
 import eu.pkgsoftware.babybuddywidgets.tutorial.Trackable
 import kotlinx.coroutines.*
 import kotlin.reflect.KClass
+import retrofit2.HttpException
+import java.io.IOException
+import kotlin.time.Duration.Companion.milliseconds
 
 val IMPLEMENTED_EVENT_CLASSES = listOf(
     FeedingEntry::class,
@@ -120,6 +123,18 @@ class ChildEventHistoryLoader(
                             errorPill.showErrorPill(activityName, e)
                             addTimelineItems(0, 0, it, listOf())
                         }
+                        catch (e: HttpException) {
+                            // HTTP errors from Retrofit (non-2xx responses)
+                            GlobalDebugObject.log("ChildEventHistoryLoader retrieval of ${it.simpleName} failed with HTTP exception ${e.message}")
+                            errorPill.showErrorPill(activityName, e)
+                            addTimelineItems(0, 0, it, listOf())
+                        }
+                        catch (e: IOException) {
+                            // Generic I/O / network errors (DNS, connection refused, etc.)
+                            GlobalDebugObject.log("ChildEventHistoryLoader retrieval of ${it.simpleName} failed with IO exception: ${e.message}")
+                            errorPill.showErrorPill(activityName, e)
+                            addTimelineItems(0, 0, it, listOf())
+                        }
                     }
                 }.awaitAll()
             }
@@ -184,7 +199,7 @@ class ChildEventHistoryLoader(
             deferredUpdate()
         }
         finally {
-            delay(POLL_INTERVAL.toLong())
+            delay(POLL_INTERVAL.toLong().milliseconds)
             scope.launch {
                 this@ChildEventHistoryLoader.updateUiJob?.join()
                 startFetch()

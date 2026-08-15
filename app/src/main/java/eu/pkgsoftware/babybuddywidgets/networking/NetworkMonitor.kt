@@ -28,7 +28,7 @@ class NetworkMonitor(context: Context) {
             // Notify listeners
             synchronized(listeners) {
                 // If we switched from one network to another, also notify of the change
-                if (previousNetwork != null && previousNetwork != network) {
+                if (previousNetwork != network) {
                     Log.d(TAG, "Network switched from $previousNetwork to $network")
                     listeners.forEach { it.onNetworkChanged(network) }
                 }
@@ -54,7 +54,7 @@ class NetworkMonitor(context: Context) {
 
             // Check if this is a different type of network (WiFi vs Cellular)
             val previousNetwork = currentNetwork
-            if (previousNetwork != null && previousNetwork != network) {
+            if (previousNetwork != network) {
                 currentNetwork = network
                 synchronized(listeners) {
                     listeners.forEach { it.onNetworkChanged(network) }
