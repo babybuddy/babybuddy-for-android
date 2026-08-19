@@ -5,6 +5,7 @@ import eu.pkgsoftware.babybuddywidgets.ActivityStore
 import eu.pkgsoftware.babybuddywidgets.BaseFragmentDisconnectInterface
 import eu.pkgsoftware.babybuddywidgets.debugging.GlobalDebugObject
 import eu.pkgsoftware.babybuddywidgets.networking.CoordinatedDisconnectDialog
+import eu.pkgsoftware.babybuddywidgets.networking.NetworkChangeListener
 import eu.pkgsoftware.babybuddywidgets.networking.NetworkMonitor
 import eu.pkgsoftware.babybuddywidgets.networking.babybuddy.Client
 import eu.pkgsoftware.babybuddywidgets.networking.babybuddy.models.Child
@@ -21,7 +22,7 @@ class ChildrenStateTracker(
     val activityStore: ActivityStore,
     val requestScheduler: RequestScheduler,
     val disconnectInterface: BaseFragmentDisconnectInterface
-) : NetworkMonitor.NetworkChangeListener {
+) : NetworkChangeListener {
     var children = emptyArray<Child>()
 
     private var listeners = mutableListOf<ChildListener>()

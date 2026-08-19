@@ -5,7 +5,8 @@ import com.fasterxml.jackson.databind.JsonNode
 import com.fasterxml.jackson.databind.node.ObjectNode
 import com.fasterxml.jackson.module.kotlin.jacksonObjectMapper
 import eu.pkgsoftware.babybuddywidgets.debugging.GlobalDebugObject
-import eu.pkgsoftware.babybuddywidgets.networking.NetworkMonitor
+import eu.pkgsoftware.babybuddywidgets.networking.INetworkMonitorInterface
+import eu.pkgsoftware.babybuddywidgets.networking.NetworkChangeListener
 import eu.pkgsoftware.babybuddywidgets.networking.RequestCodeFailure
 import eu.pkgsoftware.babybuddywidgets.networking.ServerAccessProviderInterface
 import eu.pkgsoftware.babybuddywidgets.networking.babybuddy.models.ApiInterface
@@ -104,7 +105,7 @@ data class PaginatedResult<T> (
     val totalCount: Int,
 )
 
-class Client(val credStore: ServerAccessProviderInterface, val networkMonitor: NetworkMonitor) {
+class Client(val credStore: ServerAccessProviderInterface, val networkMonitor: INetworkMonitorInterface) {
     val httpClient = OkHttpClient.Builder()
         .addInterceptor(ServerTimeOffsetInterceptor(SystemServerTimeOffsetTracker))
         .addInterceptor(AuthInterceptor("Token " + credStore.appToken, credStore.authCookies))
@@ -123,7 +124,7 @@ class Client(val credStore: ServerAccessProviderInterface, val networkMonitor: N
         while (true) {
             val thisCall = call.clone()
 
-            val networkManagerListener = object : NetworkMonitor.NetworkChangeListener {
+            val networkManagerListener = object : NetworkChangeListener {
                 override fun onNetworkChanged(newNetwork: android.net.Network?) {
                     thisCall.cancel()
                 }

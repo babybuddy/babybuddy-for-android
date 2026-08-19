@@ -7,17 +7,33 @@ import android.net.NetworkCapabilities
 import android.net.NetworkRequest
 import android.util.Log
 
-class NetworkMonitor(context: Context) {
+interface NetworkChangeListener {
+    fun onNetworkChanged(newNetwork: Network?)
+}
+
+interface INetworkMonitorInterface {
+    /**
+     * Start monitoring network changes
+     */
+    fun startMonitoring()
+
+    /**
+     * Stop monitoring network changes
+     */
+    fun stopMonitoring()
+    fun addListener(listener: NetworkChangeListener)
+    fun removeListener(listener: NetworkChangeListener)
+    fun isConnected(): Boolean
+    fun getCurrentNetwork(): Network?
+}
+
+class NetworkMonitor(context: Context) : INetworkMonitorInterface {
     private val connectivityManager = context.getSystemService(
         Context.CONNECTIVITY_SERVICE
     ) as ConnectivityManager
     private val listeners = mutableListOf<NetworkChangeListener>()
     private var currentNetwork: Network? = null
     private var isMonitoring = false
-
-    interface NetworkChangeListener {
-        fun onNetworkChanged(newNetwork: Network?)
-    }
 
     private val networkCallback = object : ConnectivityManager.NetworkCallback() {
         override fun onAvailable(network: Network) {
@@ -66,7 +82,7 @@ class NetworkMonitor(context: Context) {
     /**
      * Start monitoring network changes
      */
-    fun startMonitoring() {
+    override fun startMonitoring() {
         if (isMonitoring) {
             Log.w(TAG, "Already monitoring network changes")
             return
@@ -94,7 +110,7 @@ class NetworkMonitor(context: Context) {
     /**
      * Stop monitoring network changes
      */
-    fun stopMonitoring() {
+    override fun stopMonitoring() {
         if (!isMonitoring) {
             return
         }
@@ -107,7 +123,7 @@ class NetworkMonitor(context: Context) {
         }
     }
 
-    fun addListener(listener: NetworkChangeListener) {
+    override fun addListener(listener: NetworkChangeListener) {
         synchronized(listeners) {
             if (!listeners.contains(listener)) {
                 listeners.add(listener)
@@ -116,20 +132,20 @@ class NetworkMonitor(context: Context) {
         }
     }
 
-    fun removeListener(listener: NetworkChangeListener) {
+    override fun removeListener(listener: NetworkChangeListener) {
         synchronized(listeners) {
             listeners.remove(listener)
             //Log.d(TAG, "Removed network listener, total: ${listeners.size}")
         }
     }
 
-    fun isConnected(): Boolean {
+    override fun isConnected(): Boolean {
         val network = connectivityManager.activeNetwork ?: return false
         val capabilities = connectivityManager.getNetworkCapabilities(network) ?: return false
         return capabilities.hasCapability(NetworkCapabilities.NET_CAPABILITY_INTERNET)
     }
 
-    fun getCurrentNetwork(): Network? = currentNetwork
+    override fun getCurrentNetwork(): Network? = currentNetwork
 
     companion object {
         private const val TAG = "NetworkMonitor"

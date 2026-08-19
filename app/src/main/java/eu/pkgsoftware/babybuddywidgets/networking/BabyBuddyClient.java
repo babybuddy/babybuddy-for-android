@@ -409,7 +409,7 @@ public class BabyBuddyClient extends StreamReader {
     public final Client v2client;
 
     // Network change listener that marks when network has changed
-    private final NetworkMonitor.NetworkChangeListener networkChangeListener = new NetworkMonitor.NetworkChangeListener() {
+    private final NetworkChangeListener networkChangeListener = new NetworkChangeListener() {
         @Override
         public void onNetworkChanged(Network newNetwork) {
             networkChanged = true;

@@ -137,7 +137,7 @@ resources/nonfree/raw_$$(image_id).png: resources/nonfree/$$(image_id).marker
 	curl $$$$CURL_ARGS \
 		-X GET \
 		--output "$$@" \
-		"https://cdn-icons-png.freepik.com/$$$$( cat $$< | sed -E 's/^.*png_size=([0-9]+).*$$$$/\1/' )/$$$$( cat $$< | sed -E 's/^([0-9]+)[0-9]{3}.*$$$$/\1/' )/$$$$( cat $$< | sed -E 's/^([^?]+)::.*$$$$/\1/;s/^([^?]+)?.*$$$$/\1/' ).png"
+		"https://cdn-icons-png.flaticon.com/$$$$( cat $$< | sed -E 's/^.*png_size=([0-9]+).*$$$$/\1/' )/$$$$( cat $$< | sed -E 's/^([0-9]+)[0-9]{3}.*$$$$/\1/' )/$$$$( cat $$< | sed -E 's/^([^?]+)::.*$$$$/\1/;s/^([^?]+)?.*$$$$/\1/' ).png"
 endif
 
 resources/nonfree/$$(call get_field,2,$(1)).png: resources/nonfree/raw_$$(image_id).png

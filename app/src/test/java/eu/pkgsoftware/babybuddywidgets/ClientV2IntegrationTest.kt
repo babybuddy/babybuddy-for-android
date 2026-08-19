@@ -1,7 +1,11 @@
 package eu.pkgsoftware.babybuddywidgets
 
+import android.net.Network
 import eu.pkgsoftware.babybuddywidgets.login.GrabAppToken
 import eu.pkgsoftware.babybuddywidgets.login.GrabAppToken.MissingPage
+import eu.pkgsoftware.babybuddywidgets.networking.INetworkMonitorInterface
+import eu.pkgsoftware.babybuddywidgets.networking.NetworkChangeListener
+import eu.pkgsoftware.babybuddywidgets.networking.NetworkMonitor
 import eu.pkgsoftware.babybuddywidgets.networking.ServerAccessProviderInterface
 import eu.pkgsoftware.babybuddywidgets.networking.babybuddy.Client
 import eu.pkgsoftware.babybuddywidgets.networking.babybuddy.models.BmiEntry
@@ -73,7 +77,28 @@ class ClientV2IntegrationTest {
     }
 
     suspend fun runObtainListsTest() {
-        val client = Client(AppInterface())
+        val networkMonitor = object : INetworkMonitorInterface {
+            override fun startMonitoring() {
+            }
+
+            override fun stopMonitoring() {
+            }
+
+            override fun addListener(listener: NetworkChangeListener) {
+            }
+
+            override fun removeListener(listener: NetworkChangeListener) {
+            }
+
+            override fun isConnected(): Boolean {
+                return true
+            }
+
+            override fun getCurrentNetwork(): Network? {
+                return null
+            }
+        };
+        val client = Client(AppInterface(), networkMonitor)
 
         println("Get profile")
         client.getProfile()
