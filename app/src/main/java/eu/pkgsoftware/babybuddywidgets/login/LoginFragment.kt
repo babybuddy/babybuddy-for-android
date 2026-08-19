@@ -175,7 +175,7 @@ class LoginFragment : BaseFragment() {
             progressDialog.hide()
             moveToLoggedIn()
         } else {
-            mainActivity.storage.deleteAllData()
+            mainActivity.storage.deleteAllLoginData()
 
             val qrCode = QRCode(this, null, true)
             qrCode.cameraOnInitialized = Runnable {

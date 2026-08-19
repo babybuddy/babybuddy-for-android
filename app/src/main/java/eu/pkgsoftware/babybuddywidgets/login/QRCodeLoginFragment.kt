@@ -24,11 +24,7 @@ import eu.pkgsoftware.babybuddywidgets.databinding.QrCodeLoginFragmentBinding
 import eu.pkgsoftware.babybuddywidgets.utils.AsyncPromise
 import eu.pkgsoftware.babybuddywidgets.utils.AsyncPromiseFailure
 import eu.pkgsoftware.babybuddywidgets.utils.CancelParallel
-import eu.pkgsoftware.babybuddywidgets.utils.Promise
 import kotlinx.coroutines.launch
-import kotlinx.coroutines.sync.Mutex
-import java.util.Objects
-import kotlin.math.log
 
 
 const val CLEAR_DELAY_MS = 2000

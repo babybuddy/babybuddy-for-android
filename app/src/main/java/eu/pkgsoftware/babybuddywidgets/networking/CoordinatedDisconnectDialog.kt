@@ -2,12 +2,11 @@ package eu.pkgsoftware.babybuddywidgets.networking
 
 import android.app.ProgressDialog
 import android.content.DialogInterface
-import androidx.fragment.app.Fragment
 import androidx.navigation.Navigation.findNavController
 import eu.pkgsoftware.babybuddywidgets.BaseFragment
 import eu.pkgsoftware.babybuddywidgets.CredStore
 import eu.pkgsoftware.babybuddywidgets.R
-import eu.pkgsoftware.babybuddywidgets.networking.babybuddy.ConnectingDialogInterface
+import eu.pkgsoftware.babybuddywidgets.ConnectingDialogInterface
 
 class CoordinatedDisconnectDialog(val fragment: BaseFragment, val credStore: CredStore) {
     private val dialog = ProgressDialog(fragment.requireContext())

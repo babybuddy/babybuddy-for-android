@@ -5,7 +5,7 @@ import eu.pkgsoftware.babybuddywidgets.utils.Promise
 import eu.pkgsoftware.babybuddywidgets.networking.BabyBuddyClient.Timer
 
 interface TimersUpdatedCallback {
-    fun newTimerListLoaded(timers: Array<Timer>)
+    fun newTimerListLoaded(timers: Array<Timer>): Unit
 }
 
 class TranslatedException(message: String, val originalError: java.lang.Exception?) :

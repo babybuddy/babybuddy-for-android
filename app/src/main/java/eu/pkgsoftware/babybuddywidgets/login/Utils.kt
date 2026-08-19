@@ -92,7 +92,6 @@ class Utils(val mainActivity: MainActivity) {
                     if (r == null || r.any { it == null }) {
                         promise.failed("Invalid children list")
                     } else {
-                        mainActivity.children = r.filterNotNull().toTypedArray()
                         promise.succeeded(Any())
                     }
                 }
