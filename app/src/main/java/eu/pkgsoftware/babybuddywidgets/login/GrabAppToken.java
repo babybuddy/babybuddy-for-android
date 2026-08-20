@@ -200,6 +200,7 @@ public class GrabAppToken extends StreamReader {
         con.setUseCaches(false);
         con.setInstanceFollowRedirects(false);
 
+        con.setRequestProperty("User-Agent", "babybuddy-app");
         con.setRequestProperty("Content-Type", "application/x-www-form-urlencoded");
         con.setRequestProperty("Cookie", "csrftoken=" + csrftoken);
         con.setRequestProperty("Content-Length", "" + urlEncodedString.length());

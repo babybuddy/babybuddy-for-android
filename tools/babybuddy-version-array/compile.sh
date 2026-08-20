@@ -7,7 +7,16 @@ if [[ -f .wasbuilt ]]; then
   exit 0
 fi
 
-pipenv install --skip-lock -r requirements.txt 
+PY_VER_ARG=
+if [[ -n "$PYTHON_VERSION" ]]; then
+  PY_VER_ARG="--python $PYTHON_VERSION"
+fi
+
+pipenv install $PY_VER_ARG --skip-lock -r requirements.txt 
+
+# Weird requirement needed to make distutils work for newer Python versions.
+pipenv install $PY_VER_ARG --skip-lock setuptools
+
 export DJANGO_SETTINGS_MODULE=babybuddy.settings.development
 pipenv run npm install
 pipenv run npx gulp clean
