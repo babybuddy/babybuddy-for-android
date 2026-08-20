@@ -32,6 +32,16 @@
     <string name="about_external_media_resources_title">Third party media</string>
     <string name="about_external_libraries_title">Third party libraries</string>
 
+    <!-- Generic units -->
+    <plurals name="unit_minutes">
+        <item quantity="one">minute</item>
+        <item quantity="other">minutes</item>
+    </plurals>
+    <plurals name="unit_hours">
+        <item quantity="one">hour</item>
+        <item quantity="other">hours</item>
+    </plurals>
+
     <!-- Translations for all events and activities using their activity name as keys without capitalization -->
     <string name="activity_singular_sleep">sleep</string>
     <string name="activity_singular_tummy_times">tummy time</string>
@@ -138,6 +148,8 @@
     <string name="conflicting_activity_failed_to_correct_conflicts">Failed to correct conflicting time entries</string>
 
     <!-- Activities history strings -->
+    <string name="history_time_just_now">just now</string>
+    <string name="history_time_ago">{value} ago</string>
     <string name="history_delete_title">Delete entry</string>
     <string name="history_delete_question">
         Are you sure you want to delete the {type} entry from {start_date} {start_time} - {end_time}?
