@@ -38,6 +38,7 @@ import eu.pkgsoftware.babybuddywidgets.networking.RequestCodeFailure
 import eu.pkgsoftware.babybuddywidgets.networking.babybuddy.exponentialBackoff
 import eu.pkgsoftware.babybuddywidgets.networking.babybuddy.maxDate
 import eu.pkgsoftware.babybuddywidgets.networking.babybuddy.models.ChangeEntry
+import eu.pkgsoftware.babybuddywidgets.networking.babybuddy.models.Child
 import eu.pkgsoftware.babybuddywidgets.networking.babybuddy.models.FeedingEntry
 import eu.pkgsoftware.babybuddywidgets.networking.babybuddy.models.NoteEntry
 import eu.pkgsoftware.babybuddywidgets.networking.babybuddy.models.PumpingEntry
@@ -52,7 +53,6 @@ import eu.pkgsoftware.babybuddywidgets.utils.ConcurrentEventBlocker
 import eu.pkgsoftware.babybuddywidgets.utils.Promise
 import eu.pkgsoftware.babybuddywidgets.widgets.HorizontalDecIncEditor
 import eu.pkgsoftware.babybuddywidgets.widgets.SwitchButtonLogic
-import kotlinx.coroutines.Runnable
 import kotlinx.coroutines.launch
 import java.io.IOException
 import java.util.Date
@@ -895,7 +895,7 @@ class LoggingButtonController(
     val fragment: BaseFragment,
     val bindings: BabyManagerBinding,
     val controlsInterface: FragmentCallbacks,
-    val child: BabyBuddyClient.Child,
+    val child: Child,
     val timerControl: TimerControlInterface,
 ) : TimersUpdatedCallback {
     val logicMap = mapOf(
@@ -1159,6 +1159,7 @@ class LoggingButtonController(
         timerHandler = null
     }
 
+    // TODO Note to self: This is never called, update-times needs to be repaired first! Nope: updateTimerList
     override fun newTimerListLoaded(timers: Array<Timer>) {
         cachedTimers = timers;
         if (timerModificationsBlocker.isBlocked) return

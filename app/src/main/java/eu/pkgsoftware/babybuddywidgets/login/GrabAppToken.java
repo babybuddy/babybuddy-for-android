@@ -57,52 +57,6 @@ public class GrabAppToken extends StreamReader {
         public String result = null;
     }
 
-    /**
-     * Attempts to login to Baby Buddy with the given username/password combination and obtain the
-     * app-key.
-     *
-     * @param url
-     * @param username
-     * @param password
-     * @return Returns the token on success, or null on failure.
-     */
-    public static String grabToken(String url, String username, String password) throws Exception {
-        // Screw you android! I run my network-stuff synchronous if _I_ want to!
-        ThreadResult threadResult = new ThreadResult();
-        Thread thread = new Thread() {
-            @Override
-            public void run() {
-                String key = null;
-                try {
-                    GrabAppToken gat = new GrabAppToken(new URL(url));
-                    gat.login(username, password);
-                    try {
-                        key = gat.getFromProfilePage();
-                    } catch (MissingPage e) {
-                        key = gat.parseFromSettingsPage();
-                    }
-                } catch (IOException e) {
-                    threadResult.error = e;
-                } catch (Exception e) {
-                    e.printStackTrace();
-                    threadResult.error = e;
-                }
-                threadResult.result = key;
-            }
-        };
-        thread.start();
-        try {
-            thread.join();
-        } catch (InterruptedException e) {
-            Thread.currentThread().interrupt();
-        }
-
-        if (threadResult.error != null) {
-            throw threadResult.error;
-        }
-        return threadResult.result;
-    }
-
 
     private URL url;
     private HashMap<String, String> headers;
@@ -122,6 +76,8 @@ public class GrabAppToken extends StreamReader {
 
     private HttpURLConnection doQuery(String path) throws IOException {
         HttpURLConnection con = (HttpURLConnection) subPath(path).openConnection();
+        con.setConnectTimeout(20000);
+        con.setReadTimeout(30000);
         for (Map.Entry<String, String> item : headers.entrySet()) {
             con.setRequestProperty(item.getKey(), item.getValue());
         }

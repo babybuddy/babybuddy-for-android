@@ -28,6 +28,14 @@ interface ApiInterface {
     ): Call<PaginatedEntries<Child>>
 
     @ChildKey("child")
+    @GET("timers/")
+    fun getTimerEntries(
+        @Query("offset") offset: Int,
+        @Query("limit") limit: Int,
+        @QueryMap extraArgs: Map<String, String>,
+    ): Call<PaginatedEntries<Timer>>
+
+    @ChildKey("child")
     @GET("sleep/")
     fun getSleepEntries(
         @Query("offset") offset: Int,

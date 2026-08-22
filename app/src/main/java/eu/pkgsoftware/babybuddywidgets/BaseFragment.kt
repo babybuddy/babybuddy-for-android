@@ -8,6 +8,8 @@ import android.content.DialogInterface
 import android.content.Intent
 import android.net.Uri
 import android.os.Bundle
+import android.os.Handler
+import android.os.Looper
 import android.view.View
 import android.view.inputmethod.InputMethodManager
 import androidx.annotation.StringRes
@@ -19,8 +21,66 @@ import eu.pkgsoftware.babybuddywidgets.tutorial.TutorialEntry
 import eu.pkgsoftware.babybuddywidgets.tutorial.TutorialManagement
 import java.util.Locale
 
-interface DialogCallback {
-    fun call(b: Boolean)
+class BaseFragmentDisconnectInterface(
+    val dialogInterface: ConnectingDialogInterface,
+    mainLooper: Looper
+) : DisconnectInterface {
+    private var isConnected = true
+    private var earliestDisconnectTime: Long? = null
+    private val loopHandler = Handler(mainLooper)
+
+    private var updateLoopRunning = false
+    private var destroyed = false
+
+    fun startUpdateLoop() {
+        if (destroyed) {
+            return
+        }
+        if (!updateLoopRunning) {
+            updateLoopRunning = true
+            loopHandler.post(Runnable { this.updateDisconnecting() })
+        }
+    }
+
+    override fun setDisconnected(reason: String, disconnected: Boolean) {
+        if (destroyed) {
+            return
+        }
+        isConnected = !disconnected
+        if (disconnected) {
+            if (earliestDisconnectTime == null) {
+                earliestDisconnectTime = System.currentTimeMillis()
+            }
+            startUpdateLoop()
+        } else {
+            earliestDisconnectTime = null
+            dialogInterface.hideConnecting()
+        }
+    }
+
+    private fun updateDisconnecting() {
+        if (isConnected || destroyed) {
+            updateLoopRunning = false
+            return
+        }
+        val nowMs = System.currentTimeMillis()
+        val disconnectedFor = nowMs - (earliestDisconnectTime ?: nowMs)
+        dialogInterface.showConnecting(disconnectedFor, null)
+        loopHandler.postDelayed(Runnable { this.updateDisconnecting() }, 100)
+    }
+
+    override fun reportError(message: String, error: Exception?) {
+        if (error != null) {
+            error.printStackTrace()
+        } else {
+            System.err.println("RequestScheduler Error: $message")
+        }
+    }
+
+    fun destroy() {
+        dialogInterface.hideConnecting()
+        destroyed = true
+    }
 }
 
 abstract class BaseFragment : Fragment() {
@@ -32,6 +92,7 @@ abstract class BaseFragment : Fragment() {
 
     lateinit var disconnectDialog: CoordinatedDisconnectDialog
     lateinit var progressDialog: ProgressDialog
+    lateinit var disconnectInterface: BaseFragmentDisconnectInterface
 
     fun showError(override: Boolean, title: Int, errorMessage: String?): AlertDialog? {
         return showError(
@@ -47,7 +108,8 @@ abstract class BaseFragment : Fragment() {
             override,
             title,
             getString(errorMessage),
-            noopDialogCallback)
+            noopDialogCallback
+        )
     }
 
     fun showError(override: Boolean, title: Int, errorMessage: Int): AlertDialog? {
@@ -55,7 +117,8 @@ abstract class BaseFragment : Fragment() {
             override,
             getString(title),
             getString(errorMessage),
-            noopDialogCallback)
+            noopDialogCallback
+        )
     }
 
     @JvmOverloads
@@ -155,6 +218,7 @@ abstract class BaseFragment : Fragment() {
     override fun onPause() {
         super.onPause()
         mainActivity.tutorialManagement.deselectActiveFragment(this)
+        disconnectDialog.getInterface().hideConnecting()
         hideError()
     }
 
@@ -197,6 +261,10 @@ abstract class BaseFragment : Fragment() {
         disconnectDialog = CoordinatedDisconnectDialog(
             this, mainActivity.credStore
         )
+
+        disconnectInterface = BaseFragmentDisconnectInterface(
+            disconnectDialog.getInterface(), mainActivity.mainLooper
+        )
     }
 
     fun showProgress(message: String?) {
@@ -218,6 +286,7 @@ abstract class BaseFragment : Fragment() {
     override fun onDestroy() {
         super.onDestroy()
         progressDialog!!.dismiss()
+        disconnectInterface?.destroy()
         if (dialog != null) {
             dialog!!.dismiss()
         }
