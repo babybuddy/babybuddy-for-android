@@ -15,6 +15,20 @@
         <!-- Status bar color. -->
         <item name="android:statusBarColor">?attr/colorPrimaryVariant</item>
         <!-- Customize your theme here. -->
+        <item name="primaryColor">@color/primary_color_dark</item>
+        <item name="primaryBgColor">@color/primary_bg_color_dark</item>
+        <item name="appWidgetBackgroundColor">@color/light_blue_600</item>
+        <item name="appWidgetTextColor">@color/light_blue_50</item>
+        <item name="colorPopoverBackground">@color/semi_transparent_dark_background</item>
+        <item name="colorPopoverTextColor">@color/white</item>
+    </style>
+
+    <style name="AppWidgetAttrs">
+        <item name="primaryColor">@color/primary_color_dark</item>
+        <item name="primaryBgColor">@color/primary_bg_color_dark</item>
+
+        <item name="appWidgetBackgroundColor">@color/light_blue_600</item>
+        <item name="appWidgetTextColor">@color/light_blue_50</item>
         <item name="colorPopoverBackground">@color/semi_transparent_dark_background</item>
         <item name="colorPopoverTextColor">@color/white</item>
     </style>

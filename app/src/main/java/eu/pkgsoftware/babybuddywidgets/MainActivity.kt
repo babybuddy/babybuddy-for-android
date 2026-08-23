@@ -6,6 +6,7 @@ import android.util.Log
 import android.view.InputEvent
 import android.view.KeyEvent
 import android.view.MotionEvent
+import android.view.Window
 import androidx.appcompat.app.AlertDialog
 import androidx.appcompat.app.AppCompatActivity
 import androidx.appcompat.app.AppCompatDelegate
@@ -148,9 +149,12 @@ class MainActivity : AppCompatActivity() {
         ).let {
             ViewCompat.setOnApplyWindowInsetsListener(it.root) { v, insets ->
                 val systemBars = insets.getInsets(
-                    WindowInsetsCompat.Type.systemBars() or WindowInsetsCompat.Type.displayCutout()
+                    WindowInsetsCompat.Type.systemBars()
                 )
-                v.setPadding(systemBars.left, systemBars.top, systemBars.right, systemBars.bottom)
+                v.setPadding(systemBars.left, 0, systemBars.right, 0)
+
+                binding.topSpacer.layoutParams.height = systemBars.top
+
                 WindowInsetsCompat.CONSUMED
             }
 
@@ -166,6 +170,7 @@ class MainActivity : AppCompatActivity() {
     override fun onStart() {
         super.onStart()
 
+        window.isNavigationBarContrastEnforced = true
         applyLightDarkMode()
 
         binding.root.let {

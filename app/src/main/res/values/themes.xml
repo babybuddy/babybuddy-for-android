@@ -15,11 +15,25 @@
         <!-- Status bar color. -->
         <item name="android:statusBarColor">?attr/colorPrimaryVariant</item>
         <!-- Customize your theme here. -->
+        <item name="primaryColor">@color/primary_color</item>
+        <item name="primaryBgColor">@color/primary_bg_color</item>
+        <item name="appWidgetBackgroundColor">@color/light_blue_600</item>
+        <item name="appWidgetTextColor">@color/light_blue_50</item>
         <item name="colorPopoverBackground">@color/semi_transparent_dark_background</item>
         <item name="colorPopoverTextColor">@color/white</item>
     </style>
 
     <style name="Theme.BabyBuddyWidgets.AppBarOverlay" parent="ThemeOverlay.AppCompat.Dark.ActionBar" />
+
+    <style name="AppWidgetAttrs">
+        <item name="primaryColor">@color/primary_color</item>
+        <item name="primaryBgColor">@color/primary_bg_color</item>
+
+        <item name="appWidgetBackgroundColor">@color/light_blue_600</item>
+        <item name="appWidgetTextColor">@color/light_blue_50</item>
+        <item name="colorPopoverBackground">@color/semi_transparent_dark_background</item>
+        <item name="colorPopoverTextColor">@color/white</item>
+    </style>
 
     <style name="ThemeOverlay.BabyBuddyWidgets.AppWidgetContainer" parent="">
         <item name="appWidgetBackgroundColor">@color/light_blue_600</item>
