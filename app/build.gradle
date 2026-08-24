@@ -80,12 +80,12 @@ preBuild.dependsOn(invokeResourcesMakefile)
 preBuild.dependsOn(invokeHelpMakefile)
 
 android {
-    compileSdk = 36
+    compileSdk = 37
 
     defaultConfig {
         applicationId "eu.pkgsoftware.babybuddywidgets"
         minSdkVersion 29
-        targetSdk 36
+        targetSdk 37
         versionCode 54
         versionName "2.6.4"
 
