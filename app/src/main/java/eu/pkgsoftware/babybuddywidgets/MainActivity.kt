@@ -1,6 +1,7 @@
 package eu.pkgsoftware.babybuddywidgets
 
 import android.app.ProgressDialog
+import android.os.Build
 import android.os.Bundle
 import android.util.Log
 import android.view.InputEvent
@@ -142,6 +143,7 @@ class MainActivity : AppCompatActivity() {
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
+
         WindowCompat.enableEdgeToEdge(window)
 
         binding = ActivityMainBinding.inflate(
