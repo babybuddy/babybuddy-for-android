@@ -117,7 +117,7 @@ class LoginFragment : BaseFragment() {
                 val r = Rect()
                 toolbar.getGlobalVisibleRect(r)
 
-                return PointF((r.right - dpToPx(20f)).toFloat(), r.top.toFloat())
+                return PointF((r.right - dpToPx(20f)).toFloat(), (r.bottom - dpToPx(10f)).toFloat())
             }
         }
         m.addItem(BurgerMenuTutorialEntry(trackable))
