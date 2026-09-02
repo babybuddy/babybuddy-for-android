@@ -1,10 +1,11 @@
 <resources>
-    <declare-styleable name="AppWidgetAttrs">
-        <attr name="appWidgetBackgroundColor" format="color" />
-        <attr name="appWidgetTextColor" format="color" />
-        <attr name="colorPopoverBackground" format="color" />
-        <attr name="colorPopoverTextColor" format="color" />
-    </declare-styleable>
+    <attr name="primaryColor" format="color" />
+    <attr name="primaryBgColor" format="color" />
+
+    <attr name="appWidgetBackgroundColor" format="color" />
+    <attr name="appWidgetTextColor" format="color" />
+    <attr name="colorPopoverBackground" format="color" />
+    <attr name="colorPopoverTextColor" format="color" />
 
     <declare-styleable name="HorizontalNumberPicker">
         <attr name="textSize" format="dimension" />

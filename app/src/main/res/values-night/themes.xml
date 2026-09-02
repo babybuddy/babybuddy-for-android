@@ -3,7 +3,6 @@
     <style name="Theme.BabyBuddyWidgets" parent="Theme.MaterialComponents.DayNight.DarkActionBar">
         <item name="windowActionBar">false</item>
         <item name="windowNoTitle">true</item>
-        <item name="android:windowOptOutEdgeToEdgeEnforcement">true</item>
 
         <!-- Primary brand color. -->
         <item name="colorPrimary">@color/purple_200</item>
@@ -14,8 +13,22 @@
         <item name="colorSecondaryVariant">@color/teal_200</item>
         <item name="colorOnSecondary">@color/white</item>
         <!-- Status bar color. -->
-        <item name="android:statusBarColor" tools:targetApi="l">?attr/colorPrimaryVariant</item>
+        <item name="android:statusBarColor">?attr/colorPrimaryVariant</item>
         <!-- Customize your theme here. -->
+        <item name="primaryColor">@color/primary_color_dark</item>
+        <item name="primaryBgColor">@color/primary_bg_color_dark</item>
+        <item name="appWidgetBackgroundColor">@color/light_blue_600</item>
+        <item name="appWidgetTextColor">@color/light_blue_50</item>
+        <item name="colorPopoverBackground">@color/semi_transparent_dark_background</item>
+        <item name="colorPopoverTextColor">@color/white</item>
+    </style>
+
+    <style name="AppWidgetAttrs">
+        <item name="primaryColor">@color/primary_color_dark</item>
+        <item name="primaryBgColor">@color/primary_bg_color_dark</item>
+
+        <item name="appWidgetBackgroundColor">@color/light_blue_600</item>
+        <item name="appWidgetTextColor">@color/light_blue_50</item>
         <item name="colorPopoverBackground">@color/semi_transparent_dark_background</item>
         <item name="colorPopoverTextColor">@color/white</item>
     </style>

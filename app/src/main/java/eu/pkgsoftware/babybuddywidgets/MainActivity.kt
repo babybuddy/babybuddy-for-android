@@ -1,14 +1,19 @@
 package eu.pkgsoftware.babybuddywidgets
 
 import android.app.ProgressDialog
+import android.os.Build
 import android.os.Bundle
 import android.util.Log
 import android.view.InputEvent
 import android.view.KeyEvent
 import android.view.MotionEvent
+import android.view.Window
 import androidx.appcompat.app.AlertDialog
 import androidx.appcompat.app.AppCompatActivity
 import androidx.appcompat.app.AppCompatDelegate
+import androidx.core.view.ViewCompat
+import androidx.core.view.WindowCompat
+import androidx.core.view.WindowInsetsCompat
 import androidx.fragment.app.FragmentContainerView
 import androidx.navigation.Navigation
 import androidx.preference.PreferenceManager
@@ -139,20 +144,35 @@ class MainActivity : AppCompatActivity() {
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
 
+        WindowCompat.enableEdgeToEdge(window)
+
         binding = ActivityMainBinding.inflate(
             layoutInflater
         ).let {
+            ViewCompat.setOnApplyWindowInsetsListener(it.root) { v, insets ->
+                val systemBars = insets.getInsets(
+                    WindowInsetsCompat.Type.systemBars()
+                )
+                v.setPadding(systemBars.left, 0, systemBars.right, 0)
+
+                binding.topSpacer.layoutParams.height = systemBars.top
+
+                WindowInsetsCompat.CONSUMED
+            }
+
             setContentView(it.root)
             setSupportActionBar(it.toolbar)
             it
         }
         enableBackNavigationButton(false)
         tutorialAccess
+
     }
 
     override fun onStart() {
         super.onStart()
 
+        window.isNavigationBarContrastEnforced = true
         applyLightDarkMode()
 
         binding.root.let {
@@ -403,17 +423,26 @@ class MainActivity : AppCompatActivity() {
     fun applyLightDarkMode() {
         PreferenceManager.getDefaultSharedPreferences(this).let { p ->
             val mode = p.getString("setting_dark_light_mode", "system")
+            var useLightStatusBar = true
             when (mode) {
                 "system" -> {
                     delegate.localNightMode = AppCompatDelegate.MODE_NIGHT_FOLLOW_SYSTEM
+                    useLightStatusBar = when (resources.configuration.uiMode and
+                        android.content.res.Configuration.UI_MODE_NIGHT_MASK) {
+                        android.content.res.Configuration.UI_MODE_NIGHT_YES -> false
+                        else -> true
+                    }
                 }
                 "light" -> {
                     delegate.localNightMode = AppCompatDelegate.MODE_NIGHT_NO
+                    useLightStatusBar = true
                 }
                 "dark" -> {
                     delegate.localNightMode = AppCompatDelegate.MODE_NIGHT_YES
+                    useLightStatusBar = false
                 }
             }
+            WindowCompat.getInsetsController(window, window.decorView).isAppearanceLightStatusBars = useLightStatusBar
         }
     }
 }

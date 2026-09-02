@@ -25,6 +25,12 @@
     <color name="very_transparent_dark_background">#44000000</color>
     <color name="very_transparent_light_background">#44FFFFFF</color>
 
+    <color name="primary_color">#6200EE</color>
+    <color name="primary_bg_color">#A466FF</color>
+
+    <color name="primary_color_dark">#4800B8</color>
+    <color name="primary_bg_color_dark">#27006A</color>
+
     <color name="timer_button_disabled">#FFDDDDDD</color>
     <color name="diaper_enabled">#FFFFFFBB</color>
     <color name="sleep_enabled">#FFBBBBFF</color>
