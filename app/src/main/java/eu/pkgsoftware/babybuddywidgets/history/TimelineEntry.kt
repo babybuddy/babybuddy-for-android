@@ -114,17 +114,56 @@ class TimelineEntry(private val fragment: BaseFragment, private var _entry: Time
         val time_diff_minutes_str = time_diff_minutes.toString().padStart(2, '0')
         val time_diff_string = "$time_diff_hours:${time_diff_minutes_str}"
 
-        val start_time = TIME_FORMAT.format(local_start_time)
-        val end_time = TIME_FORMAT.format(local_end_time)
-        val opt_time_range = if (time_diff < 30) start_time else "$start_time - $end_time ($time_diff_string)"
+        val local_start_date_str = DATE_FORMAT.format(local_start_time)
+        val local_end_date_str = DATE_FORMAT.format(local_end_time)
+        val local_start_time_str = TIME_FORMAT.format(local_start_time)
+        val local_end_time_str = TIME_FORMAT.format(local_end_time)
+
+        val opt_time_diff_or_empty = (
+            if (time_diff < 30)
+                ""
+            else
+                "($time_diff_string)"
+        )
+        val opt_time_range = (
+            if (time_diff < 30)
+                local_start_time_str
+            else
+                "$local_start_time_str - $local_end_time_str ($opt_time_diff_or_empty)"
+        )
+
+        val endTimeAgoMinutes = (System.currentTimeMillis() / 1000 - end_utc.toEpochSecond()) / 60
+        val conditional_time_ago: String = run {
+            val timeAgoPattern = Phrase.from(fragment.resources, R.string.history_time_ago)
+
+            if (endTimeAgoMinutes < 1) {
+                fragment.resources.getString(R.string.history_time_just_now)
+            } else if (endTimeAgoMinutes < 120) {
+                val minuteStr = fragment.resources.getQuantityString(
+                    R.plurals.unit_minutes,
+                    endTimeAgoMinutes.toInt()
+                )
+                val t = timeAgoPattern.put("value", "${endTimeAgoMinutes} ${minuteStr}").format().toString()
+                "${t} ${opt_time_diff_or_empty}".trim()
+            } else if (endTimeAgoMinutes < (24 * 60)) {
+                val hours = endTimeAgoMinutes / 60
+                val hoursStr =
+                    fragment.resources.getQuantityString(R.plurals.unit_hours, hours.toInt())
+                val t = timeAgoPattern.put("value", "${hours} ${hoursStr}").format().toString()
+                "${t} ${opt_time_diff_or_empty}".trim()
+            } else {
+                "${local_start_date_str}  ${opt_time_range}"
+            }
+        }
 
         return phrase
             .putOptional("type", entry!!.appType)
-            .putOptional("start_date", DATE_FORMAT.format(local_start_time))
-            .putOptional("start_time", TIME_FORMAT.format(local_start_time))
-            .putOptional("end_date", DATE_FORMAT.format(local_end_time))
-            .putOptional("end_time", TIME_FORMAT.format(local_end_time))
+            .putOptional("start_date", local_start_date_str)
+            .putOptional("start_time", local_start_time_str)
+            .putOptional("end_date", local_end_date_str)
+            .putOptional("end_time", local_end_time_str)
             .putOptional("opt_time_range", opt_time_range)
+            .putOptional("conditional_time_ago", conditional_time_ago)
             .putOptional("time_diff", time_diff_string)
             .putOptional("notes", entry!!.notes.trim { it <= ' ' })
     }
@@ -133,7 +172,7 @@ class TimelineEntry(private val fragment: BaseFragment, private var _entry: Time
         hideAllSubviews()
         binding.viewGroup.getChildAt(0).visibility = View.VISIBLE
         val message = defaultPhraseFields(
-            Phrase.from("{type}\n{start_date}  {opt_time_range}")
+            Phrase.from("{type}\n{conditional_time_ago}")
         ).format().toString()
         binding.defaultContent.text = message
     }
@@ -142,7 +181,7 @@ class TimelineEntry(private val fragment: BaseFragment, private var _entry: Time
         hideAllSubviews()
         binding.tummyTimeView.visibility = View.VISIBLE
         val message = defaultPhraseFields(
-            Phrase.from("{start_date}  {opt_time_range}\n{notes}")
+            Phrase.from("{conditional_time_ago}\n{notes}")
         ).format().toString().trim { it <= ' ' }
         binding.tummytimeMilestoneText.text = message
     }
@@ -171,7 +210,7 @@ class TimelineEntry(private val fragment: BaseFragment, private var _entry: Time
             amountString = interpreteAmountValue(fragment, change.amount)
         }
         val message = defaultPhraseFields(
-            Phrase.from("{start_date}  {start_time}\n{amount}{notes}")
+            Phrase.from("{conditional_time_ago}\n{amount}{notes}")
         ).put("amount", amountString).format().toString().trim { it <= ' ' }
         binding.diaperText.text = message.trim { it <= ' ' }
     }
@@ -180,7 +219,7 @@ class TimelineEntry(private val fragment: BaseFragment, private var _entry: Time
         hideAllSubviews()
         binding.sleepView.visibility = View.VISIBLE
         val message = defaultPhraseFields(
-            Phrase.from("{start_date}  {opt_time_range}\n{notes}")
+            Phrase.from("{conditional_time_ago}\n{notes}")
         ).format().toString().trim { it <= ' ' }
         binding.sleepText.text = message.trim { it <= ' ' }
     }
@@ -189,7 +228,7 @@ class TimelineEntry(private val fragment: BaseFragment, private var _entry: Time
         hideAllSubviews()
         binding.noteTimeView.visibility = View.VISIBLE
         val message = defaultPhraseFields(
-            Phrase.from("{start_date}  {start_time}\n{notes}")
+            Phrase.from("{conditional_time_ago}\n{notes}")
         ).format().toString().trim { it <= ' ' }
         binding.noteTimeEntryText.text = message.trim { it <= ' ' }
     }
@@ -199,7 +238,7 @@ class TimelineEntry(private val fragment: BaseFragment, private var _entry: Time
         val pumping = entry!! as PumpingEntry
         binding.pumpingTimeView.visibility = View.VISIBLE
         val message = defaultPhraseFields(
-            Phrase.from("{start_date}  {opt_time_range}\n{amount}{notes}")
+            Phrase.from("{conditional_time_ago}\n{amount}{notes}")
         ).put(
             "amount", interpreteAmountValue(fragment, pumping.amount)
         ).format().toString().trim { it <= ' ' }
@@ -242,7 +281,7 @@ class TimelineEntry(private val fragment: BaseFragment, private var _entry: Time
         }
 
         val message = defaultPhraseFields(
-            Phrase.from("{start_date}  {opt_time_range}\n{amount}{notes}")
+            Phrase.from("{conditional_time_ago}\n{amount}{notes}")
         ).put(
             "amount", interpreteAmountValue(fragment, feeding.amount)
         ).format().toString().trim { it <= ' ' }
