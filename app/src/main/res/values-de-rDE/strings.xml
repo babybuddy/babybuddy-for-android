@@ -1,5 +1,31 @@
 <?xml version="1.0" encoding="utf-8"?>
 <resources>
+    <array name="timerTypeNames">
+        <item>Mahlzeit</item>
+        <item>Schlaf</item>
+        <item>Bauchlage</item>
+        <item>Abpumpen</item>
+    </array>
+    <array name="feedingTypes">
+        <item>Brustmilch</item>
+        <item>Säuglingsnahrung</item>
+        <item>Angereicherte Brustmilch</item>
+        <item>Feste Nahrung</item>
+    </array>
+    <array name="feedingMethods">
+        <item>Fläschchen</item>
+        <item>Linke Brust</item>
+        <item>Rechte Brust</item>
+        <item>Beide Brüste</item>
+        <item>Durch Eltern gefüttert</item>
+        <item>Selber gefüttert</item>
+    </array>
+    <array name="solidDiaperColors">
+        <item>Schwarz</item>
+        <item>Braun</item>
+        <item>Grün</item>
+        <item>Gelb</item>
+    </array>
     <string name="app_name">Baby Buddy</string>
     <string name="about_text">Diese Android-App ist Open-Source-Software, die von &lt;a href=\'http://www.craftware.info\'&gt;Paul Konstantin Gerke&lt;/a&gt; erstellt wurde und unter der MIT-Lizenz (siehe unten) lizenziert ist. Der Quellcode der App ist verfügbar via &lt;a href=\'https://github.com/babybuddy/babybuddy-for-android/\'&gt;https://github.com/babybuddy/babybuddy-for-android/&lt;/a&gt;. Die App verwendet Mediendateien von Dritten deren Verwendung durch die unten genannten Lizenzen geregelt ist.</string>
     <string name="about_external_media_resources_title">Medien von Drittanbietern</string>
