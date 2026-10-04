@@ -103,6 +103,7 @@
     <string name="error_storing_activity_failed_title">Could not store activity</string>
     <string name="error_storing_activity_unsupported">Unsupported activity</string>
     <string name="popup_message_storing">Storing {activity} …</string>
+    <string name="start_time_label_pattern">Start: {datetime}</string>
 
     <string name="activity_notes_hint">Notes</string>
 
@@ -178,6 +179,7 @@
 
     <!-- Generic dialog fields -->
     <string name="dialog_ok">OK</string>
+    <string name="dialog_cancel">Cancel</string>
 
     <!-- Help screen -->
     <string name="help_title">Help</string>

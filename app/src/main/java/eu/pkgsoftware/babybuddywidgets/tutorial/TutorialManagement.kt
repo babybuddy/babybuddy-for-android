@@ -1,6 +1,5 @@
 package eu.pkgsoftware.babybuddywidgets.tutorial
 
-import android.app.Activity
 import android.graphics.PointF
 import eu.pkgsoftware.babybuddywidgets.BaseFragment
 import eu.pkgsoftware.babybuddywidgets.CredStore
@@ -11,7 +10,6 @@ import kotlinx.coroutines.cancel
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.isActive
 import kotlinx.coroutines.launch
-import kotlinx.coroutines.withContext
 
 abstract class Trackable {
     open val orientation: Direction = Direction.UP

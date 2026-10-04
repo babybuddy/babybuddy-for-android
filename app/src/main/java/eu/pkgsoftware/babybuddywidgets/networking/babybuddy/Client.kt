@@ -1,6 +1,7 @@
 package eu.pkgsoftware.babybuddywidgets.networking.babybuddy
 
 import android.util.Log
+import com.fasterxml.jackson.annotation.OptBoolean
 import com.fasterxml.jackson.databind.JsonNode
 import com.fasterxml.jackson.databind.node.ObjectNode
 import com.fasterxml.jackson.module.kotlin.jacksonObjectMapper
@@ -26,6 +27,8 @@ import okio.Buffer
 import retrofit2.Call
 import retrofit2.Retrofit
 import retrofit2.converter.jackson.JacksonConverterFactory
+import retrofit2.http.PATCH
+import retrofit2.http.POST
 import java.io.ByteArrayOutputStream
 import java.net.MalformedURLException
 import java.net.URL
@@ -42,6 +45,7 @@ import kotlin.reflect.full.functions
 import kotlin.reflect.jvm.javaMethod
 import kotlin.coroutines.resume
 import kotlin.coroutines.resumeWithException
+import kotlin.reflect.KType
 
 val LOGTAG = "ClientV2"
 
@@ -293,28 +297,40 @@ class Client(val credStore: ServerAccessProviderInterface, val networkMonitor: I
         return selected
     }
 
-    suspend fun <T : TimeEntry> createEntry(itemClass: KClass<T>, item: T): T {
-        val REQID = genRequestId()
-        val klass = item.javaClass.kotlin
-
-        val desiredArgumentType = JsonNode::class.createType()
+    private inline fun <reified AnnType: Annotation> selectFunction(selectReturnType: KType, selectDataArgumentType: KType?): KFunction<*>? {
         val desiredReturnType = Call::class.createType(
             arguments = listOf(
                 KTypeProjection(
                     KVariance.INVARIANT,
-                    itemClass.createType()
+                    selectReturnType
                 )
             )
         )
+
         var selected: KFunction<*>? = null
         for (func in ApiInterface::class.functions) {
-            if (desiredArgumentType == func.findParameterByName("data")?.type) {
-                if (desiredReturnType == func.returnType) {
-                    selected = func
+            if (func.findAnnotation<AnnType>() == null) {
+                // This is not a POST function
+                continue
+            }
+            if (selectDataArgumentType != null) {
+                val argType = func.findParameterByName("data")?.type
+                if (argType != selectDataArgumentType) {
+                    continue
                 }
             }
+            if (desiredReturnType == func.returnType) {
+                selected = func
+            }
         }
+        return selected
+    }
 
+    suspend fun <T : TimeEntry> createEntry(itemClass: KClass<T>, item: T): T {
+        val REQID = genRequestId()
+        val klass = item.javaClass.kotlin
+
+        val selected: KFunction<*>? = selectFunction<POST>(itemClass.createType(), JsonNode::class.createType())
         if (selected == null) {
             throw IncorrectApiConfiguration(
                 "${REQID} V2Client::createEntry setter for ${klass.qualifiedName} is missing"
@@ -333,6 +349,45 @@ class Client(val credStore: ServerAccessProviderInterface, val networkMonitor: I
             }
             catch (e: Exception) {
                 GlobalDebugObject.log("${REQID} V2Client::createEntry ${klass.simpleName} !exception! ${e.message}")
+                throw e
+            }
+        }
+    }
+
+    suspend fun <T : Any> modifyEntry(itemClass: KClass<T>, item: T, fieldFilter: Array<String>? = null): T {
+        val REQID = genRequestId()
+        val klass = item.javaClass.kotlin
+
+        val selected: KFunction<*>? = selectFunction<PATCH>(itemClass.createType(), JsonNode::class.createType())
+        if (selected == null) {
+            throw IncorrectApiConfiguration(
+                "${REQID} V2Client::modifyEntry setter for ${klass.qualifiedName} is missing"
+            )
+        }
+
+        val mapper = jacksonObjectMapper()
+        val node = mapper.valueToTree<ObjectNode>(item)
+        val id = node.get("id")?.asInt() ?: throw IncorrectApiConfiguration(
+            "${REQID} V2Client::modifyEntry setter for ${klass.qualifiedName} is missing id"
+        )
+        node.remove("id")
+
+        val currentKeys = node.fieldNames().asSequence().toSet()
+        val keysToRemove = fieldFilter?.let {
+            currentKeys - it.toSet()
+        } ?: emptySet()
+        for (key in keysToRemove) {
+            node.remove(key)
+        }
+
+        GlobalDebugObject.log("${REQID} V2Client::modifyEntry ${klass.simpleName}")
+        return withContext(Dispatchers.IO) {
+            try {
+                val call: Call<T> = selected.javaMethod!!.invoke(api, id, node) as Call<T>
+                return@withContext executeCallAsync(call)
+            }
+            catch (e: Exception) {
+                GlobalDebugObject.log("${REQID} V2Client::modifyEntry ${klass.simpleName} !exception! ${e.message}")
                 throw e
             }
         }

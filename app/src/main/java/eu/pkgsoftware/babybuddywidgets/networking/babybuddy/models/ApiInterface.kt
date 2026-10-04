@@ -8,6 +8,7 @@ import retrofit2.http.DELETE
 import retrofit2.http.GET
 import retrofit2.http.Header
 import retrofit2.http.Headers
+import retrofit2.http.PATCH
 import retrofit2.http.POST
 import retrofit2.http.Path
 import retrofit2.http.Query
@@ -34,6 +35,14 @@ interface ApiInterface {
         @Query("limit") limit: Int,
         @QueryMap extraArgs: Map<String, String>,
     ): Call<PaginatedEntries<Timer>>
+
+    @ChildKey("child")
+    @PATCH("timers/{id}/")
+    @Headers("Content-Type: application/json")
+    fun modifyTimerEntry(
+        @Path(value = "id", encoded = true) id: Int,
+        @Body data: JsonNode
+    ): Call<Timer>
 
     @ChildKey("child")
     @GET("sleep/")
@@ -152,4 +161,8 @@ interface ApiInterface {
     @POST("pumping/")
     @Headers("Content-Type: application/json")
     fun sendPumpingEntry(@Body data: JsonNode): Call<PumpingEntry>
+
+    @PATCH("sleep/{id}/")
+    @Headers("Content-Type: application/json")
+    fun patchSleepEntry(@Path(value = "id", encoded = true) id: Int, @Body data: JsonNode): Call<SleepEntry>
 }

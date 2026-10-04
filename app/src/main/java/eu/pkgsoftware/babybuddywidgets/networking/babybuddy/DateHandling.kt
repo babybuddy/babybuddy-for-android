@@ -46,3 +46,13 @@ fun nowServer(): Date {
 fun maxDate(d1: Date, d2: Date): Date {
     return if (d1.after(d2)) d1 else d2
 }
+
+fun localeFormatDate(d: Date): String {
+    val sdf = SimpleDateFormat.getDateInstance()
+    return sdf.format(d)
+}
+
+fun localeFormatDateTime(d: Date): String {
+    val sdf = SimpleDateFormat.getDateTimeInstance()
+    return sdf.format(d)
+}

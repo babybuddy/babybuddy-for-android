@@ -1,5 +1,6 @@
 package eu.pkgsoftware.babybuddywidgets.timers
 
+import android.app.DialogFragment
 import android.content.Context
 import android.os.Handler
 import android.view.View
@@ -14,6 +15,7 @@ import android.widget.Spinner
 import androidx.core.view.children
 import androidx.core.view.isVisible
 import androidx.core.widget.addTextChangedListener
+import androidx.fragment.app.setFragmentResultListener
 import com.fasterxml.jackson.annotation.JsonIgnoreProperties
 import com.fasterxml.jackson.annotation.JsonProperty
 import com.squareup.phrase.Phrase
@@ -35,7 +37,10 @@ import eu.pkgsoftware.babybuddywidgets.login.Utils
 import eu.pkgsoftware.babybuddywidgets.networking.BabyBuddyClient
 import eu.pkgsoftware.babybuddywidgets.networking.BabyBuddyClient.Timer
 import eu.pkgsoftware.babybuddywidgets.networking.RequestCodeFailure
+import eu.pkgsoftware.babybuddywidgets.networking.babybuddy.clientToServerTime
 import eu.pkgsoftware.babybuddywidgets.networking.babybuddy.exponentialBackoff
+import eu.pkgsoftware.babybuddywidgets.networking.babybuddy.localeFormatDate
+import eu.pkgsoftware.babybuddywidgets.networking.babybuddy.localeFormatDateTime
 import eu.pkgsoftware.babybuddywidgets.networking.babybuddy.maxDate
 import eu.pkgsoftware.babybuddywidgets.networking.babybuddy.models.ChangeEntry
 import eu.pkgsoftware.babybuddywidgets.networking.babybuddy.models.Child
@@ -103,6 +108,7 @@ abstract class GenericLoggingController(
 
     open val uiIconList = bindings.icons.children
     open val uiNoteEditor = bindings.noteEditor
+    open val uiEditStartTimeLabel = bindings.startTime
     open val uiCurrentTimerTime = bindings.currentTimerTime
 
     override val saveButton: ImageButton = bindings.sendButton
@@ -125,6 +131,44 @@ abstract class GenericLoggingController(
             }
         }
 
+        bindings.editStartTime.setOnClickListener {
+            val dialogFrag = EditStartTimeFragment.newInstance(
+                timer?.start ?: nowServer()
+            )
+            dialogFrag.show(fragment.parentFragmentManager, "editStartTime")
+            dialogFrag.setFragmentResultListener(RESULT_KEY) { _, bundle ->
+                val newTime = bundle.getLong(RESULT_KEY)
+                timer?.let {
+                    it.start = Date(newTime)
+                    updateVisuals()
+                }
+                val v2client = fragment.mainActivity.client.v2client
+                val newTimerEntry = eu.pkgsoftware.babybuddywidgets.networking.babybuddy.models.Timer(
+                    id = timer!!.id,
+                    childId = timer!!.child_id,
+                    start = clientToServerTime(Date(newTime)),
+                    duration = "0",
+                    userId = timer!!.user_id,
+                    name = timer!!.name
+                )
+                fragment.mainActivity.scope.launch {
+                    try {
+                        v2client.modifyEntry(
+                            eu.pkgsoftware.babybuddywidgets.networking.babybuddy.models.Timer::class,
+                            newTimerEntry,
+                            arrayOf("start")
+                        )
+                    } catch (e: Exception) {
+                        fragment.showError(
+                            true,
+                            R.string.activity_store_failure_message,
+                            R.string.activity_store_failure_server_error
+                        )
+                    }
+                }
+            }
+        }
+
         updateVisuals()
     }
 
@@ -136,6 +180,7 @@ abstract class GenericLoggingController(
 
     override fun reset() {
         uiNoteEditor.setText("")
+        uiEditStartTimeLabel.setText("")
         storeStateForSuspend()
     }
 
@@ -186,6 +231,16 @@ abstract class GenericLoggingController(
                 .replace("HH".toRegex(), "" + hours)
                 .replace("MM".toRegex(), Utils.padToLen("" + minutes % 60, '0', 2))
                 .replace("ss".toRegex(), Utils.padToLen("" + seconds % 60, '0', 2))
+        }
+
+        (timer?.start).let {
+            if (it != null) {
+                val phrase = Phrase.from(fragment.context, R.string.start_time_label_pattern)
+                    .put("datetime", localeFormatDateTime(it))
+                uiEditStartTimeLabel.text = phrase.format()
+            } else {
+                uiEditStartTimeLabel.text = ""
+            }
         }
     }
 
